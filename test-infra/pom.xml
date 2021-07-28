@@ -75,6 +75,7 @@
         <module>camel-test-infra-chatscript</module>
         <module>camel-test-infra-openldap</module>
         <module>camel-test-infra-ignite</module>
+        <module>camel-test-infra-hazelcast</module>
     </modules>
 
     <build>

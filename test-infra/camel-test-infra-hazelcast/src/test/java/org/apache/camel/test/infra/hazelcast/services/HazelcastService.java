@@ -7,12 +7,12 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public interface HazelcastService extends BeforeAllCallback, AfterAllCallback, TestService {
 
-    String host();
+    String getHost();
 
-    int port();
+    int getPort();
 
     default String getServiceAddress() {
-        return String.format("%s:%d", host(), port());
+        return String.format("%s:%d", getHost(), getPort());
     }
 
     @Override
