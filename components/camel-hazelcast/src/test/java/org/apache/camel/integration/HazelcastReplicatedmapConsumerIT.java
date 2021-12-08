@@ -14,20 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.hazelcast;
+package org.apache.camel.integration;
 
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.replicatedmap.ReplicatedMap;
-import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.hazelcast.HazelcastConstants;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit5.CamelTestSupport;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
@@ -35,29 +31,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HazelcastReplicatedmapConsumerTest extends CamelTestSupport {
+public class HazelcastReplicatedmapConsumerIT extends BaseHazelcast {
 
-    private HazelcastInstance hazelcastInstance;
     private ReplicatedMap<Object, Object> map;
 
-    @BeforeAll
+    @BeforeEach
     public void beforeEach() {
-        hazelcastInstance = Hazelcast.newHazelcastInstance();
-        map = hazelcastInstance.getReplicatedMap("rm");
-    }
-
-    @AfterAll
-    public void afterEach() {
-        if (hazelcastInstance != null) {
-            hazelcastInstance.shutdown();
+        if (map == null) {
+            map = hazelcastInstance.getReplicatedMap("rm");
         }
-    }
-
-    @Override
-    protected CamelContext createCamelContext() throws Exception {
-        CamelContext context = super.createCamelContext();
-        HazelcastCamelTestHelper.registerHazelcastComponents(context, hazelcastInstance);
-        return context;
+        map.clear();
     }
 
     @Test

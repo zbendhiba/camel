@@ -14,59 +14,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.processor.aggregate.hazelcast;
+package org.apache.camel.integration;
 
 import com.hazelcast.client.HazelcastClient;
 import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.core.HazelcastInstance;
+import org.apache.camel.CamelContext;
+import org.apache.camel.component.hazelcast.HazelcastCamelTestHelper;
 import org.apache.camel.test.infra.hazelcast.services.HazelcastService;
 import org.apache.camel.test.infra.hazelcast.services.HazelcastServiceFactory;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HazelcastAggregationRepositoryCamelTestSupport extends CamelTestSupport {
-
-    private static HazelcastInstance hzOne;
-    private static HazelcastInstance hzTwo;
+public class BaseHazelcast extends CamelTestSupport {
+    protected static HazelcastInstance hazelcastInstance;
 
     @RegisterExtension
     protected static HazelcastService service = HazelcastServiceFactory.createService();
 
-    protected static HazelcastInstance getFirstInstance() {
-        return hzOne;
-    }
-
-    protected static HazelcastInstance getSecondInstance() {
-        return hzTwo;
-    }
-
     @BeforeAll
-    public static void setUpHazelcastCluster() {
-        hzOne = HazelcastClient.newHazelcastClient(createConfig("hzOne"));
-        hzTwo = HazelcastClient.newHazelcastClient(createConfig("hzTwo"));
+    void beforeAll() {
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getNetworkConfig().addAddress(service.getServiceAddress());
+        hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
+
     }
 
     @AfterAll
-    public static void shutDownHazelcastCluster() {
-        if (hzOne != null) {
-            hzOne.shutdown();
+    public static void afterAll() {
+        if (hazelcastInstance != null) {
+            hazelcastInstance.shutdown();
         }
-
-        if (hzTwo != null) {
-            hzTwo.shutdown();
-        }
-
     }
 
-    private static ClientConfig createConfig(String name) {
-        ClientConfig clientConfig = new ClientConfig();
-        clientConfig.setInstanceName(name);
-        clientConfig.getMetricsConfig().setEnabled(false);
-        clientConfig.getNetworkConfig().addAddress(service.getServiceAddress());
-        return clientConfig;
+    @Override
+    protected CamelContext createCamelContext() throws Exception {
+        CamelContext context = super.createCamelContext();
+        HazelcastCamelTestHelper.registerHazelcastComponents(context, hazelcastInstance);
+        return context;
     }
 }

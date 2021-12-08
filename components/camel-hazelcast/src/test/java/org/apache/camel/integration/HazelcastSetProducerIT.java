@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.hazelcast;
+package org.apache.camel.integration;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -22,60 +22,30 @@ import java.util.List;
 import java.util.Set;
 
 import com.hazelcast.collection.ISet;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.processor.aggregate.hazelcast.HazelcastAggregationRepository;
-import org.apache.camel.test.infra.hazelcast.services.HazelcastService;
-import org.apache.camel.test.infra.hazelcast.services.HazelcastServiceFactory;
-import org.apache.camel.test.junit5.CamelTestSupport;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.apache.camel.component.hazelcast.HazelcastConstants;
+import org.apache.camel.component.hazelcast.HazelcastOperation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.TestInstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class HazelcastSetProducerTest extends CamelTestSupport {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class HazelcastSetProducerIT extends BaseHazelcast {
 
     private static ISet<String> set;
-    private static HazelcastInstance hazelcastInstance;
-
-
-    @RegisterExtension
-    public static HazelcastService service = HazelcastServiceFactory.createService();
-
-
-    @BeforeAll
-    public static void beforeAll() {
-        hazelcastInstance = Hazelcast.newHazelcastInstance();
-        set = hazelcastInstance.getSet("bar");
-    }
-
-    @AfterAll
-    public static void afterEach() {
-        if (hazelcastInstance != null) {
-            hazelcastInstance.shutdown();
-        }
-    }
 
     @BeforeEach
     public void beforeEach() {
+        if (set == null) {
+            set = hazelcastInstance.getSet("bar");
+        }
         set.clear();
-    }
-
-    @Override
-    protected CamelContext createCamelContext() throws Exception {
-        CamelContext context = super.createCamelContext();
-        HazelcastCamelTestHelper.registerHazelcastComponents(context, hazelcastInstance);
-        return context;
     }
 
     @Test
@@ -151,29 +121,19 @@ public class HazelcastSetProducerTest extends CamelTestSupport {
         assertEquals(t, consumer.receiveBody("seda:out", 5000, Set.class));
     }
 
-
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
 
-                from("direct:addInvalid")
-                        .setHeader(HazelcastConstants.OPERATION, constant("bogus"))
-                        .aggregate(header(HazelcastConstants.OPERATION), new MyAggregationStrategy())
-                        .aggregationRepository(new HazelcastAggregationRepository("aggregation", service.getServiceAddress()))
+                from("direct:addInvalid").setHeader(HazelcastConstants.OPERATION, constant("bogus"))
                         .toF("hazelcast-%sbar", HazelcastConstants.SET_PREFIX);
 
-                from("direct:add")
-                        .setHeader(HazelcastConstants.OPERATION, constant(HazelcastOperation.ADD))
-                        .aggregate(header(HazelcastConstants.OPERATION), new MyAggregationStrategy())
-                        .aggregationRepository(new HazelcastAggregationRepository("aggregation", service.getServiceAddress()))
+                from("direct:add").setHeader(HazelcastConstants.OPERATION, constant(HazelcastOperation.ADD))
                         .toF("hazelcast-%sbar", HazelcastConstants.SET_PREFIX);
 
-                from("direct:removeValue")
-                        .setHeader(HazelcastConstants.OPERATION, constant(HazelcastOperation.REMOVE_VALUE))
-                        .aggregate(header(HazelcastConstants.OPERATION), new MyAggregationStrategy())
-                        .aggregationRepository(new HazelcastAggregationRepository("aggregation", service.getServiceAddress()))
+                from("direct:removeValue").setHeader(HazelcastConstants.OPERATION, constant(HazelcastOperation.REMOVE_VALUE))
                         .toF("hazelcast-%sbar", HazelcastConstants.SET_PREFIX);
 
                 from("direct:clear").setHeader(HazelcastConstants.OPERATION, constant(HazelcastOperation.CLEAR))

@@ -14,16 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.processor.idempotent.hazelcast;
+package org.apache.camel.integration;
 
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.client.HazelcastClient;
+import com.hazelcast.client.config.ClientConfig;
 import com.hazelcast.map.IMap;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.junit5.CamelTestSupport;
-import org.junit.jupiter.api.AfterAll;
+import org.apache.camel.integration.hazelcast.HazelcastIdempotentRepository;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,32 +32,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class HazelcastIdempotentRepositoryTest extends CamelTestSupport {
+public class HazelcastIdempotentRepositoryIT extends BaseHazelcast {
 
-    private IMap<String, Boolean> cache;
-    private HazelcastIdempotentRepository repo;
-    private HazelcastInstance hazelcastInstance;
+    private static IMap<String, Boolean> cache;
+    private static HazelcastIdempotentRepository repo;
 
-    private String key01 = "123";
-    private String key02 = "456";
+    private final String key01 = "123";
+    private final String key02 = "456";
 
     @BeforeAll
-    void setupHazelcast() throws Exception {
-        Config config = new Config();
-        config.getNetworkConfig().getJoin().getTcpIpConfig().setEnabled(false);
-        config.getNetworkConfig().getJoin().getAutoDetectionConfig().setEnabled(false);
-        hazelcastInstance = Hazelcast.newHazelcastInstance(null);
+    void beforeAll() {
+        ClientConfig clientConfig = new ClientConfig();
+        clientConfig.getNetworkConfig().addAddress(service.getServiceAddress());
+        clientConfig.getNetworkConfig().getAutoDetectionConfig().setEnabled(false);
+        hazelcastInstance = HazelcastClient.newHazelcastClient(clientConfig);
         cache = hazelcastInstance.getMap("myRepo");
         repo = new HazelcastIdempotentRepository(hazelcastInstance, "myRepo");
     }
 
-    @AfterAll
-    void teardownHazelcast() {
-        hazelcastInstance.getLifecycleService().terminate();
-    }
-
     @BeforeEach
-    void clearCache() {
+    public void beforeEach() {
         cache.clear();
     }
 

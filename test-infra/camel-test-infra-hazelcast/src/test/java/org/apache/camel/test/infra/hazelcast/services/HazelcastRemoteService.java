@@ -1,9 +1,8 @@
 package org.apache.camel.test.infra.hazelcast.services;
 
-import com.sun.jdi.IntegerValue;
 import org.apache.camel.test.infra.hazelcast.common.HazelcastProperties;
 
-public class HazelcastRemoteService implements HazelcastService{
+public class HazelcastRemoteService implements HazelcastService {
     @Override
     public void registerProperties() {
 

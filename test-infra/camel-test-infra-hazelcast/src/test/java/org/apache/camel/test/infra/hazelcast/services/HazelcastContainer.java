@@ -9,7 +9,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 public class HazelcastContainer extends GenericContainer {
 
     public static final Integer PORT_DEFAULT = 5701;
-    public static final String HAZELCAST_IMAGE = "hazelcast/hazelcast:latest-snapshot";
+    public static final String HAZELCAST_IMAGE = "hazelcast/hazelcast:5.0";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HazelcastContainer.class);
     private static final String CONTAINER_NAME = "hazelcast";
@@ -25,7 +25,7 @@ public class HazelcastContainer extends GenericContainer {
         addFixedExposedPort(PORT_DEFAULT, PORT_DEFAULT);
         withNetworkAliases(CONTAINER_NAME);
         withLogConsumer(new Slf4jLogConsumer(LOGGER));
-        waitingFor(Wait.forLogMessage(".*is ready for business. Have fun!.*", 1));
+        waitingFor(Wait.forLogMessage(".*is STARTED.*", 1));
     }
 
     public int getServicePort() {

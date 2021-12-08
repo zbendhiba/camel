@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.hazelcast;
+package org.apache.camel.integration;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.junit.jupiter.api.TestInstance;
 
-public class HazelcastSedaInOutTransactedTest extends HazelcastSedaInOutTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class HazelcastSedaInOutTransactedIT extends HazelcastSedaInOutIT {
 
     @Override
     protected RouteBuilder createRouteBuilder() throws Exception {

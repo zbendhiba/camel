@@ -14,60 +14,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.hazelcast;
+package org.apache.camel.integration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import com.hazelcast.collection.IList;
-import com.hazelcast.config.Config;
-import com.hazelcast.core.Hazelcast;
-import com.hazelcast.core.HazelcastInstance;
-import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.test.junit5.CamelTestSupport;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.apache.camel.component.hazelcast.HazelcastConstants;
+import org.apache.camel.component.hazelcast.HazelcastOperation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class HazelcastListProducerTest extends CamelTestSupport {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class HazelcastListProducerIT extends BaseHazelcast {
 
     private static IList<String> list;
 
-    private static HazelcastInstance hazelcastInstance;
-
-    @BeforeAll
-    public static void beforeAll() {
-        Config config = new Config();
-        config.getNetworkConfig().getJoin().getAutoDetectionConfig().setEnabled(false);
-        hazelcastInstance = Hazelcast.newHazelcastInstance(config);
-        list = hazelcastInstance.getList("bar");
-    }
-
-    @AfterAll
-    public static void afterEach() {
-        if (hazelcastInstance != null) {
-            hazelcastInstance.shutdown();
-        }
-    }
-
     @BeforeEach
     public void beforeEach() {
-        list.clear();
-    }
+        if (list == null) {
+            list = hazelcastInstance.getList("bar");
 
-    @Override
-    protected CamelContext createCamelContext() throws Exception {
-        CamelContext context = super.createCamelContext();
-        HazelcastCamelTestHelper.registerHazelcastComponents(context, hazelcastInstance);
-        return context;
+        }
+        list.clear();
     }
 
     @Test
