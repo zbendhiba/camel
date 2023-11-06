@@ -1,10 +1,10 @@
 package org.apache.camel.component.elasticsearch.rest.client;
 
+import java.util.concurrent.ExecutorService;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.support.DefaultConsumer;
-
-import java.util.concurrent.ExecutorService;
 
 public class ElasticsearchRestClientConsumer extends DefaultConsumer {
     private final ElasticsearchRestClientEndpoint endpoint;

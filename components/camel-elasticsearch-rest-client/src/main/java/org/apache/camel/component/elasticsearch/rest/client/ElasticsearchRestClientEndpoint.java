@@ -1,20 +1,20 @@
 package org.apache.camel.component.elasticsearch.rest.client;
 
+import java.util.concurrent.ExecutorService;
+
 import org.apache.camel.Category;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
-import org.apache.camel.support.DefaultEndpoint;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
-
-import java.util.concurrent.ExecutorService;
+import org.apache.camel.support.DefaultEndpoint;
 
 /**
  * ElasticsearchRestClient component which does bla bla.
- *
+ * <p>
  * TODO: Update one line description above what the component does, and update Category.
  */
 @UriEndpoint(firstVersion = "4.2.0-SNAPSHOT", scheme = "elasticsearchRestClient", title = "ElasticsearchRestClient",
@@ -44,13 +44,6 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
         return consumer;
     }
 
-    /**
-     * Some description of this option, and what it does
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getName() {
         return name;
     }
@@ -58,12 +51,19 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     /**
      * Some description of this option, and what it does
      */
-    public void setOption(int option) {
-        this.option = option;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public int getOption() {
         return option;
+    }
+
+    /**
+     * Some description of this option, and what it does
+     */
+    public void setOption(int option) {
+        this.option = option;
     }
 
     public ExecutorService createExecutor() {
