@@ -21,12 +21,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         ElasticsearchRestClientEndpoint target = (ElasticsearchRestClientEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "bridgeerrorhandler":
-        case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
-        case "exceptionhandler":
-        case "exceptionHandler": target.setExceptionHandler(property(camelContext, org.apache.camel.spi.ExceptionHandler.class, value)); return true;
-        case "exchangepattern":
-        case "exchangePattern": target.setExchangePattern(property(camelContext, org.apache.camel.ExchangePattern.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
         case "option": target.setOption(property(camelContext, int.class, value)); return true;
@@ -37,12 +31,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "bridgeerrorhandler":
-        case "bridgeErrorHandler": return boolean.class;
-        case "exceptionhandler":
-        case "exceptionHandler": return org.apache.camel.spi.ExceptionHandler.class;
-        case "exchangepattern":
-        case "exchangePattern": return org.apache.camel.ExchangePattern.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
         case "option": return int.class;
@@ -54,12 +42,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         ElasticsearchRestClientEndpoint target = (ElasticsearchRestClientEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "bridgeerrorhandler":
-        case "bridgeErrorHandler": return target.isBridgeErrorHandler();
-        case "exceptionhandler":
-        case "exceptionHandler": return target.getExceptionHandler();
-        case "exchangepattern":
-        case "exchangePattern": return target.getExchangePattern();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
         case "option": return target.getOption();
