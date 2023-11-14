@@ -16,8 +16,6 @@
  */
 package org.apache.camel.component.elasticsearch.rest.client;
 
-import java.util.concurrent.ExecutorService;
-
 import org.apache.camel.Category;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
@@ -28,12 +26,13 @@ import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 
 /**
- * ElasticsearchRestClient component which does bla bla.
+ * ElasticsearchRestClient component which allows you to interface with Elasticsearch or OpenSearch using the Java Low
+ * level Rest Client
  * <p>
- * TODO: Update one line description above what the component does, and update Category.
  */
-@UriEndpoint(firstVersion = "4.2.0-SNAPSHOT", scheme = "elasticsearchRestClient", title = "Elasticsearch Low level Rest Client",
-             syntax = "elasticsearchRestClient:name", producerOnly = true,
+@UriEndpoint(firstVersion = "4.3.0-SNAPSHOT", scheme = "elasticsearch-rest-client",
+             title = "Elasticsearch Low level Rest Client",
+             syntax = "elasticsearch-rest-client:name", producerOnly = true,
              category = { Category.SEARCH })
 public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     @UriPath
@@ -75,11 +74,6 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     public void setElasticsearchRestClientConfiguration(
             ElasticsearchRestClientConfiguration elasticsearchRestClientConfiguration) {
         this.elasticsearchRestClientConfiguration = elasticsearchRestClientConfiguration;
-    }
-
-    public ExecutorService createExecutor() {
-        // TODO: Delete me when you implemented your custom component
-        return getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, "ElasticsearchRestClientConsumer");
     }
 
 }

@@ -16,13 +16,15 @@
  */
 package org.apache.camel.component.elasticsearch.rest.client;
 
+import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
-import org.apache.camel.support.DefaultProducer;
+import org.apache.camel.support.DefaultAsyncProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ElasticsearchRestClientProducer extends DefaultProducer {
+public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
     private static final Logger LOG = LoggerFactory.getLogger(ElasticsearchRestClientProducer.class);
+
     private ElasticsearchRestClientEndpoint endpoint;
 
     public ElasticsearchRestClientProducer(ElasticsearchRestClientEndpoint endpoint) {
@@ -30,8 +32,9 @@ public class ElasticsearchRestClientProducer extends DefaultProducer {
         this.endpoint = endpoint;
     }
 
-    public void process(Exchange exchange) throws Exception {
-        System.out.println(exchange.getIn().getBody());
+    @Override
+    public boolean process(Exchange exchange, AsyncCallback callback) {
+        return false;
     }
 
 }
