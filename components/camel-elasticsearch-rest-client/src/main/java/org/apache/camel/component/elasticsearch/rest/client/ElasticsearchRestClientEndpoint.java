@@ -24,7 +24,6 @@ import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
-import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 
@@ -33,15 +32,15 @@ import org.apache.camel.support.DefaultEndpoint;
  * <p>
  * TODO: Update one line description above what the component does, and update Category.
  */
-@UriEndpoint(firstVersion = "4.2.0-SNAPSHOT", scheme = "elasticsearchRestClient", title = "ElasticsearchRestClient",
+@UriEndpoint(firstVersion = "4.2.0-SNAPSHOT", scheme = "elasticsearchRestClient", title = "Elasticsearch Low level Rest Client",
              syntax = "elasticsearchRestClient:name", producerOnly = true,
              category = { Category.SEARCH })
 public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     @UriPath
     @Metadata(required = true)
     private String name;
-    @UriParam(defaultValue = "10")
-    private int option = 10;
+    @Metadata
+    private ElasticsearchRestClientConfiguration elasticsearchRestClientConfiguration;
 
     public ElasticsearchRestClientEndpoint() {
     }
@@ -69,19 +68,18 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
         this.name = name;
     }
 
-    public int getOption() {
-        return option;
+    public ElasticsearchRestClientConfiguration getElasticsearchRestClientConfiguration() {
+        return elasticsearchRestClientConfiguration;
     }
 
-    /**
-     * Some description of this option, and what it does
-     */
-    public void setOption(int option) {
-        this.option = option;
+    public void setElasticsearchRestClientConfiguration(
+            ElasticsearchRestClientConfiguration elasticsearchRestClientConfiguration) {
+        this.elasticsearchRestClientConfiguration = elasticsearchRestClientConfiguration;
     }
 
     public ExecutorService createExecutor() {
         // TODO: Delete me when you implemented your custom component
         return getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, "ElasticsearchRestClientConsumer");
     }
+
 }

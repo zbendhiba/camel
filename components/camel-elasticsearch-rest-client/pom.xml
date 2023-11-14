@@ -59,6 +59,12 @@
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-support</artifactId>
     </dependency>
+    <!-- Elasticsearch low level REST client -->
+    <dependency>
+      <groupId>org.elasticsearch.client</groupId>
+      <artifactId>elasticsearch-rest-client</artifactId>
+      <version>8.11.1</version>
+    </dependency>
     
     <!-- logging -->
     <dependency>

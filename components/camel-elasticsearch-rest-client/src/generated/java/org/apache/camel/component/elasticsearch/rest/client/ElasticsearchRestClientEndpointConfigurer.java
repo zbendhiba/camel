@@ -23,7 +23,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
-        case "option": target.setOption(property(camelContext, int.class, value)); return true;
         default: return false;
         }
     }
@@ -33,7 +32,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
-        case "option": return int.class;
         default: return null;
         }
     }
@@ -44,7 +42,6 @@ public class ElasticsearchRestClientEndpointConfigurer extends PropertyConfigure
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
-        case "option": return target.getOption();
         default: return null;
         }
     }
