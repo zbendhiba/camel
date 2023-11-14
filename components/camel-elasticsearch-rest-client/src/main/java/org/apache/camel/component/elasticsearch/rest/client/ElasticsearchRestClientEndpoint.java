@@ -30,7 +30,7 @@ import org.apache.camel.support.DefaultEndpoint;
  * level Rest Client
  * <p>
  */
-@UriEndpoint(firstVersion = "4.3.0-SNAPSHOT", scheme = "elasticsearch-rest-client",
+@UriEndpoint(firstVersion = "4.3.0", scheme = "elasticsearch-rest-client",
              title = "Elasticsearch Low level Rest Client",
              syntax = "elasticsearch-rest-client:name", producerOnly = true,
              category = { Category.SEARCH })

@@ -1,10 +1,10 @@
-= Elasticsearch Component
+= Elasticsearch Low level Rest Client Component
 :doctitle: Elasticsearch Low level Rest Client
-:shortname: elasticsearchRestClient
+:shortname: elasticsearch-rest-client
 :artifactid: camel-elasticsearch-rest-client
-:description: Send requests to ElasticSearch and OpenSearch via Elasticsearch Java Low level Rest Client.
-:since: 4.3.0
-:supportlevel: Stable
+:description: ElasticsearchRestClient component which allows you to interface with Elasticsearch or OpenSearch using the Java Low level Rest Client
+:since: 4.3
+:supportlevel: Preview
 :tabs-sync-option:
 :component-header: Only producer is supported
 //Manually maintained attributes
@@ -53,4 +53,4 @@ include::partial$component-endpoint-options.adoc[]
 
 This component implements the async producer.
 
-This allows camel route to produce events asynchronously without blocking any threads.
+This allows Camel route to produce events asynchronously without blocking any threads.

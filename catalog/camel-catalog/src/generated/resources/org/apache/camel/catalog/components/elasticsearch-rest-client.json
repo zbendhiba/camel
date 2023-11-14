@@ -5,7 +5,7 @@
     "title": "Elasticsearch Low level Rest Client",
     "description": "ElasticsearchRestClient component which allows you to interface with Elasticsearch or OpenSearch using the Java Low level Rest Client",
     "deprecated": false,
-    "firstVersion": "4.3.0-SNAPSHOT",
+    "firstVersion": "4.3.0",
     "label": "search",
     "javaType": "org.apache.camel.component.elasticsearch.rest.client.ElasticsearchRestClientComponent",
     "supportLevel": "Preview",
