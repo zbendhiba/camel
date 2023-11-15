@@ -22,8 +22,10 @@ import org.apache.camel.Processor;
 import org.apache.camel.Producer;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
+import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
+import org.elasticsearch.client.RestClient;
 
 /**
  * ElasticsearchRestClient component which allows you to interface with Elasticsearch or OpenSearch using the Java Low
@@ -32,14 +34,17 @@ import org.apache.camel.support.DefaultEndpoint;
  */
 @UriEndpoint(firstVersion = "4.3.0", scheme = "elasticsearch-rest-client",
              title = "Elasticsearch Low level Rest Client",
-             syntax = "elasticsearch-rest-client:name", producerOnly = true,
+             syntax = "elasticsearch-rest-client:clusterName", producerOnly = true,
              category = { Category.SEARCH })
 public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     @UriPath
     @Metadata(required = true)
-    private String name;
-    @Metadata
-    private ElasticsearchRestClientConfiguration elasticsearchRestClientConfiguration;
+    private String clusterName;
+    @UriParam
+    ElasticsearchRestClientOperation operation;
+
+    @UriParam(label = "advanced")
+    RestClient restClient;
 
     public ElasticsearchRestClientEndpoint() {
     }
@@ -56,24 +61,41 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
         throw new UnsupportedOperationException("Cannot consume from an ElasticsearchEndpoint: " + getEndpointUri());
     }
 
-    public String getName() {
-        return name;
+    public String getClusterName() {
+        return clusterName;
     }
 
     /**
      * Some description of this option, and what it does
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setClusterName(String clusterName) {
+        this.clusterName = clusterName;
     }
 
-    public ElasticsearchRestClientConfiguration getElasticsearchRestClientConfiguration() {
-        return elasticsearchRestClientConfiguration;
+
+    /**
+     * Operation
+     *
+     * @return
+     */
+    public ElasticsearchRestClientOperation getOperation() {
+        return operation;
     }
 
-    public void setElasticsearchRestClientConfiguration(
-            ElasticsearchRestClientConfiguration elasticsearchRestClientConfiguration) {
-        this.elasticsearchRestClientConfiguration = elasticsearchRestClientConfiguration;
+    public void setOperation(ElasticsearchRestClientOperation operation) {
+        this.operation = operation;
+    }
+
+    /**
+     * Rest Client of type org.elasticsearch.client.RestClient. This is only for advanced usage
+     * @return
+     */
+    public RestClient getRestClient() {
+        return restClient;
+    }
+
+    public void setRestClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
 }

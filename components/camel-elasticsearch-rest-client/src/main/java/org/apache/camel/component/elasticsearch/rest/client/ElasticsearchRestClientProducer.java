@@ -16,9 +16,17 @@
  */
 package org.apache.camel.component.elasticsearch.rest.client;
 
+import java.io.IOException;
+
 import org.apache.camel.AsyncCallback;
+import org.apache.camel.BindToRegistry;
 import org.apache.camel.Exchange;
+import static org.apache.camel.component.elasticsearch.rest.client.ElasticsearchRestClientOperation.CREATE_INDEX;
 import org.apache.camel.support.DefaultAsyncProducer;
+import org.apache.http.HttpHost;
+import org.elasticsearch.client.Request;
+import org.elasticsearch.client.Response;
+import org.elasticsearch.client.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +35,7 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
 
     private ElasticsearchRestClientEndpoint endpoint;
 
+
     public ElasticsearchRestClientProducer(ElasticsearchRestClientEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
@@ -34,6 +43,43 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
 
     @Override
     public boolean process(Exchange exchange, AsyncCallback callback) {
+
+        //TODO add possibility to get config from headers !?!
+
+        // getting configuration from Endpoint
+        ElasticsearchRestClientOperation operation = this.endpoint.getOperation();
+        if (operation == null) {
+            throw new IllegalArgumentException(
+                    "Operation value is mandatory");
+        }
+
+        //TODO to move on from POC mode, make sure we can auto create a RestClient using Camel
+        RestClient restClient = this.endpoint.getRestClient();
+        if (restClient == null) {
+            throw new IllegalArgumentException(
+                    "restClient value is mandatory");
+        }
+
+
+        if(CREATE_INDEX == operation){
+            String indexName = exchange.getMessage().getBody(String.class);
+            if (indexName == null) {
+                throw new IllegalArgumentException(
+                        "Index name value is mandatory when performing CREATE_INDEX operation");
+            }
+
+            Request request = new Request(
+                    "PUT",
+                    "/"+indexName);
+            try {
+                Response response = restClient.performRequest(request);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+
+        }
+
         return false;
     }
 
