@@ -17,37 +17,28 @@
 package org.apache.camel.component.elasticsearch.rest.client;
 
 import java.io.IOException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-import org.apache.camel.BindToRegistry;
-import org.apache.camel.CamelContext;
+
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.AfterAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class ElasticsearchRestClientComponentTest extends CamelTestSupport {
 
-    //private CamelContext context;
     private static RestClient restClient;
-
- /*   @BindToRegistry("restClient")
-    RestClient restClient(){
-        return RestClient.builder(
-                new HttpHost("localhost", 9200, "http")).build();
-    }*/
 
     @BeforeAll
     public static void beforeAll() {
-         restClient = RestClient.builder(
+
+        restClient = RestClient.builder(
                 new HttpHost("localhost", 9200, "http")).build();
-         System.out.println("Hello I'm connected to Elasticsearch");
     }
 
     @AfterAll
@@ -55,7 +46,6 @@ public class ElasticsearchRestClientComponentTest extends CamelTestSupport {
         if(restClient != null){
             restClient.close();
         }
-        System.out.println("Hello I'm disconnected to Elasticsearch");
     }
 
     @Override
@@ -63,28 +53,27 @@ public class ElasticsearchRestClientComponentTest extends CamelTestSupport {
         this.context.getRegistry().bind("restClient", restClient);
         return new RouteBuilder() {
             public void configure() {
-                from("direct:index")
+                from("direct:create-index")
                         .to("elasticsearch-rest-client:my-cluster?operation=CREATE_INDEX&restClient=#restClient");
+
+                from("direct:delete-index")
+                        .to("elasticsearch-rest-client:my-cluster?operation=DELETE_INDEX&restClient=#restClient");
 
             }
         };
     }
 
-    /*@Test
-    @Disabled
-    public void testElasticsearchRestClient() throws Exception {
-        MockEndpoint mock = getMockEndpoint("mock:result");
-        mock.expectedMinimumMessageCount(5);
-
-        mock.await();
-    }*/
-
     @Test
-    void createCreateIndex(){
-        System.out.println("Hello test");
+    void testProducer() throws ExecutionException, InterruptedException {
+        // create index
+        var indexName = "my_index";
+        CompletableFuture<Object> future = template.asyncSendBody("direct:create-index", indexName);
+        future.get();
+        assertTrue(true);
 
-        template.sendBody("direct:index", "zineb_index");
-
+        // delete index
+        future = template.asyncSendBody("direct:delete-index", indexName);
+        future.get();
         assertTrue(true);
     }
 

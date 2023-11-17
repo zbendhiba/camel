@@ -19,11 +19,8 @@ package org.apache.camel.component.elasticsearch.rest.client;
 import java.io.IOException;
 
 import org.apache.camel.AsyncCallback;
-import org.apache.camel.BindToRegistry;
 import org.apache.camel.Exchange;
-import static org.apache.camel.component.elasticsearch.rest.client.ElasticsearchRestClientOperation.CREATE_INDEX;
 import org.apache.camel.support.DefaultAsyncProducer;
-import org.apache.http.HttpHost;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -61,26 +58,48 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
         }
 
 
-        if(CREATE_INDEX == operation){
-            String indexName = exchange.getMessage().getBody(String.class);
-            if (indexName == null) {
-                throw new IllegalArgumentException(
-                        "Index name value is mandatory when performing CREATE_INDEX operation");
-            }
-
-            Request request = new Request(
-                    "PUT",
-                    "/"+indexName);
-            try {
-                Response response = restClient.performRequest(request);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-
+        Request request =   switch (operation) {
+                case CREATE_INDEX  -> createIndex(exchange, restClient);
+                case DELETE_INDEX  -> deleteIndex(exchange, restClient);
+                default -> null;
+            };
+        try {
+            Response response = restClient.performRequest(request);
+            callback.done(true);
+        } catch (IOException e) {
+            exchange.setException(e);
+            callback.done(true);
+            return true;
         }
 
         return false;
+    }
+
+    private Request createIndex(Exchange exchange, RestClient restClient) {
+        String indexName = exchange.getMessage().getBody(String.class);
+        if (indexName == null) {
+            throw new IllegalArgumentException(
+                    "Index name value is mandatory when performing CREATE_INDEX operation");
+        }
+
+        //TODO add settings and mappings basic information + the possibility to set advanced settings with json
+       return new Request(
+                "PUT",
+                "/" + indexName);
+
+    }
+
+    private Request deleteIndex(Exchange exchange, RestClient restClient) {
+        String indexName = exchange.getMessage().getBody(String.class);
+        if (indexName == null) {
+            throw new IllegalArgumentException(
+                    "Index name value is mandatory when performing CREATE_INDEX operation");
+        }
+
+        return new Request(
+                "DELETE",
+                "/" + indexName);
+
     }
 
 }
