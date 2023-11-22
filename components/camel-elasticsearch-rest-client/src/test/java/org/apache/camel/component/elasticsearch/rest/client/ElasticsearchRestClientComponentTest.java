@@ -26,6 +26,7 @@ import org.apache.camel.test.junit5.CamelTestSupport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
 import org.junit.jupiter.api.AfterAll;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -54,10 +55,13 @@ public class ElasticsearchRestClientComponentTest extends CamelTestSupport {
         return new RouteBuilder() {
             public void configure() {
                 from("direct:create-index")
-                        .to("elasticsearch-rest-client:my-cluster?operation=CREATE_INDEX&restClient=#restClient");
+                        .to("elasticsearch-rest-client:my-cluster?operation=CREATE_INDEX&restClient=#restClient&indexName=my_index");
 
                 from("direct:delete-index")
-                        .to("elasticsearch-rest-client:my-cluster?operation=DELETE_INDEX&restClient=#restClient");
+                        .to("elasticsearch-rest-client:my-cluster?operation=DELETE_INDEX&restClient=#restClient&indexName=my_index");
+
+                from("direct:index")
+                        .to("elasticsearch-rest-client:my-cluster?operation=INDEX&restClient=#restClient&indexName=my_index");
 
             }
         };
@@ -66,15 +70,18 @@ public class ElasticsearchRestClientComponentTest extends CamelTestSupport {
     @Test
     void testProducer() throws ExecutionException, InterruptedException {
         // create index
-        var indexName = "my_index";
-        CompletableFuture<Object> future = template.asyncSendBody("direct:create-index", indexName);
+        CompletableFuture<Object> future = template.asyncSendBody("direct:create-index", null);
         future.get();
-        assertTrue(true);
+
+        // index a document
+        var document = " {\"title\": \"Elastic is funny\",  \"tag\": [\"lucene\" ]}";
+        CompletableFuture<String> response = template.asyncRequestBody("direct:index", document, String.class);
+        String body = response.get();
+        assertNotNull(body);
 
         // delete index
-        future = template.asyncSendBody("direct:delete-index", indexName);
+        future = template.asyncSendBody("direct:delete-index", null);
         future.get();
-        assertTrue(true);
     }
 
 }

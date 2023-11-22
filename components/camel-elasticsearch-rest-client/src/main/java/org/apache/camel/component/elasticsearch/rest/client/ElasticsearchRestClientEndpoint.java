@@ -46,6 +46,9 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
     @UriParam(label = "advanced")
     RestClient restClient;
 
+    @UriParam
+    String indexName;
+
     public ElasticsearchRestClientEndpoint() {
     }
 
@@ -98,4 +101,11 @@ public class ElasticsearchRestClientEndpoint extends DefaultEndpoint {
         this.restClient = restClient;
     }
 
+    public String getIndexName() {
+        return indexName;
+    }
+
+    public void setIndexName(String indexName) {
+        this.indexName = indexName;
+    }
 }

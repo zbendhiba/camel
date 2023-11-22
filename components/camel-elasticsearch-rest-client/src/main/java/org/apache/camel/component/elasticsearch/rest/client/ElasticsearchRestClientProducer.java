@@ -17,10 +17,14 @@
 package org.apache.camel.component.elasticsearch.rest.client;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.camel.AsyncCallback;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultAsyncProducer;
+import org.apache.http.entity.ContentType;
+import org.apache.http.nio.entity.NStringEntity;
+import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
@@ -50,6 +54,8 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
                     "Operation value is mandatory");
         }
 
+        String indexName = this.endpoint.getIndexName();
+
         //TODO to move on from POC mode, make sure we can auto create a RestClient using Camel
         RestClient restClient = this.endpoint.getRestClient();
         if (restClient == null) {
@@ -57,16 +63,23 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
                     "restClient value is mandatory");
         }
 
-
-        Request request =   switch (operation) {
-                case CREATE_INDEX  -> createIndex(exchange, restClient);
-                case DELETE_INDEX  -> deleteIndex(exchange, restClient);
-                default -> null;
-            };
         try {
+            Request request =   switch (operation) {
+                    case CREATE_INDEX  -> createIndex(indexName, restClient);
+                    case DELETE_INDEX  -> deleteIndex(indexName, restClient);
+                    case INDEX -> index(indexName, exchange, restClient);
+                    default -> null;
+            };
+
             Response response = restClient.performRequest(request);
+
+            String responseBody = EntityUtils.toString(response.getEntity());
+            switch (operation) {
+                case INDEX -> exchange.getMessage().setBody(responseBody);
+
+            };
             callback.done(true);
-        } catch (IOException e) {
+        } catch (Exception e) {
             exchange.setException(e);
             callback.done(true);
             return true;
@@ -75,13 +88,7 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
         return false;
     }
 
-    private Request createIndex(Exchange exchange, RestClient restClient) {
-        String indexName = exchange.getMessage().getBody(String.class);
-        if (indexName == null) {
-            throw new IllegalArgumentException(
-                    "Index name value is mandatory when performing CREATE_INDEX operation");
-        }
-
+    private Request createIndex(String indexName, RestClient restClient) {
         //TODO add settings and mappings basic information + the possibility to set advanced settings with json
        return new Request(
                 "PUT",
@@ -89,17 +96,24 @@ public class ElasticsearchRestClientProducer extends DefaultAsyncProducer {
 
     }
 
-    private Request deleteIndex(Exchange exchange, RestClient restClient) {
-        String indexName = exchange.getMessage().getBody(String.class);
-        if (indexName == null) {
-            throw new IllegalArgumentException(
-                    "Index name value is mandatory when performing CREATE_INDEX operation");
-        }
-
+    private Request deleteIndex(String indexName, RestClient restClient) {
         return new Request(
                 "DELETE",
                 "/" + indexName);
 
+    }
+
+    private Request index(String indexName, Exchange exchange, RestClient restClient) throws UnsupportedEncodingException {
+        String body = exchange.getMessage().getBody(String.class);
+        if (body == null) {
+            throw new IllegalArgumentException(
+                    "Index name value is mandatory when performing CREATE_INDEX operation");
+        }
+
+        Request request = new Request("POST", String.format("/%s/_doc", indexName));
+        request.setEntity(new NStringEntity(body, ContentType.APPLICATION_JSON));
+
+        return request;
     }
 
 }
