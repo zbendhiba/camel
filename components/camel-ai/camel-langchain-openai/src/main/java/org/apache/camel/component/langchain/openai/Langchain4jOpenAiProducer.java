@@ -1,0 +1,88 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.camel.component.langchain.openai;
+
+import java.time.Duration;
+
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import org.apache.camel.Exchange;
+import org.apache.camel.component.langchain.commons.Langchain4jOperations;
+import org.apache.camel.component.langchain.commons.service.Langchain4jChatHandler;
+import org.apache.camel.support.DefaultProducer;
+import org.apache.camel.util.ObjectHelper;
+
+public class Langchain4jOpenAiProducer extends DefaultProducer {
+    private Langchain4jOpenAiEndpoint endpoint;
+
+    private ChatLanguageModel openAiModel;
+
+    private Langchain4jChatHandler langchain4jChatHandler;
+
+    public Langchain4jOpenAiProducer(Langchain4jOpenAiEndpoint endpoint) {
+        super(endpoint);
+        this.endpoint = endpoint;
+    }
+
+    @Override
+    public void process(Exchange exchange) throws Exception {
+        if (Langchain4jOperations.CHAT.toString().equals(this.endpoint.getOperation())) {
+            // simple use case - use ChatModel Handler
+            // check if we do have a prompt if yes espect variables, else check if List String and check the ChatMessageType
+
+
+            // further check if there is a ChatMemory
+
+        }
+    }
+
+    @Override
+    protected void doStart() throws Exception {
+        super.doStart();
+
+        openAiModel = this.endpoint.getChatModel();
+
+        if (this.openAiModel == null) {
+            // create Chat ModeL . This requires at least an API Key
+            ObjectHelper.notNull(this.endpoint.getOpenAiKey(), "openAiKey");
+
+            openAiModel = OpenAiChatModel.builder()
+                    .apiKey(this.endpoint.getOpenAiKey())
+                    .modelName(this.endpoint.getOpenAiModelName())
+                    .baseUrl(this.endpoint.getBaseUrl())
+                    .organizationId(this.endpoint.getOrganizationId())
+                    .temperature(this.endpoint.getTemperature())
+                    .topP(this.endpoint.getTopP())
+                    .stop(this.endpoint.getStop())
+                    .maxTokens(this.endpoint.getMaxTokens())
+                    .presencePenalty(this.endpoint.getPresencePenalty())
+                    .frequencyPenalty(this.endpoint.getFrequencyPenalty())
+                    .logitBias(this.endpoint.getLogitBias())
+                    .responseFormat(this.endpoint.getResponseFormat())
+                    .seed(this.endpoint.getSeed())
+                    .user(this.endpoint.getUser())
+                    .timeout(Duration.ofMillis(this.endpoint.getTimeout()))
+                    .maxRetries(this.endpoint.getMaxRetries())
+                    .logRequests(this.endpoint.getLogRequests())
+                    .logResponses(this.endpoint.getLogResponses())
+                    .tokenizer(this.endpoint.getTokenizer())
+                    .build();
+        }
+
+    }
+
+}

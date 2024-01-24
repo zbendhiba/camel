@@ -1,0 +1,73 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.camel.component.langchain.commons.service;
+
+import java.util.List;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.ChatMessageType;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.output.Response;
+
+public class Langchain4jChatHandler {
+
+    ChatLanguageModel chatLanguageModel;
+
+    public Langchain4jChatHandler(ChatLanguageModel chatLanguageModel) {
+        this.chatLanguageModel = chatLanguageModel;
+    }
+
+    public String sendMessage(String messages) {
+        return this.chatLanguageModel.generate(messages);
+    }
+
+    public Response<AiMessage> sendMessages(ChatMessageType type, List<String> messages) {
+
+        var chatMessages = messages.stream()
+                .map(message -> (ChatMessage) convertChatMessages(type, message))
+                .toArray(ChatMessage[]::new);
+
+        // TODO convert this
+        return sendMessage(chatMessages);
+
+    }
+
+    private ChatMessage convertChatMessages(ChatMessageType type, String message) {
+        return switch (type) {
+            case USER -> new UserMessage(message);
+            case AI -> new AiMessage(message);
+            case SYSTEM -> new SystemMessage(message);
+            case TOOL_EXECUTION_RESULT -> throw new IllegalArgumentException("Tools are currently not supported");
+        };
+
+    }
+
+    public Response<AiMessage> sendMessage(ChatMessage... messages) {
+        return this.chatLanguageModel.generate(messages);
+    }
+
+    public ChatLanguageModel getChatLanguageModel() {
+        return chatLanguageModel;
+    }
+
+    public void setChatLanguageModel(ChatLanguageModel chatLanguageModel) {
+        this.chatLanguageModel = chatLanguageModel;
+    }
+}

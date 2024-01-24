@@ -1,0 +1,15 @@
+{
+  "other": {
+    "kind": "other",
+    "name": "langchain-commons",
+    "title": "Langchain Commons",
+    "description": "Commons librairies for Langchain4j based camel components",
+    "deprecated": false,
+    "firstVersion": "4.4.0",
+    "label": "ai",
+    "supportLevel": "Preview",
+    "groupId": "org.apache.camel",
+    "artifactId": "camel-langchain-commons",
+    "version": "4.4.0-SNAPSHOT"
+  }
+}
