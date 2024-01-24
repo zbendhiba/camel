@@ -1,0 +1,36 @@
+{
+  "component": {
+    "kind": "component",
+    "name": "langchain",
+    "title": "langchain",
+    "description": "Langchain4j component",
+    "deprecated": false,
+    "firstVersion": "4.5.0",
+    "label": "ai",
+    "javaType": "org.apache.camel.component.langchain.LangchainComponent",
+    "supportLevel": "Preview",
+    "groupId": "org.apache.camel",
+    "artifactId": "camel-langchain",
+    "version": "4.5.0-SNAPSHOT",
+    "scheme": "langchain",
+    "extendsScheme": "",
+    "syntax": "langchain:type",
+    "async": false,
+    "api": false,
+    "consumerOnly": false,
+    "producerOnly": true,
+    "lenientProperties": false,
+    "remote": true
+  },
+  "componentProperties": {
+    "lazyStartProducer": { "index": 0, "kind": "property", "displayName": "Lazy Start Producer", "group": "producer", "label": "producer", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Whether the producer should be started lazy (on the first message). By starting lazy you can use this to allow CamelContext and routes to startup in situations where a producer may otherwise fail during starting and cause the route to fail being started. By deferring this startup to be lazy then the startup failure can be handled during routing messages via Camel's routing error handlers. Beware that when the first message is processed then creating and starting the producer may take a little time and prolong the total processing time of the processing." },
+    "autowiredEnabled": { "index": 1, "kind": "property", "displayName": "Autowired Enabled", "group": "advanced", "label": "advanced", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": true, "description": "Whether autowiring is enabled. This is used for automatic autowiring options (the option must be marked as autowired) by looking up in the registry to find if there is a single instance of matching type, which then gets configured on the component. This can be used for automatic configuring JDBC data sources, JMS connection factories, AWS Clients, etc." }
+  },
+  "properties": {
+    "type": { "index": 0, "kind": "path", "displayName": "Type", "group": "Langchain Endpoint type. There's only one type available today which is the chat", "label": "Langchain Endpoint type. There's only one type available today which is the chat", "required": true, "type": "string", "javaType": "java.lang.String", "enum": [ "chat" ], "deprecated": false, "deprecationNote": "", "autowired": false, "secret": false, "description": "Type" },
+    "chatMessageType": { "index": 1, "kind": "parameter", "displayName": "Chat Message Type", "group": "producer", "label": "", "required": false, "type": "object", "javaType": "dev.langchain4j.data.message.ChatMessageType", "enum": [ "SYSTEM", "USER", "AI", "TOOL_EXECUTION_RESULT" ], "deprecated": false, "autowired": false, "secret": false, "description": "Values from dev.langchain4j.data.message.ChatMessageType" },
+    "chatOperation": { "index": 2, "kind": "parameter", "displayName": "Chat Operation", "group": "producer", "label": "", "required": true, "type": "object", "javaType": "org.apache.camel.component.langchain.LangchainChatOperations", "enum": [ "CHAT_SINGLE_MESSAGE", "CHAT_SINGLE_MESSAGE_WITH_PROMPT", "CHAT_MULTIPLE_MESSAGES" ], "deprecated": false, "deprecationNote": "", "autowired": false, "secret": false, "defaultValue": "CHAT_SINGLE_MESSAGE", "description": "Operation in case of Endpoint of type CHAT. value is one the values of org.apache.camel.component.langchain.LangchainChatOperations" },
+    "lazyStartProducer": { "index": 3, "kind": "parameter", "displayName": "Lazy Start Producer", "group": "producer (advanced)", "label": "producer,advanced", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Whether the producer should be started lazy (on the first message). By starting lazy you can use this to allow CamelContext and routes to startup in situations where a producer may otherwise fail during starting and cause the route to fail being started. By deferring this startup to be lazy then the startup failure can be handled during routing messages via Camel's routing error handlers. Beware that when the first message is processed then creating and starting the producer may take a little time and prolong the total processing time of the processing." },
+    "chatModel": { "index": 4, "kind": "parameter", "displayName": "Chat Model", "group": "advanced", "label": "advanced", "required": false, "type": "object", "javaType": "dev.langchain4j.model.chat.ChatLanguageModel", "deprecated": false, "deprecationNote": "", "autowired": true, "secret": false, "description": "Chat Language Model of type dev.langchain4j.model.chat.ChatLanguageModel" }
+  }
+}
