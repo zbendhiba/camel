@@ -18,6 +18,7 @@ package org.apache.camel.component.langchain.openai;
 
 import java.time.Duration;
 
+import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.apache.camel.Exchange;
@@ -31,8 +32,6 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
     private ChatLanguageModel openAiModel;
 
-    private Langchain4jChatHandler langchain4jChatHandler;
-
     public Langchain4jOpenAiProducer(Langchain4jOpenAiEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
@@ -40,14 +39,43 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
     @Override
     public void process(Exchange exchange) throws Exception {
-        if (Langchain4jOperations.CHAT.toString().equals(this.endpoint.getOperation())) {
-            // simple use case - use ChatModel Handler
-            // check if we do have a prompt if yes espect variables, else check if List String and check the ChatMessageType
+        // Processing one single message
+        switch (this.endpoint.getOperation()){
+            case CHAT_SINGLE_MESSAGE : processSingleMessage(exchange);
+            case CHAT_SINGLE_MESSAGE_WITH_PROMPT: processSingleMessageWithPrompt(exchange);
+            case CHAT_MULTIPLE_MESSAGES: processMultipleMessages(exchange);
+            case EMBEDDING: processEmbedding(exchange);
+            case CONVERSATIONAL_RETRIEVER: processConversationalRetriever(exchange);
+        };
 
 
-            // further check if there is a ChatMemory
+    }
 
-        }
+    private void processConversationalRetriever(Exchange exchange) {
+        //TODO
+    }
+
+    private void processEmbedding(Exchange exchange) {
+        //TODO
+
+    }
+
+    private void processMultipleMessages(Exchange exchange) {
+        //TODO
+    }
+
+    private void processSingleMessageWithPrompt(Exchange exchange) {
+        //TODO
+    }
+
+    private void processSingleMessage(Exchange exchange) {
+        ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
+        Langchain4jChatHandler langchain4jChatHandler = new Langchain4jChatHandler(this.openAiModel);
+        String message = exchange.getIn().getBody(String.class);
+        ObjectHelper.notNull(message, "Message");
+
+        String response = langchain4jChatHandler.sendMessage(message);
+        exchange.getIn().setBody(response);
     }
 
     @Override

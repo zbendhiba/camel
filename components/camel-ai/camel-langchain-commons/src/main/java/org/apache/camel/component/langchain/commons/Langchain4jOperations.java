@@ -17,7 +17,9 @@
 package org.apache.camel.component.langchain.commons;
 
 public enum Langchain4jOperations {
-    CHAT,
+    CHAT_SINGLE_MESSAGE,
+    CHAT_SINGLE_MESSAGE_WITH_PROMPT,
+    CHAT_MULTIPLE_MESSAGES,
     EMBEDDING,
     CONVERSATIONAL_RETRIEVER
 }

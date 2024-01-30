@@ -27,6 +27,7 @@ import org.apache.camel.Category;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
+import org.apache.camel.component.langchain.commons.Langchain4jOperations;
 import org.apache.camel.spi.Metadata;
 import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
@@ -52,7 +53,7 @@ public class Langchain4jOpenAiEndpoint extends DefaultEndpoint {
 
     @UriParam
     @Metadata(required = true)
-    private String operation;
+    private Langchain4jOperations operation;
 
     @UriParam(label = "security", secret = true)
     private String openAiKey;
@@ -158,11 +159,11 @@ public class Langchain4jOpenAiEndpoint extends DefaultEndpoint {
      *
      * @return
      */
-    public String getOperation() {
+    public Langchain4jOperations getOperation() {
         return operation;
     }
 
-    public void setOperation(String operation) {
+    public void setOperation(Langchain4jOperations operation) {
         this.operation = operation;
     }
 
