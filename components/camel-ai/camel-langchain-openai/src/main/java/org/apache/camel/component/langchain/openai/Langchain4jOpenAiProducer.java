@@ -17,12 +17,13 @@
 package org.apache.camel.component.langchain.openai;
 
 import java.time.Duration;
+import java.util.Map;
 
 import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.apache.camel.Exchange;
-import org.apache.camel.component.langchain.commons.Langchain4jOperations;
+import org.apache.camel.component.langchain.commons.Langchain4jConstants;
 import org.apache.camel.component.langchain.commons.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
@@ -40,14 +41,19 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
     @Override
     public void process(Exchange exchange) throws Exception {
         // Processing one single message
-        switch (this.endpoint.getOperation()){
-            case CHAT_SINGLE_MESSAGE : processSingleMessage(exchange);
-            case CHAT_SINGLE_MESSAGE_WITH_PROMPT: processSingleMessageWithPrompt(exchange);
-            case CHAT_MULTIPLE_MESSAGES: processMultipleMessages(exchange);
-            case EMBEDDING: processEmbedding(exchange);
-            case CONVERSATIONAL_RETRIEVER: processConversationalRetriever(exchange);
-        };
-
+        switch (this.endpoint.getOperation()) {
+            case CHAT_SINGLE_MESSAGE:
+                processSingleMessage(exchange);
+            case CHAT_SINGLE_MESSAGE_WITH_PROMPT:
+                processSingleMessageWithPrompt(exchange);
+            case CHAT_MULTIPLE_MESSAGES:
+                processMultipleMessages(exchange);
+            case EMBEDDING:
+                processEmbedding(exchange);
+            case CONVERSATIONAL_RETRIEVER:
+                processConversationalRetriever(exchange);
+        }
+        ;
 
     }
 
@@ -65,16 +71,34 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
     }
 
     private void processSingleMessageWithPrompt(Exchange exchange) {
-        //TODO
+        ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
+
     }
 
     private void processSingleMessage(Exchange exchange) {
-        ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
         Langchain4jChatHandler langchain4jChatHandler = new Langchain4jChatHandler(this.openAiModel);
-        String message = exchange.getIn().getBody(String.class);
-        ObjectHelper.notNull(message, "Message");
+        ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
+        String promptTemplate = exchange.getIn().getHeader(Langchain4jConstants.PROMPT_TEMPLATE, String.class);
+        var response = "";
+        if (promptTemplate != null) {
+            var variables = exchange.getIn().getBody(Map.class);
+            ObjectHelper.notNull(variables, "Prompt variables");
 
-        String response = langchain4jChatHandler.sendMessage(message);
+            if (chatMessageType != null) {
+                //TODO -- check if that is even something normal to do
+            } else {
+                response = langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
+            }
+
+        } else {
+            var message = exchange.getIn().getBody(String.class);
+            ObjectHelper.notNull(message, "Message");
+            if (chatMessageType != null) {
+                //TODO -- check if that is even something normal to do
+            } else {
+                response = langchain4jChatHandler.sendMessage(message);
+            }
+        }
         exchange.getIn().setBody(response);
     }
 

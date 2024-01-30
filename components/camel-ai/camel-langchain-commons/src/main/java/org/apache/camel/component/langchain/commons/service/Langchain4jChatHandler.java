@@ -17,6 +17,7 @@
 package org.apache.camel.component.langchain.commons.service;
 
 import java.util.List;
+import java.util.Map;
 
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
@@ -24,6 +25,8 @@ import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.input.Prompt;
+import dev.langchain4j.model.input.PromptTemplate;
 import dev.langchain4j.model.output.Response;
 
 public class Langchain4jChatHandler {
@@ -34,10 +37,41 @@ public class Langchain4jChatHandler {
         this.chatLanguageModel = chatLanguageModel;
     }
 
-    public String sendMessage(String messages) {
-        return this.chatLanguageModel.generate(messages);
+    /**
+     * Send one simple message
+     *
+     * @param  message
+     * @return
+     */
+    public String sendMessage(String message) {
+        return this.chatLanguageModel.generate(message);
     }
 
+    public String sendWithPromptTemplate(String promptTemplate, Map<String, Object> variables) {
+        PromptTemplate template = PromptTemplate.from(promptTemplate);
+        Prompt prompt = template.apply(variables);
+        return this.sendMessage(prompt.text());
+    }
+
+    /**
+     * Send a simple message, for a specific Chat Message Type
+     *
+     * @param  message
+     * @param  type
+     * @return
+     */
+    public Response<AiMessage> sendMessage(String message, ChatMessageType type) {
+        ChatMessage[] chatMessages = { convertChatMessages(type, message) };
+        return this.chatLanguageModel.generate(chatMessages);
+    }
+
+    /**
+     * Send a List of Messages
+     *
+     * @param  type
+     * @param  messages
+     * @return
+     */
     public Response<AiMessage> sendMessages(ChatMessageType type, List<String> messages) {
 
         var chatMessages = messages.stream()
@@ -49,6 +83,13 @@ public class Langchain4jChatHandler {
 
     }
 
+    /**
+     * Create the messages in the format of Langchain4j ChatMessage
+     *
+     * @param  type
+     * @param  message
+     * @return
+     */
     private ChatMessage convertChatMessages(ChatMessageType type, String message) {
         return switch (type) {
             case USER -> new UserMessage(message);
@@ -59,6 +100,12 @@ public class Langchain4jChatHandler {
 
     }
 
+    /**
+     * Send And Array of ChatMessages
+     *
+     * @param  messages
+     * @return
+     */
     public Response<AiMessage> sendMessage(ChatMessage... messages) {
         return this.chatLanguageModel.generate(messages);
     }

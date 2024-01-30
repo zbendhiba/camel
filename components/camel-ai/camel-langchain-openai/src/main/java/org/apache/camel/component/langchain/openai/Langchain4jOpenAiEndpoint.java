@@ -35,7 +35,6 @@ import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 import org.apache.camel.util.ObjectHelper;
 
-import static dev.langchain4j.data.message.ChatMessageType.USER;
 import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.LOG_REQUEST;
 import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.LOG_RESPONSE;
 import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.NB_RETRY;
@@ -65,8 +64,8 @@ public class Langchain4jOpenAiEndpoint extends DefaultEndpoint {
     @Metadata(autowired = true)
     private ChatLanguageModel chatModel;
 
-    @UriParam(defaultValue = "USER")
-    private ChatMessageType chatMessageType = USER;
+    @UriParam
+    private ChatMessageType chatMessageType;
 
     @UriParam(label = "advanced")
     @Metadata(autowired = true)
