@@ -51,7 +51,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
     @UriParam
     private ChatMessageType chatMessageType;
 
-    @UriParam (defaultValue = "" + Langchain4jConstants.TIMEOUT)
+    @UriParam(defaultValue = "" + Langchain4jConstants.TIMEOUT)
     private Integer timeout = Langchain4jConstants.TIMEOUT;
 
     @UriParam
@@ -61,12 +61,11 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
     private Double temperature;
     @UriParam(label = "security", secret = true)
     private String accessToken;
-    @UriParam (defaultValue =  "" + Langchain4jConstants.NB_RETRY)
+    @UriParam(defaultValue = "" + Langchain4jConstants.NB_RETRY)
     private Integer maxNewRetries = Langchain4jConstants.NB_RETRY;
 
-    @UriParam (defaultValue =  "" + Langchain4jConstants.RETURN_FULL_TEXT)
+    @UriParam(defaultValue = "" + Langchain4jConstants.RETURN_FULL_TEXT)
     private Boolean returnFullText = Langchain4jConstants.RETURN_FULL_TEXT;
-
 
     public Langchain4jHuggingFaceEndpoint(String uri, Langchain4HuggingFaceComponent component) {
         super(uri, component);
@@ -115,7 +114,6 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
         this.operation = operation;
     }
 
-
     /**
      * Values from dev.langchain4j.data.message.ChatMessageType
      *
@@ -129,9 +127,9 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
         this.chatMessageType = chatMessageType;
     }
 
-
     /**
      * Timeout
+     *
      * @return
      */
     public Integer getTimeout() {
@@ -144,6 +142,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * HuggingFace model ID - check values from dev.langchain4j.model.huggingface.HuggingFaceChatModelIT
+     *
      * @return
      */
     public String getModelId() {
@@ -156,6 +155,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * Temperature
+     *
      * @return
      */
     public Double getTemperature() {
@@ -168,6 +168,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * HuggingFace Access Token
+     *
      * @return
      */
     public String getAccessToken() {
@@ -180,6 +181,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * Max retries
+     *
      * @return
      */
     public Integer getMaxNewRetries() {
@@ -192,6 +194,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * Return full text
+     *
      * @return
      */
     public Boolean getReturnFullText() {
@@ -204,6 +207,7 @@ public class Langchain4jHuggingFaceEndpoint extends DefaultEndpoint {
 
     /**
      * Chat Model
+     *
      * @return
      */
     public HuggingFaceChatModel getChatModel() {

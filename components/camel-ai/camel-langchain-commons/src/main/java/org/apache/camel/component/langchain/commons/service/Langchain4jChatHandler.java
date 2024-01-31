@@ -60,9 +60,9 @@ public class Langchain4jChatHandler {
      * @param  type
      * @return
      */
-    public Response<AiMessage> sendMessage(String message, ChatMessageType type) {
+    public String sendMessage(String message, ChatMessageType type) {
         ChatMessage[] chatMessages = { convertChatMessages(type, message) };
-        return this.chatLanguageModel.generate(chatMessages);
+        return this.sendMessage(chatMessages);
     }
 
     /**
@@ -72,15 +72,13 @@ public class Langchain4jChatHandler {
      * @param  messages
      * @return
      */
-    public Response<AiMessage> sendMessages(ChatMessageType type, List<String> messages) {
+    public String sendMessages(ChatMessageType type, List<String> messages) {
 
         var chatMessages = messages.stream()
                 .map(message -> (ChatMessage) convertChatMessages(type, message))
                 .toArray(ChatMessage[]::new);
 
-        // TODO convert this
         return sendMessage(chatMessages);
-
     }
 
     /**
@@ -106,8 +104,15 @@ public class Langchain4jChatHandler {
      * @param  messages
      * @return
      */
-    public Response<AiMessage> sendMessage(ChatMessage... messages) {
-        return this.chatLanguageModel.generate(messages);
+    public String sendMessage(ChatMessage... messages) {
+        Response<AiMessage> response = this.chatLanguageModel.generate(messages);
+        AiMessage message = response.content();
+
+        if (message == null) {
+            return null;
+        }
+
+        return message.text();
     }
 
     public ChatLanguageModel getChatLanguageModel() {

@@ -90,7 +90,6 @@ public class Langchain4jHuggingFaceProducer extends DefaultProducer {
 
         exchange.getIn().setBody(response);
 
-
     }
 
     private void processSingleMessage(Exchange exchange) {
@@ -99,13 +98,13 @@ public class Langchain4jHuggingFaceProducer extends DefaultProducer {
 
         var response = "";
 
-            var message = exchange.getIn().getBody(String.class);
-            ObjectHelper.notNull(message, "Message");
-            if (chatMessageType != null) {
-                //TODO -- check if that is even something normal to do
-            } else {
-                response = langchain4jChatHandler.sendMessage(message);
-            }
+        var message = exchange.getIn().getBody(String.class);
+        ObjectHelper.notNull(message, "Message");
+        if (chatMessageType != null) {
+            response = langchain4jChatHandler.sendMessage(message, chatMessageType);
+        } else {
+            response = langchain4jChatHandler.sendMessage(message);
+        }
 
         exchange.getIn().setBody(response);
     }

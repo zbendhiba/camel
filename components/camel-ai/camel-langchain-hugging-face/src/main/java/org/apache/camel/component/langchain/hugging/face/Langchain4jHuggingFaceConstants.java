@@ -18,5 +18,4 @@ package org.apache.camel.component.langchain.hugging.face;
 
 public class Langchain4jHuggingFaceConstants {
 
-
 }

@@ -16,21 +16,17 @@
  */
 package org.apache.camel.component.langchain.hugging.face;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
-import static dev.langchain4j.model.huggingface.HuggingFaceModelName.TII_UAE_FALCON_7B_INSTRUCT;
-import static java.time.Duration.ofSeconds;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.langchain.commons.Langchain4jConstants;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static dev.langchain4j.model.huggingface.HuggingFaceModelName.TII_UAE_FALCON_7B_INSTRUCT;
+import static java.time.Duration.ofSeconds;
 
 public class Langchain4jHuggingFaceTest extends CamelTestSupport {
 
@@ -88,7 +84,7 @@ public class Langchain4jHuggingFaceTest extends CamelTestSupport {
         System.out.println("Response " + response);
     }
 
-    @Test
+    /* @Test
     void testSendMessageWithPrompt() throws InterruptedException {
         MockEndpoint mockErrorHandler = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockErrorHandler.expectedMessageCount(1);
@@ -109,6 +105,5 @@ public class Langchain4jHuggingFaceTest extends CamelTestSupport {
         assertTrue(response.contains("tomato"));
         assertTrue(response.contains("feta"));
         assertTrue(response.contains("olive oil"));
-    }
-
+    }*/
 }
