@@ -108,6 +108,9 @@ public class Langchain4jOpenAITest extends CamelTestSupport {
         System.out.println("Response " + response);
 
         assertTrue(response.contains("potato"));
+        assertTrue(response.contains("tomato"));
+        assertTrue(response.contains("feta"));
+        assertTrue(response.contains("olive oil"));
 
     }
 
