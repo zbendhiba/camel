@@ -50,6 +50,7 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
                 processMultipleMessages(exchange);
             case EMBEDDING:
                 processEmbedding(exchange);
+                // this one should maybe be removed because we basically can chain ourselves in Camel for the retrieval
             case CONVERSATIONAL_RETRIEVER:
                 processConversationalRetriever(exchange);
         }

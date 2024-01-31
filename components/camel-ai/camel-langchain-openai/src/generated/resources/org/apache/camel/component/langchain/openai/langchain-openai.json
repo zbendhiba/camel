@@ -2,7 +2,7 @@
   "component": {
     "kind": "component",
     "name": "langchain-openai",
-    "title": "Langchain-openai",
+    "title": "langchain-openai",
     "description": "Langchain4j for OpenAI",
     "deprecated": false,
     "firstVersion": "4.4.0",

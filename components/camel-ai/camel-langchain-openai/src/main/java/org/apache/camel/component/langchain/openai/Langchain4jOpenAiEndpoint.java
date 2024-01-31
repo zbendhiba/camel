@@ -41,8 +41,8 @@ import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConst
 import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.TIMEOUT;
 
 @UriEndpoint(firstVersion = "4.4.0", scheme = "langchain-openai",
-             title = "Langchain-openai",
-             syntax = "lancghain-openai:name", producerOnly = true,
+             title = "langchain-openai",
+             syntax = "langchain-openai:name", producerOnly = true,
              category = { Category.AI })
 public class Langchain4jOpenAiEndpoint extends DefaultEndpoint {
 
