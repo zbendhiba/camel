@@ -14,28 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.langchain.openai;
+package org.apache.camel.component.langchain.hugging.face;
 
 import java.time.Duration;
 import java.util.Map;
 
 import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
-import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.model.huggingface.HuggingFaceChatModel;
 import org.apache.camel.Exchange;
 import org.apache.camel.component.langchain.commons.Langchain4jConstants;
 import org.apache.camel.component.langchain.commons.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
 
-public class Langchain4jOpenAiProducer extends DefaultProducer {
-    private Langchain4jOpenAiEndpoint endpoint;
+public class Langchain4jHuggingFaceProducer extends DefaultProducer {
+    private Langchain4jHuggingFaceEndpoint endpoint;
 
-    private ChatLanguageModel openAiModel;
+    private ChatLanguageModel huggingFaceModel;
 
     private Langchain4jChatHandler langchain4jChatHandler;
 
-    public Langchain4jOpenAiProducer(Langchain4jOpenAiEndpoint endpoint) {
+    public Langchain4jHuggingFaceProducer(Langchain4jHuggingFaceEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
     }
@@ -90,6 +90,7 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
         exchange.getIn().setBody(response);
 
+
     }
 
     private void processSingleMessage(Exchange exchange) {
@@ -98,13 +99,13 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
         var response = "";
 
-        var message = exchange.getIn().getBody(String.class);
-        ObjectHelper.notNull(message, "Message");
-        if (chatMessageType != null) {
-            //TODO -- check if that is even something normal to do
-        } else {
-            response = langchain4jChatHandler.sendMessage(message);
-        }
+            var message = exchange.getIn().getBody(String.class);
+            ObjectHelper.notNull(message, "Message");
+            if (chatMessageType != null) {
+                //TODO -- check if that is even something normal to do
+            } else {
+                response = langchain4jChatHandler.sendMessage(message);
+            }
 
         exchange.getIn().setBody(response);
     }
@@ -113,36 +114,24 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
     protected void doStart() throws Exception {
         super.doStart();
 
-        openAiModel = this.endpoint.getChatModel();
+        huggingFaceModel = this.endpoint.getChatModel();
 
-        if (this.openAiModel == null) {
+        if (this.huggingFaceModel == null) {
             // create Chat ModeL . This requires at least an API Key
-            ObjectHelper.notNull(this.endpoint.getOpenAiKey(), "openAiKey");
+            ObjectHelper.notNull(this.endpoint.getAccessToken(), "accessToken");
 
-            openAiModel = OpenAiChatModel.builder()
-                    .apiKey(this.endpoint.getOpenAiKey())
-                    .modelName(this.endpoint.getOpenAiModelName())
-                    .baseUrl(this.endpoint.getBaseUrl())
-                    .organizationId(this.endpoint.getOrganizationId())
-                    .temperature(this.endpoint.getTemperature())
-                    .topP(this.endpoint.getTopP())
-                    .stop(this.endpoint.getStop())
-                    .maxTokens(this.endpoint.getMaxTokens())
-                    .presencePenalty(this.endpoint.getPresencePenalty())
-                    .frequencyPenalty(this.endpoint.getFrequencyPenalty())
-                    .logitBias(this.endpoint.getLogitBias())
-                    .responseFormat(this.endpoint.getResponseFormat())
-                    .seed(this.endpoint.getSeed())
-                    .user(this.endpoint.getUser())
+            huggingFaceModel = HuggingFaceChatModel.builder()
                     .timeout(Duration.ofMillis(this.endpoint.getTimeout()))
-                    .maxRetries(this.endpoint.getMaxRetries())
-                    .logRequests(this.endpoint.getLogRequests())
-                    .logResponses(this.endpoint.getLogResponses())
-                    .tokenizer(this.endpoint.getTokenizer())
+                    .temperature(this.endpoint.getTemperature())
+                    .modelId(this.endpoint.getModelId())
+                    .accessToken(this.endpoint.getAccessToken())
+                    .maxNewTokens(this.endpoint.getMaxNewRetries())
+                    .returnFullText(this.endpoint.getReturnFullText())
                     .build();
+
         }
 
-        langchain4jChatHandler = new Langchain4jChatHandler(this.openAiModel);
+        langchain4jChatHandler = new Langchain4jChatHandler(this.huggingFaceModel);
 
     }
 

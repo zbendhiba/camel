@@ -14,30 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.langchain.commons;
+package org.apache.camel.component.langchain.hugging.face;
 
-public class Langchain4jConstants {
+import java.util.Map;
 
-    public static final String PROMPT_TEMPLATE = "PROMPT_TEMPLATE";
+import org.apache.camel.Endpoint;
+import org.apache.camel.spi.annotations.Component;
+import org.apache.camel.support.DefaultComponent;
 
-    /**
-     * Timeout of Response from OpenAI in Milliseconds
-     */
-    public static final int TIMEOUT = 1000;
-    /**
-     * Nb of retry with OpenAI
-     */
-    public static final int NB_RETRY = 1;
-
-    /**
-     * Log Resquests
-     */
-    public static final boolean LOG_REQUEST = false;
-
-    /**
-     * Log Response
-     */
-    public static final boolean LOG_RESPONSE = false;
-
-    public static final boolean RETURN_FULL_TEXT = true;
+@Component("langchain-hugging-face")
+public class Langchain4HuggingFaceComponent extends DefaultComponent {
+    @Override
+    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
+        if (remaining == null || remaining.isBlank()) {
+            throw new IllegalArgumentException("Name must be specified.");
+        }
+        Endpoint endpoint = new Langchain4jHuggingFaceEndpoint(uri, this);
+        setProperties(endpoint, parameters);
+        return endpoint;
+    }
 }

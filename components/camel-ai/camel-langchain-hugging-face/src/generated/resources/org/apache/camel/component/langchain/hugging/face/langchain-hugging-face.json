@@ -1,0 +1,42 @@
+{
+  "component": {
+    "kind": "component",
+    "name": "langchain-hugging-face",
+    "title": "langchain-hugging-face",
+    "description": "Langchain4j for OpenAI",
+    "deprecated": false,
+    "firstVersion": "4.4.0",
+    "label": "ai",
+    "javaType": "org.apache.camel.component.langchain.hugging.face.Langchain4HuggingFaceComponent",
+    "supportLevel": "Preview",
+    "groupId": "org.apache.camel",
+    "artifactId": "camel-langchain-hugging-face",
+    "version": "4.4.0-SNAPSHOT",
+    "scheme": "langchain-hugging-face",
+    "extendsScheme": "",
+    "syntax": "langchain-hugging-face:name",
+    "async": false,
+    "api": false,
+    "consumerOnly": false,
+    "producerOnly": true,
+    "lenientProperties": false,
+    "remote": true
+  },
+  "componentProperties": {
+    "lazyStartProducer": { "index": 0, "kind": "property", "displayName": "Lazy Start Producer", "group": "producer", "label": "producer", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Whether the producer should be started lazy (on the first message). By starting lazy you can use this to allow CamelContext and routes to startup in situations where a producer may otherwise fail during starting and cause the route to fail being started. By deferring this startup to be lazy then the startup failure can be handled during routing messages via Camel's routing error handlers. Beware that when the first message is processed then creating and starting the producer may take a little time and prolong the total processing time of the processing." },
+    "autowiredEnabled": { "index": 1, "kind": "property", "displayName": "Autowired Enabled", "group": "advanced", "label": "advanced", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": true, "description": "Whether autowiring is enabled. This is used for automatic autowiring options (the option must be marked as autowired) by looking up in the registry to find if there is a single instance of matching type, which then gets configured on the component. This can be used for automatic configuring JDBC data sources, JMS connection factories, AWS Clients, etc." }
+  },
+  "properties": {
+    "name": { "index": 0, "kind": "path", "displayName": "Name", "group": "producer", "label": "", "required": true, "type": "string", "javaType": "java.lang.String", "deprecated": false, "deprecationNote": "", "autowired": false, "secret": false, "description": "TODO" },
+    "chatMessageType": { "index": 1, "kind": "parameter", "displayName": "Chat Message Type", "group": "producer", "label": "", "required": false, "type": "object", "javaType": "dev.langchain4j.data.message.ChatMessageType", "enum": [ "SYSTEM", "USER", "AI", "TOOL_EXECUTION_RESULT" ], "deprecated": false, "autowired": false, "secret": false, "description": "Values from dev.langchain4j.data.message.ChatMessageType" },
+    "chatModel": { "index": 2, "kind": "parameter", "displayName": "Chat Model", "group": "producer", "label": "", "required": false, "type": "object", "javaType": "dev.langchain4j.model.huggingface.HuggingFaceChatModel", "deprecated": false, "autowired": false, "secret": false, "description": "Chat Model" },
+    "maxNewRetries": { "index": 3, "kind": "parameter", "displayName": "Max New Retries", "group": "producer", "label": "", "required": false, "type": "integer", "javaType": "java.lang.Integer", "deprecated": false, "autowired": false, "secret": false, "defaultValue": "1", "description": "Max retries" },
+    "modelId": { "index": 4, "kind": "parameter", "displayName": "Model Id", "group": "producer", "label": "", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "autowired": false, "secret": false, "description": "HuggingFace model ID - check values from dev.langchain4j.model.huggingface.HuggingFaceChatModelIT" },
+    "operation": { "index": 5, "kind": "parameter", "displayName": "Operation", "group": "producer", "label": "", "required": true, "type": "object", "javaType": "org.apache.camel.component.langchain.commons.Langchain4jOperations", "enum": [ "CHAT_SINGLE_MESSAGE", "CHAT_SINGLE_MESSAGE_WITH_PROMPT", "CHAT_MULTIPLE_MESSAGES", "EMBEDDING", "CONVERSATIONAL_RETRIEVER" ], "deprecated": false, "deprecationNote": "", "autowired": false, "secret": false, "description": "Operation value is one the values of org.apache.camel.component.langchain.commons.Langchain4jChatOperations" },
+    "returnFullText": { "index": 6, "kind": "parameter", "displayName": "Return Full Text", "group": "producer", "label": "", "required": false, "type": "boolean", "javaType": "java.lang.Boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": "true", "description": "Return full text" },
+    "temperature": { "index": 7, "kind": "parameter", "displayName": "Temperature", "group": "producer", "label": "", "required": false, "type": "number", "javaType": "java.lang.Double", "deprecated": false, "autowired": false, "secret": false, "description": "Temperature" },
+    "timeout": { "index": 8, "kind": "parameter", "displayName": "Timeout", "group": "producer", "label": "", "required": false, "type": "integer", "javaType": "java.lang.Integer", "deprecated": false, "autowired": false, "secret": false, "defaultValue": "1000", "description": "Timeout" },
+    "lazyStartProducer": { "index": 9, "kind": "parameter", "displayName": "Lazy Start Producer", "group": "producer (advanced)", "label": "producer,advanced", "required": false, "type": "boolean", "javaType": "boolean", "deprecated": false, "autowired": false, "secret": false, "defaultValue": false, "description": "Whether the producer should be started lazy (on the first message). By starting lazy you can use this to allow CamelContext and routes to startup in situations where a producer may otherwise fail during starting and cause the route to fail being started. By deferring this startup to be lazy then the startup failure can be handled during routing messages via Camel's routing error handlers. Beware that when the first message is processed then creating and starting the producer may take a little time and prolong the total processing time of the processing." },
+    "accessToken": { "index": 10, "kind": "parameter", "displayName": "Access Token", "group": "security", "label": "security", "required": false, "type": "string", "javaType": "java.lang.String", "deprecated": false, "autowired": false, "secret": true, "description": "HuggingFace Access Token" }
+  }
+}

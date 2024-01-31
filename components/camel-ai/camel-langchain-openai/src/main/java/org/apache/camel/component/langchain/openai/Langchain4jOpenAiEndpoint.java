@@ -35,10 +35,10 @@ import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 import org.apache.camel.util.ObjectHelper;
 
-import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.LOG_REQUEST;
-import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.LOG_RESPONSE;
-import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.NB_RETRY;
-import static org.apache.camel.component.langchain.openai.Langchain4jOpenAiConstants.TIMEOUT;
+import static org.apache.camel.component.langchain.commons.Langchain4jConstants.LOG_REQUEST;
+import static org.apache.camel.component.langchain.commons.Langchain4jConstants.LOG_RESPONSE;
+import static org.apache.camel.component.langchain.commons.Langchain4jConstants.NB_RETRY;
+import static org.apache.camel.component.langchain.commons.Langchain4jConstants.TIMEOUT;
 
 @UriEndpoint(firstVersion = "4.4.0", scheme = "langchain-openai",
              title = "langchain-openai",

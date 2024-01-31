@@ -14,26 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.langchain.openai;
+package org.apache.camel.component.langchain.hugging.face;
 
-public class Langchain4jOpenAiConstants {
+public class Langchain4jHuggingFaceConstants {
 
-    /**
-     * Timeout of Response from OpenAI in Milliseconds
-     */
-    public static final int TIMEOUT = 1000;
-    /**
-     * Nb of retry with OpenAI
-     */
-    public static final int NB_RETRY = 1;
 
-    /**
-     * Log Resquests
-     */
-    public static final boolean LOG_REQUEST = false;
-
-    /**
-     * Log Response
-     */
-    public static final boolean LOG_RESPONSE = false;
 }
