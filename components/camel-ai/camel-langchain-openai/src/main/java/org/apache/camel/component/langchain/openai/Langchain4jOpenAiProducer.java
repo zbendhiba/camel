@@ -33,6 +33,8 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
     private ChatLanguageModel openAiModel;
 
+    private Langchain4jChatHandler langchain4jChatHandler;
+
     public Langchain4jOpenAiProducer(Langchain4jOpenAiEndpoint endpoint) {
         super(endpoint);
         this.endpoint = endpoint;
@@ -73,25 +75,30 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
 
     private void processSingleMessageWithPrompt(Exchange exchange) {
         ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
+        String promptTemplate = exchange.getIn().getHeader(Langchain4jConstants.PROMPT_TEMPLATE, String.class);
+        ObjectHelper.notNull(promptTemplate, "Prompt variables");
+        var variables = exchange.getIn().getBody(Map.class);
+        ObjectHelper.notNull(variables, "Prompt variables");
+
+        var response = "";
+
+        if (chatMessageType != null) {
+            //TODO -- check if that is even something normal to do
+        } else {
+            response = langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
+        }
+
+        exchange.getIn().setBody(response);
+
 
     }
 
     private void processSingleMessage(Exchange exchange) {
-        Langchain4jChatHandler langchain4jChatHandler = new Langchain4jChatHandler(this.openAiModel);
+
         ChatMessageType chatMessageType = this.endpoint.getChatMessageType();
-        String promptTemplate = exchange.getIn().getHeader(Langchain4jConstants.PROMPT_TEMPLATE, String.class);
+
         var response = "";
-        if (promptTemplate != null) {
-            var variables = exchange.getIn().getBody(Map.class);
-            ObjectHelper.notNull(variables, "Prompt variables");
 
-            if (chatMessageType != null) {
-                //TODO -- check if that is even something normal to do
-            } else {
-                response = langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
-            }
-
-        } else {
             var message = exchange.getIn().getBody(String.class);
             ObjectHelper.notNull(message, "Message");
             if (chatMessageType != null) {
@@ -99,7 +106,7 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
             } else {
                 response = langchain4jChatHandler.sendMessage(message);
             }
-        }
+
         exchange.getIn().setBody(response);
     }
 
@@ -135,6 +142,8 @@ public class Langchain4jOpenAiProducer extends DefaultProducer {
                     .tokenizer(this.endpoint.getTokenizer())
                     .build();
         }
+
+        langchain4jChatHandler = new Langchain4jChatHandler(this.openAiModel);
 
     }
 

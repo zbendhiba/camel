@@ -16,9 +16,13 @@
  */
 package org.apache.camel.component.langchain.openai;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.langchain.commons.Langchain4jConstants;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -27,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import static dev.langchain4j.model.openai.OpenAiModelName.GPT_3_5_TURBO;
 import static java.time.Duration.ofSeconds;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class Langchain4jOpenAITest extends CamelTestSupport {
 
@@ -65,6 +70,11 @@ public class Langchain4jOpenAITest extends CamelTestSupport {
                         .to("langchain-openai:chat-simple?chatModel=#openAiChatModel&operation=CHAT_SINGLE_MESSAGE")
                         .log("response is ***** ${body}")
                         .to("mock:response");
+
+                from("direct:send-message-prompt")
+                        .to("langchain-openai:chat-prompt?chatModel=#openAiChatModel&operation=CHAT_SINGLE_MESSAGE_WITH_PROMPT")
+                        .log("response is ***** ${body}")
+                        .to("mock:response");
             };
         };
     }
@@ -78,6 +88,27 @@ public class Langchain4jOpenAITest extends CamelTestSupport {
         mockErrorHandler.assertIsSatisfied();
         //TODO drop this line
         System.out.println("Response " + response);
+    }
+
+    @Test
+    void testSendMessageWithPrompt() throws InterruptedException {
+        MockEndpoint mockErrorHandler = this.context.getEndpoint("mock:response", MockEndpoint.class);
+        mockErrorHandler.expectedMessageCount(1);
+
+        // Example copied from Langchain4j examples
+        var promptTemplate = "Create a recipe for a {{dishType}} with the following ingredients: {{ingredients}}";
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("dishType", "oven dish");
+        variables.put("ingredients", "potato, tomato, feta, olive oil");
+
+        String response = template.requestBodyAndHeader("direct:send-message-prompt", variables, Langchain4jConstants.PROMPT_TEMPLATE, promptTemplate, String.class);
+        mockErrorHandler.assertIsSatisfied();
+        //TODO drop this line
+        System.out.println("Response " + response);
+
+        assertTrue(response.contains("potato"));
+
     }
 
 }
