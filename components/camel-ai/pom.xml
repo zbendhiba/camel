@@ -34,6 +34,7 @@
 
     <modules>
         <module>camel-langchain-commons</module>
+        <module>camel-langchain-embeddings</module>
         <module>camel-langchain-hugging-face</module>
         <module>camel-langchain-openai</module>
     </modules>
