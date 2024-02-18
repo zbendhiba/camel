@@ -74,7 +74,7 @@ public class LangchainProducer extends DefaultProducer {
         ObjectHelper.notNull(operation, "embedOperation");
 
         Map<String, String> metadataValues = exchange.getIn().getHeader(Langchain4jConstants.EMBEDDING_METADATA, Map.class);
-        Metadata metadata = metadataValues != null ?  new Metadata(metadataValues) : new Metadata();
+        Metadata metadata = metadataValues != null ? new Metadata(metadataValues) : new Metadata();
 
         if (LangchainEmbedOperations.EMBED_SINGLE_STRING.equals(operation)) {
             exchange.getMessage().setBody(processEmbedSingleString(metadata, exchange));
@@ -95,7 +95,7 @@ public class LangchainProducer extends DefaultProducer {
 
     private Embedding processEmbedSingleString(Metadata metadata, Exchange exchange) {
         String data = exchange.getIn().getBody(String.class);
-        TextSegment textSegment =  new TextSegment(data, metadata);
+        TextSegment textSegment = new TextSegment(data, metadata);
         return embeddingModel.embed(textSegment).content();
     }
 
