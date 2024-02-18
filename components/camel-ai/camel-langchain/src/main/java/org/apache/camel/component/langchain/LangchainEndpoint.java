@@ -16,6 +16,7 @@
  */
 package org.apache.camel.component.langchain;
 
+import dev.langchain4j.chain.ConversationalRetrievalChain;
 import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -65,6 +66,9 @@ public class LangchainEndpoint extends DefaultEndpoint {
 
     @UriParam(label = "advanced")
     private EmbeddingModel embeddingModel;
+
+    @UriParam(label = "advanced")
+    private ConversationalRetrievalChain chain;
 
     public LangchainEndpoint(String uri, LangchainComponent component, String type) {
         super(uri, component);
@@ -166,5 +170,19 @@ public class LangchainEndpoint extends DefaultEndpoint {
 
     public void setEmbeddingModel(EmbeddingModel embeddingModel) {
         this.embeddingModel = embeddingModel;
+    }
+
+
+    /**
+     * Conversational Retrieval chain in case the type of endpoint is chain
+     *
+     * @return
+     */
+    public ConversationalRetrievalChain getChain() {
+        return chain;
+    }
+
+    public void setChain(ConversationalRetrievalChain chain) {
+        this.chain = chain;
     }
 }

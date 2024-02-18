@@ -19,6 +19,7 @@ package org.apache.camel.component.langchain;
 import java.util.List;
 import java.util.Map;
 
+import dev.langchain4j.chain.ConversationalRetrievalChain;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.message.ChatMessageType;
@@ -26,6 +27,7 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import org.apache.camel.Exchange;
+import static org.apache.camel.component.langchain.Langchain4jConstants.ENDPOINT_TYPE_CHAIN;
 import org.apache.camel.component.langchain.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
@@ -44,6 +46,8 @@ public class LangchainProducer extends DefaultProducer {
 
     private EmbeddingModel embeddingModel;
 
+    private ConversationalRetrievalChain conversationalRetrievalChain;
+
     private Langchain4jChatHandler langchain4jChatHandler;
 
     public LangchainProducer(LangchainEndpoint endpoint) {
@@ -60,6 +64,10 @@ public class LangchainProducer extends DefaultProducer {
 
         if (ENDPOINT_TYPE_EMBED.equals(endpointType)) {
             processEmbed(exchange);
+        }
+
+        if(ENDPOINT_TYPE_CHAIN.equals(endpointType)){
+            processConversationalRetriever(exchange);
         }
 
     }
@@ -136,7 +144,11 @@ public class LangchainProducer extends DefaultProducer {
     }
 
     private void processConversationalRetriever(Exchange exchange) {
-        //TODO
+        // make sure the chain is not null
+        ObjectHelper.notNull(conversationalRetrievalChain, "chain");
+        String question = exchange.getIn().getBody(String.class);
+        var response = conversationalRetrievalChain.execute(question);
+        exchange.getMessage().setBody(response);
     }
 
     private void processMultipleMessages(Exchange exchange) {
@@ -186,6 +198,8 @@ public class LangchainProducer extends DefaultProducer {
         chatLanguageModel = this.endpoint.getChatModel();
 
         embeddingModel = this.endpoint.getEmbeddingModel();
+
+        conversationalRetrievalChain = this.endpoint.getChain();
 
         langchain4jChatHandler = new Langchain4jChatHandler(this.chatLanguageModel);
 
