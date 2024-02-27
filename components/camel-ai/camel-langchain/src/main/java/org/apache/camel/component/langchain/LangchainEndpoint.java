@@ -172,7 +172,6 @@ public class LangchainEndpoint extends DefaultEndpoint {
         this.embeddingModel = embeddingModel;
     }
 
-
     /**
      * Conversational Retrieval chain in case the type of endpoint is chain
      *

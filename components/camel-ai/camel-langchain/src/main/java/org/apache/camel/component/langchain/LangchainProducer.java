@@ -27,11 +27,11 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import org.apache.camel.Exchange;
-import static org.apache.camel.component.langchain.Langchain4jConstants.ENDPOINT_TYPE_CHAIN;
 import org.apache.camel.component.langchain.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
 
+import static org.apache.camel.component.langchain.Langchain4jConstants.ENDPOINT_TYPE_CHAIN;
 import static org.apache.camel.component.langchain.Langchain4jConstants.ENDPOINT_TYPE_CHAT;
 import static org.apache.camel.component.langchain.Langchain4jConstants.ENDPOINT_TYPE_EMBED;
 import static org.apache.camel.component.langchain.LangchainChatOperations.CHAT_MULTIPLE_MESSAGES;
@@ -66,7 +66,7 @@ public class LangchainProducer extends DefaultProducer {
             processEmbed(exchange);
         }
 
-        if(ENDPOINT_TYPE_CHAIN.equals(endpointType)){
+        if (ENDPOINT_TYPE_CHAIN.equals(endpointType)) {
             processConversationalRetriever(exchange);
         }
 
