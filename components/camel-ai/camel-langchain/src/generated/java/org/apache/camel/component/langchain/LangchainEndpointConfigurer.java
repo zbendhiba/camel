@@ -21,6 +21,7 @@ public class LangchainEndpointConfigurer extends PropertyConfigurerSupport imple
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         LangchainEndpoint target = (LangchainEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chain": target.setChain(property(camelContext, dev.langchain4j.chain.ConversationalRetrievalChain.class, value)); return true;
         case "chatmessagetype":
         case "chatMessageType": target.setChatMessageType(property(camelContext, dev.langchain4j.data.message.ChatMessageType.class, value)); return true;
         case "chatmodel":
@@ -45,6 +46,7 @@ public class LangchainEndpointConfigurer extends PropertyConfigurerSupport imple
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chain": return dev.langchain4j.chain.ConversationalRetrievalChain.class;
         case "chatmessagetype":
         case "chatMessageType": return dev.langchain4j.data.message.ChatMessageType.class;
         case "chatmodel":
@@ -65,6 +67,7 @@ public class LangchainEndpointConfigurer extends PropertyConfigurerSupport imple
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         LangchainEndpoint target = (LangchainEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chain": return target.getChain();
         case "chatmessagetype":
         case "chatMessageType": return target.getChatMessageType();
         case "chatmodel":
