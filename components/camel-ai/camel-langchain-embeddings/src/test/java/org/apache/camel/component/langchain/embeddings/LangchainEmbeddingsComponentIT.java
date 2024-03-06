@@ -101,13 +101,11 @@ public class LangchainEmbeddingsComponentIT extends CamelTestSupport {
         assertThat(result).isNotNull();
         assertThat(result.getException()).isNull();
 
-        assertThat(result.getIn().getBody()).isInstanceOfSatisfying(Collection.class, c -> {
-            assertThat(c).hasSize(1);
-        });
+        assertThat(result.getIn().getBody()).isInstanceOfSatisfying(Collection.class, c -> assertThat(c).hasSize(1));
     }
 
     @Override
-    protected RoutesBuilder createRouteBuilder() throws Exception {
+    protected RoutesBuilder createRouteBuilder() {
         return new RouteBuilder() {
             public void configure() {
                 from("direct:in")

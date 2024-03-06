@@ -3,7 +3,7 @@
     "kind": "component",
     "name": "langchain-embeddings",
     "title": "Langchain4j Embeddings",
-    "description": "Perform operations on the Qdrant Vector Database.",
+    "description": "Langchain4j Embeddings",
     "deprecated": false,
     "firstVersion": "4.5.0",
     "label": "ai",

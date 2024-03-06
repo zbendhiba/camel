@@ -1284,7 +1284,7 @@
       </dependency>
       <dependency>
         <groupId>org.apache.camel</groupId>
-        <artifactId>camel-langchain</artifactId>
+        <artifactId>camel-langchain-chat</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

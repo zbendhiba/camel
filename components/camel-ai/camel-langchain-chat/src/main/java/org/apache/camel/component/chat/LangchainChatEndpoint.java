@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.langchain.embeddings;
+package org.apache.camel.component.chat;
 
 import org.apache.camel.Category;
-import org.apache.camel.Component;
 import org.apache.camel.Consumer;
 import org.apache.camel.Processor;
 import org.apache.camel.Producer;
@@ -27,48 +26,49 @@ import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 
-/**
- * Langchain4j Embeddings
- */
-@UriEndpoint(firstVersion = "4.5.0", scheme = LangchainEmbeddings.SCHEME, title = "Langchain4j Embeddings",
-             syntax = "langchain4j-embeddings:embeddingId", producerOnly = true, category = {
-                     Category.AI
-             }, headersClass = LangchainEmbeddings.Headers.class)
-public class LangchainEmbeddingsEndpoint extends DefaultEndpoint {
+import static org.apache.camel.component.chat.LangchainChat.SCHEME;
+
+@UriEndpoint(firstVersion = "4.5.0", scheme = SCHEME,
+             title = "langchain 4j chat",
+             syntax = "langchain-chat:chatId", producerOnly = true,
+             category = { Category.AI }, headersClass = LangchainChat.Headers.class)
+public class LangchainChatEndpoint extends DefaultEndpoint {
+
     @Metadata(required = true)
     @UriPath(description = "The id")
-    private final String embeddingId;
+    private final String chatId;
 
     @UriParam
-    private LangchainEmbeddingsConfiguration configuration;
+    private LangchainChatConfiguration configuration;
 
-    public LangchainEmbeddingsEndpoint(
-                                       String endpointUri,
-                                       Component component,
-                                       String embeddingId,
-                                       LangchainEmbeddingsConfiguration configuration) {
-
-        super(endpointUri, component);
-
-        this.embeddingId = embeddingId;
+    public LangchainChatEndpoint(String uri, LangchainChatComponent component, String chatId,
+                                 LangchainChatConfiguration configuration) {
+        super(uri, component);
+        this.chatId = chatId;
         this.configuration = configuration;
-    }
-
-    public LangchainEmbeddingsConfiguration getConfiguration() {
-        return this.configuration;
-    }
-
-    public String getEmbeddingId() {
-        return this.embeddingId;
     }
 
     @Override
     public Producer createProducer() throws Exception {
-        return new LangchainEmbeddingsProducer(this);
+        return new LangchainChatProducer(this);
     }
 
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
-        throw new UnsupportedOperationException("Consumer is not implemented for this component");
+        throw new UnsupportedOperationException("Cannot consume from an LangchainEndpoint: " + getEndpointUri());
     }
+
+    /**
+     * Chat ID
+     *
+     * @return
+     */
+    public String getChatId() {
+        return chatId;
+    }
+
+    public LangchainChatConfiguration getConfiguration() {
+        return configuration;
+    }
+
 }

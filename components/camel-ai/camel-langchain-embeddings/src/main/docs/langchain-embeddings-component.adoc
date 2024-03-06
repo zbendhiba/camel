@@ -2,7 +2,7 @@
 :doctitle: Langchain4j Embeddings
 :shortname: langchain-embeddings
 :artifactid: camel-langchain-embeddings
-:description: Perform operations on the Qdrant Vector Database.
+:description: Langchain4j Embeddings
 :since: 4.5
 :supportlevel: Preview
 :tabs-sync-option:
