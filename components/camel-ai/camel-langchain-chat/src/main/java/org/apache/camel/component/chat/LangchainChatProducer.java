@@ -21,9 +21,10 @@ import java.util.Map;
 import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import org.apache.camel.Exchange;
+import org.apache.camel.InvalidPayloadException;
+import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.component.chat.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
-import org.apache.camel.util.ObjectHelper;
 
 public class LangchainChatProducer extends DefaultProducer {
 
@@ -37,20 +38,17 @@ public class LangchainChatProducer extends DefaultProducer {
     }
 
     @Override
-    public void process(Exchange exchange) {
+    public void process(Exchange exchange) throws Exception {
+
         var operation = this.endpoint.getConfiguration().getChatOperation();
 
-        // Processing one single message
         if (LangchainChatOperations.CHAT_SINGLE_MESSAGE.equals(operation)) {
-
             processSingleMessage(exchange);
         } else if (LangchainChatOperations.CHAT_SINGLE_MESSAGE_WITH_PROMPT.equals(operation)) {
             processSingleMessageWithPrompt(exchange);
         } else if (LangchainChatOperations.CHAT_MULTIPLE_MESSAGES.equals(operation)) {
-
             processMultipleMessages(exchange);
         }
-
     }
 
     private void processMultipleMessages(Exchange exchange) {
@@ -58,39 +56,30 @@ public class LangchainChatProducer extends DefaultProducer {
     }
 
     @SuppressWarnings("unchecked")
-    private void processSingleMessageWithPrompt(Exchange exchange) {
+    private void processSingleMessageWithPrompt(Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
         ChatMessageType chatMessageType = this.endpoint.getConfiguration().getChatMessageType();
-        String promptTemplate = exchange.getIn().getHeader(LangchainChat.Headers.PROMPT_TEMPLATE, String.class);
-        ObjectHelper.notNull(promptTemplate, "Prompt variables");
-        Map<String, Object> variables = (Map<String, Object>) exchange.getIn().getBody(Map.class);
-        ObjectHelper.notNull(variables, "Prompt variables");
 
-        var response = "";
+        final String promptTemplate = exchange.getIn().getHeader(LangchainChat.Headers.PROMPT_TEMPLATE, String.class);
 
-        if (chatMessageType != null) {
-            response = langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables, chatMessageType);
-        } else {
-            response = langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
+        if (promptTemplate == null) {
+            throw new NoSuchHeaderException("The action is a required header", exchange, LangchainChat.Headers.PROMPT_TEMPLATE);
         }
+
+        Map<String, Object> variables = (Map<String, Object>) exchange.getIn().getMandatoryBody(Map.class);
+
+        var response = chatMessageType != null
+                ? langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables, chatMessageType)
+                : langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
 
         exchange.getIn().setBody(response);
-
     }
 
-    private void processSingleMessage(Exchange exchange) {
-
+    private void processSingleMessage(Exchange exchange) throws InvalidPayloadException {
         ChatMessageType chatMessageType = this.endpoint.getConfiguration().getChatMessageType();
+        final String message = exchange.getIn().getMandatoryBody(String.class);
 
-        var response = "";
-
-        var message = exchange.getIn().getBody(String.class);
-        ObjectHelper.notNull(message, "Message");
-        if (chatMessageType != null) {
-            response = langchain4jChatHandler.sendMessage(message, chatMessageType);
-
-        } else {
-            response = langchain4jChatHandler.sendMessage(message);
-        }
+        var response = chatMessageType != null
+                ? langchain4jChatHandler.sendMessage(message, chatMessageType) : langchain4jChatHandler.sendMessage(message);
 
         exchange.getIn().setBody(response);
     }
@@ -98,11 +87,8 @@ public class LangchainChatProducer extends DefaultProducer {
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-
         ChatLanguageModel chatLanguageModel = this.endpoint.getConfiguration().getChatModel();
-
         langchain4jChatHandler = new Langchain4jChatHandler(chatLanguageModel);
-
     }
 
 }

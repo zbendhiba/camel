@@ -53,7 +53,7 @@ public class LangchainChatIT extends OllamaTestSupport {
         MockEndpoint mockErrorHandler = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockErrorHandler.expectedMessageCount(1);
 
-        String response = template.requestBody("direct:send-simple-message", "Hello my name is Dark Vader!", String.class);
+        String response = template.requestBody("direct:send-simple-message", "Hello my name is Darth Vader!", String.class);
         mockErrorHandler.assertIsSatisfied();
         LOG.debug("Response for testSendMessage : {}", response);
     }
@@ -79,4 +79,5 @@ public class LangchainChatIT extends OllamaTestSupport {
         assertTrue(response.contains("feta"));
         assertTrue(response.contains("olive oil"));
     }
+
 }

@@ -23,11 +23,6 @@ public class OllamaRemoteService implements OllamaService {
     public OllamaRemoteService() {
     }
 
-    public OllamaRemoteService(String baseURL, String model) {
-        System.setProperty(OllamaProperties.BASE_URL, baseURL);
-        System.setProperty(OllamaProperties.MODEL, model);
-    }
-
     @Override
     public void registerProperties() {
         // NO-OP
