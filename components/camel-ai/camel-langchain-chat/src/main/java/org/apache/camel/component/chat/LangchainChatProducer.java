@@ -16,21 +16,26 @@
  */
 package org.apache.camel.component.chat;
 
+import java.util.List;
 import java.util.Map;
 
-import dev.langchain4j.data.message.ChatMessageType;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.input.Prompt;
+import dev.langchain4j.model.input.PromptTemplate;
+import dev.langchain4j.model.output.Response;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.NoSuchHeaderException;
-import org.apache.camel.component.chat.service.Langchain4jChatHandler;
 import org.apache.camel.support.DefaultProducer;
+import org.apache.camel.util.ObjectHelper;
 
 public class LangchainChatProducer extends DefaultProducer {
 
     private final LangchainChatEndpoint endpoint;
 
-    private Langchain4jChatHandler langchain4jChatHandler;
+    private ChatLanguageModel chatLanguageModel;
 
     public LangchainChatProducer(LangchainChatEndpoint endpoint) {
         super(endpoint);
@@ -51,44 +56,89 @@ public class LangchainChatProducer extends DefaultProducer {
         }
     }
 
-    private void processMultipleMessages(Exchange exchange) {
-        //TODO
-    }
-
     @SuppressWarnings("unchecked")
     private void processSingleMessageWithPrompt(Exchange exchange) throws NoSuchHeaderException, InvalidPayloadException {
-        ChatMessageType chatMessageType = this.endpoint.getConfiguration().getChatMessageType();
-
         final String promptTemplate = exchange.getIn().getHeader(LangchainChat.Headers.PROMPT_TEMPLATE, String.class);
-
         if (promptTemplate == null) {
             throw new NoSuchHeaderException("The action is a required header", exchange, LangchainChat.Headers.PROMPT_TEMPLATE);
         }
 
         Map<String, Object> variables = (Map<String, Object>) exchange.getIn().getMandatoryBody(Map.class);
 
-        var response = chatMessageType != null
-                ? langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables, chatMessageType)
-                : langchain4jChatHandler.sendWithPromptTemplate(promptTemplate, variables);
+        var response = sendWithPromptTemplate(promptTemplate, variables);
 
-        exchange.getIn().setBody(response);
+        populateResponse(response, exchange);
     }
 
     private void processSingleMessage(Exchange exchange) throws InvalidPayloadException {
-        ChatMessageType chatMessageType = this.endpoint.getConfiguration().getChatMessageType();
-        final String message = exchange.getIn().getMandatoryBody(String.class);
+        final var message = exchange.getIn().getMandatoryBody();
 
-        var response = chatMessageType != null
-                ? langchain4jChatHandler.sendMessage(message, chatMessageType) : langchain4jChatHandler.sendMessage(message);
+        if (message instanceof String text) {
+            populateResponse(sendMessage(text), exchange);
+        } else if (message instanceof ChatMessage chatMessage) {
+            populateResponse(sendChatMessage(chatMessage), exchange);
+        }
 
-        exchange.getIn().setBody(response);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void processMultipleMessages(Exchange exchange) throws InvalidPayloadException {
+        List<ChatMessage> messages = exchange.getIn().getMandatoryBody(List.class);
+        populateResponse(sendListChatMessage(messages), exchange);
     }
 
     @Override
     protected void doStart() throws Exception {
         super.doStart();
-        ChatLanguageModel chatLanguageModel = this.endpoint.getConfiguration().getChatModel();
-        langchain4jChatHandler = new Langchain4jChatHandler(chatLanguageModel);
+        this.chatLanguageModel = this.endpoint.getConfiguration().getChatModel();
+        ObjectHelper.notNull(chatLanguageModel, "chatLanguageModel");
+    }
+
+    private void populateResponse(String response, Exchange exchange) {
+        exchange.getMessage().setBody(response);
+    }
+
+    /**
+     * Send one simple message
+     *
+     * @param  message
+     * @return
+     */
+    public String sendMessage(String message) {
+        return this.chatLanguageModel.generate(message);
+    }
+
+    /**
+     * Send a ChatMessage
+     *
+     * @param  chatMessage
+     * @return
+     */
+    private String sendChatMessage(ChatMessage chatMessage) {
+        Response<AiMessage> response = this.chatLanguageModel.generate(chatMessage);
+        return extractAiResponse(response);
+    }
+
+    /**
+     * Send a ChatMessage
+     *
+     * @param  chatMessages
+     * @return
+     */
+    private String sendListChatMessage(List<ChatMessage> chatMessages) {
+        Response<AiMessage> response = this.chatLanguageModel.generate(chatMessages);
+        return extractAiResponse(response);
+    }
+
+    private String extractAiResponse(Response<AiMessage> response) {
+        AiMessage message = response.content();
+        return message == null ? null : message.text();
+    }
+
+    public String sendWithPromptTemplate(String promptTemplate, Map<String, Object> variables) {
+        PromptTemplate template = PromptTemplate.from(promptTemplate);
+        Prompt prompt = template.apply(variables);
+        return this.sendMessage(prompt.text());
     }
 
 }

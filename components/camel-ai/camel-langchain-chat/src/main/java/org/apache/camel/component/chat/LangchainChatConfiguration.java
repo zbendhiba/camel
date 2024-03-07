@@ -16,7 +16,6 @@
  */
 package org.apache.camel.component.chat;
 
-import dev.langchain4j.data.message.ChatMessageType;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Configurer;
@@ -36,9 +35,6 @@ public class LangchainChatConfiguration implements Cloneable {
     @Metadata(autowired = true)
     private ChatLanguageModel chatModel;
 
-    @UriParam
-    private ChatMessageType chatMessageType;
-
     public LangchainChatConfiguration() {
     }
 
@@ -54,19 +50,6 @@ public class LangchainChatConfiguration implements Cloneable {
 
     public void setChatOperation(LangchainChatOperations chatOperation) {
         this.chatOperation = chatOperation;
-    }
-
-    /**
-     * Values from dev.langchain4j.data.message.ChatMessageType
-     *
-     * @return
-     */
-    public ChatMessageType getChatMessageType() {
-        return chatMessageType;
-    }
-
-    public void setChatMessageType(ChatMessageType chatMessageType) {
-        this.chatMessageType = chatMessageType;
     }
 
     /**

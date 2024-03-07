@@ -21,8 +21,6 @@ public class LangchainChatConfigurationConfigurer extends org.apache.camel.suppo
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         org.apache.camel.component.chat.LangchainChatConfiguration target = (org.apache.camel.component.chat.LangchainChatConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmessagetype":
-        case "ChatMessageType": target.setChatMessageType(property(camelContext, dev.langchain4j.data.message.ChatMessageType.class, value)); return true;
         case "chatmodel":
         case "ChatModel": target.setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatLanguageModel.class, value)); return true;
         case "chatoperation":
@@ -34,8 +32,6 @@ public class LangchainChatConfigurationConfigurer extends org.apache.camel.suppo
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmessagetype":
-        case "ChatMessageType": return dev.langchain4j.data.message.ChatMessageType.class;
         case "chatmodel":
         case "ChatModel": return dev.langchain4j.model.chat.ChatLanguageModel.class;
         case "chatoperation":
@@ -48,8 +44,6 @@ public class LangchainChatConfigurationConfigurer extends org.apache.camel.suppo
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         org.apache.camel.component.chat.LangchainChatConfiguration target = (org.apache.camel.component.chat.LangchainChatConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmessagetype":
-        case "ChatMessageType": return target.getChatMessageType();
         case "chatmodel":
         case "ChatModel": return target.getChatModel();
         case "chatoperation":
