@@ -43,7 +43,7 @@ public class LangchainEmbeddingsTestSupport {
             builder.setVectors(VectorsFactory.vectors(embedding.vector()));
 
             if (text != null) {
-                // this is the default for loangchain4j
+                // this is the default for langchain4j
                 // https://github.com/langchain4j/langchain4j/blob/3e432486ffc5cb80861e118cbc974f478c3accfc/langchain4j-qdrant/src/main/java/dev/langchain4j/store/embedding/qdrant/QdrantEmbeddingStore.java#L261
                 builder.putPayload("text_segment", ValueFactory.value(text.text()));
 
