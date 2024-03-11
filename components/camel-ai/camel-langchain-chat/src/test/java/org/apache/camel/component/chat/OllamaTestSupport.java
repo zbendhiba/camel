@@ -23,6 +23,8 @@ import org.apache.camel.test.infra.ollama.services.OllamaServiceFactory;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static java.time.Duration.ofSeconds;
+
 public class OllamaTestSupport extends CamelTestSupport {
 
     protected ChatLanguageModel chatLanguageModel;
@@ -41,7 +43,8 @@ public class OllamaTestSupport extends CamelTestSupport {
         return OllamaChatModel.builder()
                 .baseUrl(OLLAMA.getBaseUrl())
                 .modelName(OLLAMA.getModel())
-                .temperature(0.3)
+                .temperature(0.5)
+                .timeout(ofSeconds(3000))
                 .build();
     }
 }
