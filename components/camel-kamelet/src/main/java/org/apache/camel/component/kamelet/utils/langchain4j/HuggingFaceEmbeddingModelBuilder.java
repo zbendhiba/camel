@@ -1,5 +1,10 @@
 package org.apache.camel.component.kamelet.utils.langchain4j;
 
+
+import dev.langchain4j.model.huggingface.HuggingFaceEmbeddingModel;
+
+import static java.time.Duration.ofSeconds;
+
 public class HuggingFaceEmbeddingModelBuilder {
     private String accessToken;
     private String modelId;
@@ -25,8 +30,7 @@ public class HuggingFaceEmbeddingModelBuilder {
         this.waitForModel = waitForModel;
         return this;
     }
-
-    public HuggingFaceEmbeddingModelBuilder build() {
+    public HuggingFaceEmbeddingModel build() {
         return HuggingFaceEmbeddingModel.builder()
                 .accessToken(accessToken)
                 .modelId(modelId)
