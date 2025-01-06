@@ -16,6 +16,7 @@
  */
 package org.apache.camel.component.qdrant;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -26,6 +27,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.WithPayloadSelectorFactory;
+import static io.qdrant.client.WithPayloadSelectorFactory.enable;
 import io.qdrant.client.WithVectorsSelectorFactory;
 import io.qdrant.client.grpc.Collections.VectorParams;
 import io.qdrant.client.grpc.Points;
@@ -91,6 +93,8 @@ public class QdrantProducer extends DefaultAsyncProducer {
                     return retrieve(exchange, callback);
                 case DELETE:
                     return delete(exchange, callback);
+                case SIMILARITY_SEARCH:
+                    return similaritySearch(exchange, callback);
                 case COLLECTION_INFO:
                     return collectionInfo(exchange, callback);
                 default:
@@ -249,6 +253,48 @@ public class QdrantProducer extends DefaultAsyncProducer {
                 (r, t) -> {
                     if (t != null) {
                         exchange.setException(new QdrantActionException(QdrantAction.DELETE_COLLECTION, t));
+                    }
+
+                    callback.done(false);
+                });
+
+        return false;
+    }
+
+    private boolean similaritySearch(Exchange exchange, AsyncCallback callback) throws Exception {
+        final String collection = getEndpoint().getCollection();
+        // Vector List
+        final Message in = exchange.getMessage();
+        final List<Float> vectors = in.getMandatoryBody(List.class);
+        final int maxResults = getEndpoint().getConfiguration().getMaxResults();
+        final Points.Filter filter = getEndpoint().getConfiguration().getFilter();
+        final Duration timeout = getEndpoint().getConfiguration().getTimeout();
+
+        Points.SearchPoints.Builder searchBuilder = Points.SearchPoints.newBuilder()
+                .setCollectionName(collection)
+                .addAllVector(vectors)
+                .setWithVectors(WithVectorsSelectorFactory.enable(in.getHeader(
+                        Qdrant.Headers.INCLUDE_VECTORS,
+                        Qdrant.Headers.DEFAULT_INCLUDE_VECTORS,
+                        boolean.class)))
+                .setWithPayload(enable(in.getHeader(
+                        Qdrant.Headers.INCLUDE_PAYLOAD,
+                        Qdrant.Headers.DEFAULT_INCLUDE_PAYLOAD,
+                        boolean.class)))
+                .setLimit(maxResults);
+
+        if(filter != null){
+            searchBuilder.setFilter(filter);
+        }
+
+        call(
+                this.client.searchAsync(searchBuilder.build(), timeout),
+                (r, t) -> {
+                    if (t != null) {
+                        exchange.setException(new QdrantActionException(QdrantAction.SIMILARITY_SEARCH, t));
+                    } else {
+                        in.setBody(new ArrayList<>(r));
+                        in.setHeader(Qdrant.Headers.SIZE, r.size());
                     }
 
                     callback.done(false);
