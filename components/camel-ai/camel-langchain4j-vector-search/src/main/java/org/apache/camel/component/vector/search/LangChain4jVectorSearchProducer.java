@@ -16,6 +16,8 @@
  */
 package org.apache.camel.component.vector.search;
 
+import dev.langchain4j.data.segment.TextSegment;
+import dev.langchain4j.model.embedding.EmbeddingModel;
 import org.apache.camel.Exchange;
 import org.apache.camel.support.DefaultProducer;
 
@@ -25,7 +27,18 @@ public class LangChain4jVectorSearchProducer extends DefaultProducer {
     }
 
     @Override
+    public LangChain4jVectorSearchEndpoint getEndpoint() {
+        return (LangChain4jVectorSearchEndpoint) super.getEndpoint();
+    }
+
+
+    @Override
     public void process(Exchange exchange) throws Exception {
+
+        final TextSegment in = exchange.getMessage().getMandatoryBody(TextSegment.class);
+        final EmbeddingModel model = getEndpoint().getConfiguration().getEmbeddingModel();
+
+
 
     }
 }
