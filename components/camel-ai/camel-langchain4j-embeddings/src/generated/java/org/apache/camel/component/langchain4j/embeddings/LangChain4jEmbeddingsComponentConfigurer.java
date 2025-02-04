@@ -33,6 +33,7 @@ public class LangChain4jEmbeddingsComponentConfigurer extends PropertyConfigurer
         case "autowiredenabled":
         case "autowiredEnabled": target.setAutowiredEnabled(property(camelContext, boolean.class, value)); return true;
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration.class, value)); return true;
+        case "decode": getOrCreateConfiguration(target).setDecode(property(camelContext, boolean.class, value)); return true;
         case "embeddingmodel":
         case "embeddingModel": getOrCreateConfiguration(target).setEmbeddingModel(property(camelContext, dev.langchain4j.model.embedding.EmbeddingModel.class, value)); return true;
         case "lazystartproducer":
@@ -52,6 +53,7 @@ public class LangChain4jEmbeddingsComponentConfigurer extends PropertyConfigurer
         case "autowiredenabled":
         case "autowiredEnabled": return boolean.class;
         case "configuration": return org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration.class;
+        case "decode": return boolean.class;
         case "embeddingmodel":
         case "embeddingModel": return dev.langchain4j.model.embedding.EmbeddingModel.class;
         case "lazystartproducer":
@@ -67,6 +69,7 @@ public class LangChain4jEmbeddingsComponentConfigurer extends PropertyConfigurer
         case "autowiredenabled":
         case "autowiredEnabled": return target.isAutowiredEnabled();
         case "configuration": return target.getConfiguration();
+        case "decode": return getOrCreateConfiguration(target).isDecode();
         case "embeddingmodel":
         case "embeddingModel": return getOrCreateConfiguration(target).getEmbeddingModel();
         case "lazystartproducer":

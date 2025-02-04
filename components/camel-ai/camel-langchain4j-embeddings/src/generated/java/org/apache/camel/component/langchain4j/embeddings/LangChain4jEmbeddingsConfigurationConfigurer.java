@@ -23,6 +23,7 @@ public class LangChain4jEmbeddingsConfigurationConfigurer extends org.apache.cam
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration target = (org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": target.setDecode(property(camelContext, boolean.class, value)); return true;
         case "embeddingmodel":
         case "embeddingModel": target.setEmbeddingModel(property(camelContext, dev.langchain4j.model.embedding.EmbeddingModel.class, value)); return true;
         default: return false;
@@ -32,6 +33,7 @@ public class LangChain4jEmbeddingsConfigurationConfigurer extends org.apache.cam
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": return boolean.class;
         case "embeddingmodel":
         case "embeddingModel": return dev.langchain4j.model.embedding.EmbeddingModel.class;
         default: return null;
@@ -42,6 +44,7 @@ public class LangChain4jEmbeddingsConfigurationConfigurer extends org.apache.cam
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration target = (org.apache.camel.component.langchain4j.embeddings.LangChain4jEmbeddingsConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": return target.isDecode();
         case "embeddingmodel":
         case "embeddingModel": return target.getEmbeddingModel();
         default: return null;

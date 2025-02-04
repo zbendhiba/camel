@@ -23,6 +23,7 @@ public class LangChain4jEmbeddingsEndpointConfigurer extends PropertyConfigurerS
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         LangChain4jEmbeddingsEndpoint target = (LangChain4jEmbeddingsEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": target.getConfiguration().setDecode(property(camelContext, boolean.class, value)); return true;
         case "embeddingmodel":
         case "embeddingModel": target.getConfiguration().setEmbeddingModel(property(camelContext, dev.langchain4j.model.embedding.EmbeddingModel.class, value)); return true;
         case "lazystartproducer":
@@ -39,6 +40,7 @@ public class LangChain4jEmbeddingsEndpointConfigurer extends PropertyConfigurerS
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": return boolean.class;
         case "embeddingmodel":
         case "embeddingModel": return dev.langchain4j.model.embedding.EmbeddingModel.class;
         case "lazystartproducer":
@@ -51,6 +53,7 @@ public class LangChain4jEmbeddingsEndpointConfigurer extends PropertyConfigurerS
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         LangChain4jEmbeddingsEndpoint target = (LangChain4jEmbeddingsEndpoint) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
+        case "decode": return target.getConfiguration().isDecode();
         case "embeddingmodel":
         case "embeddingModel": return target.getConfiguration().getEmbeddingModel();
         case "lazystartproducer":

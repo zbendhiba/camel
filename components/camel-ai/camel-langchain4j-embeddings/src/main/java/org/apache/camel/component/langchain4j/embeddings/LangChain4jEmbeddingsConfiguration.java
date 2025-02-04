@@ -31,6 +31,9 @@ public class LangChain4jEmbeddingsConfiguration implements Cloneable {
     @UriParam
     private EmbeddingModel embeddingModel;
 
+    @UriParam(description = "decode the embeddings", defaultValue = "false")
+    private boolean decode = false;
+
     public EmbeddingModel getEmbeddingModel() {
         return embeddingModel;
     }
@@ -40,6 +43,20 @@ public class LangChain4jEmbeddingsConfiguration implements Cloneable {
      */
     public void setEmbeddingModel(EmbeddingModel embeddingModel) {
         this.embeddingModel = embeddingModel;
+    }
+
+    /**
+     * Decode the embeddings. By default, the component encode body to LangChain4j embeddings. Set this to true if you
+     * want to decode LangChain4j embeddings to String
+     *
+     * @return
+     */
+    public boolean isDecode() {
+        return decode;
+    }
+
+    public void setDecode(boolean decode) {
+        this.decode = decode;
     }
 
     public LangChain4jEmbeddingsConfiguration copy() {
