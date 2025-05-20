@@ -331,7 +331,7 @@
         <langchain4j-version>1.0.0</langchain4j-version>
         <!-- temporary old or beta version for some provided langchain4j dependencies or dependencies used for testing only - these should be checked again in future or changed is some of those aren't maintained anymore -->
         <langchain4j-unstable-modules-version>1.0.0-beta5</langchain4j-unstable-modules-version>
-        <langchain4j-dashscope-version>0.36.2</langchain4j-dashscope-version>
+        <langchain4j-previous-version>0.36.2</langchain4j-previous-version>
         <leveldbjni-version>1.8</leveldbjni-version>
         <leveldb-api-version>0.12</leveldb-api-version>
         <leveldb-version>0.12</leveldb-version>
