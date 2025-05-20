@@ -49,20 +49,20 @@
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
-            <version>${langchain4j-version}</version>
+            <version>${langchain4j-previous-version}</version>
         </dependency>
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-open-ai</artifactId>
-            <version>${langchain4j-version}</version>
+            <version>${langchain4j-previous-version}</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-azure-open-ai</artifactId>
-            <version>${langchain4j-unstable-modules-version}</version>
+            <version>${langchain4j-previous-version}</version>
             <scope>provided</scope>
         </dependency>
 

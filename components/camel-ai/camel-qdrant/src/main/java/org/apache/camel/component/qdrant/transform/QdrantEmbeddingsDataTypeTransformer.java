@@ -54,8 +54,8 @@ public class QdrantEmbeddingsDataTypeTransformer extends Transformer {
             builder.putPayload("text_segment", ValueFactory.value(text.text()));
 
             text.metadata()
-                    .asMap()
-                    .forEach((key, value) -> builder.putPayload(key, ValueFactory.value(value)));
+                    .toMap()
+                    .forEach((key, value) -> builder.putPayload(key, ValueFactory.value((String) value)));
         }
 
         message.setBody(builder.build());

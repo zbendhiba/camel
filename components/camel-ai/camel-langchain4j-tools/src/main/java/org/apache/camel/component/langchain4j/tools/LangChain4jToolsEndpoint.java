@@ -18,7 +18,6 @@ package org.apache.camel.component.langchain4j.tools;
 
 import java.util.Map;
 
-import dev.langchain4j.agent.tool.JsonSchemaProperty;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import org.apache.camel.Category;
 import org.apache.camel.Consumer;
@@ -88,16 +87,24 @@ public class LangChain4jToolsEndpoint extends DefaultEndpoint {
             toolSpecificationBuilder.description(camelToolParameter.getDescription());
 
             for (NamedJsonSchemaProperty namedJsonSchemaProperty : camelToolParameter.getProperties()) {
-                toolSpecificationBuilder.addParameter(namedJsonSchemaProperty.getName(),
-                        namedJsonSchemaProperty.getProperties());
+                toolSpecificationBuilder.name(namedJsonSchemaProperty.getName());
+                toolSpecificationBuilder.parameters(namedJsonSchemaProperty.getProperties());
             }
-        } else if (description != null) {
+        } /*
+
+          else if (description != null) {
             toolSpecificationBuilder.description(description);
 
             if (parameters != null) {
-                parameters.forEach((name, type) -> toolSpecificationBuilder.addParameter(name, JsonSchemaProperty.type(type)));
+            // it's impossible now to get type, the Builder needs to be used with a proper method .addInteger / add String ....
+                parameters.forEach((name) ->  () -> {
+
+                    toolSpecificationBuilder.parameters(JsonObjectSchema.builder().addStringProperty(name));
+
+                });
             }
-        } else {
+          } */
+        else {
             // Consumer without toolParameter or description
             throw new IllegalArgumentException(
                     "In order to use the langchain4j component as a consumer, you need to specify at least description, or a camelToolParameter");
