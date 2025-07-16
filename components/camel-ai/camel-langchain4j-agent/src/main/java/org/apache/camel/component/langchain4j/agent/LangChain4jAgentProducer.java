@@ -41,7 +41,9 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         String userMessage = exchange.getIn().getMandatoryBody(String.class);
         ObjectHelper.notNull(userMessage, "userMessage");
 
-        aiAgentService.chat(userMessage);
+        String response = aiAgentService.chat(userMessage);
+
+        exchange.getIn().setBody(response);
 
     }
 
