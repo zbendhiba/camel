@@ -19,6 +19,13 @@ import org.apache.camel.support.component.PropertyConfigurerSupport;
 @SuppressWarnings("unchecked")
 public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSupport implements GeneratedPropertyConfigurer, PropertyConfigurerGetter {
 
+    private org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration getOrCreateConfiguration(LangChain4jAgentComponent target) {
+        if (target.getConfiguration() == null) {
+            target.setConfiguration(new org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration());
+        }
+        return target.getConfiguration();
+    }
+
     @Override
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         LangChain4jAgentComponent target = (LangChain4jAgentComponent) obj;
@@ -27,11 +34,18 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": target.setAutowiredEnabled(property(camelContext, boolean.class, value)); return true;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
+        case "chatmodel":
+        case "chatModel": getOrCreateConfiguration(target).setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
         default: return false;
         }
+    }
+
+    @Override
+    public String[] getAutowiredNames() {
+        return new String[]{"chatModel"};
     }
 
     @Override
@@ -41,6 +55,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": return boolean.class;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return boolean.class;
+        case "chatmodel":
+        case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "configuration": return org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
@@ -56,6 +72,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": return target.isAutowiredEnabled();
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return target.isBridgeErrorHandler();
+        case "chatmodel":
+        case "chatModel": return getOrCreateConfiguration(target).getChatModel();
         case "configuration": return target.getConfiguration();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();

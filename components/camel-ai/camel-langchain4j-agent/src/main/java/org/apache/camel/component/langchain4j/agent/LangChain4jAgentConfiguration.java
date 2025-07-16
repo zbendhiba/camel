@@ -16,15 +16,37 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import dev.langchain4j.model.chat.ChatModel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Configurer;
+import org.apache.camel.spi.Metadata;
+import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
 
 @Configurer
 @UriParams
 public class LangChain4jAgentConfiguration implements Cloneable {
 
+    @UriParam(label = "advanced")
+    @Metadata(autowired = true)
+    private ChatModel chatModel;
+
+    private String prompt;
+
     public LangChain4jAgentConfiguration() {
+    }
+
+    /**
+     * Chat Model of type dev.langchain4j.model.chat.ChatModel
+     *
+     * @return
+     */
+    public ChatModel getChatModel() {
+        return chatModel;
+    }
+
+    public void setChatModel(ChatModel chatModel) {
+        this.chatModel = chatModel;
     }
 
     public LangChain4jAgentConfiguration copy() {
@@ -33,5 +55,18 @@ public class LangChain4jAgentConfiguration implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new RuntimeCamelException(e);
         }
+    }
+
+    /**
+     * Prompt for the AI agent
+     *
+     * @return
+     */
+    public String getPrompt() {
+        return prompt;
+    }
+
+    public void setPrompt(String prompt) {
+        this.prompt = prompt;
     }
 }

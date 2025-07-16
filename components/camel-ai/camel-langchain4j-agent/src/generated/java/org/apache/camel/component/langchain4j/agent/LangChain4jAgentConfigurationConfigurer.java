@@ -21,17 +21,34 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
 
     @Override
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
-        return false;
+        org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration target = (org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration) obj;
+        switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chatmodel":
+        case "chatModel": target.setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
+        case "prompt": target.setPrompt(property(camelContext, java.lang.String.class, value)); return true;
+        default: return false;
+        }
     }
 
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
-        return null;
+        switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chatmodel":
+        case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
+        case "prompt": return java.lang.String.class;
+        default: return null;
+        }
     }
 
     @Override
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
-        return null;
+        org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration target = (org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration) obj;
+        switch (ignoreCase ? name.toLowerCase() : name) {
+        case "chatmodel":
+        case "chatModel": return target.getChatModel();
+        case "prompt": return target.getPrompt();
+        default: return null;
+        }
     }
 }
 

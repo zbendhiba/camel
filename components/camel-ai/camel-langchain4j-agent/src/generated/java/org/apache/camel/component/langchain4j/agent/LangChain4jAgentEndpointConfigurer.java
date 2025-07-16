@@ -25,6 +25,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
+        case "chatmodel":
+        case "chatModel": target.getConfiguration().setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "exceptionhandler":
         case "exceptionHandler": target.setExceptionHandler(property(camelContext, org.apache.camel.spi.ExceptionHandler.class, value)); return true;
         case "exchangepattern":
@@ -36,10 +38,17 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
     }
 
     @Override
+    public String[] getAutowiredNames() {
+        return new String[]{"chatModel"};
+    }
+
+    @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return boolean.class;
+        case "chatmodel":
+        case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "exceptionhandler":
         case "exceptionHandler": return org.apache.camel.spi.ExceptionHandler.class;
         case "exchangepattern":
@@ -56,6 +65,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return target.isBridgeErrorHandler();
+        case "chatmodel":
+        case "chatModel": return target.getConfiguration().getChatModel();
         case "exceptionhandler":
         case "exceptionHandler": return target.getExceptionHandler();
         case "exchangepattern":

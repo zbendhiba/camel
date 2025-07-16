@@ -66,4 +66,8 @@ public class LangChain4jAgentEndpoint extends DefaultEndpoint {
     public String getAgentId() {
         return agentId;
     }
+
+    public LangChain4jAgentConfiguration getConfiguration() {
+        return configuration;
+    }
 }
