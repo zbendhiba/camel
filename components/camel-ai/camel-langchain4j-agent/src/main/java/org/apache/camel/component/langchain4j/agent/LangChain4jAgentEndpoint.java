@@ -12,7 +12,7 @@ import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
 
-@UriEndpoint(firstVersion = "4.13.0", scheme = SCHEME,
+@UriEndpoint(firstVersion = "4.14.0", scheme = SCHEME,
         title = "LangChain4j Agent",
         syntax = "langchain4j-agent:agentId",
         category = { Category.AI }, headersClass = LangChain4jAgent.Headers.class)
