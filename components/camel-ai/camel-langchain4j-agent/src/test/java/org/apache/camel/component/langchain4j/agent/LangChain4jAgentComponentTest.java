@@ -31,6 +31,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class LangChain4jAgentComponentTest extends CamelTestSupport {
 
+    // Test constants
+    private static final String TEST_USER_MESSAGE_SIMPLE = "What is Apache Camel?";
+    private static final String TEST_USER_MESSAGE_STORY = "Write a short story about a lost cat.";
+    private static final String TEST_SYSTEM_MESSAGE = """
+            You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'""";
+    private static final String EXPECTED_STORY_START = "Once upon a starlit night";
+    private static final String EXPECTED_STORY_CONTENT = "cat";
+
     protected ChatModel chatModel;
 
     private String openAiApiKey;
@@ -40,11 +48,14 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
         super.setupResources();
 
         openAiApiKey = System.getenv("OPENAI_API_KEY");
+        if (openAiApiKey == null || openAiApiKey.trim().isEmpty()) {
+            throw new IllegalStateException("OPENAI_API_KEY environment variable is required for testing");
+        }
         chatModel = createModel();
     }
 
     protected ChatModel createModel() {
-        return chatModel = OpenAiChatModel.builder()
+        return OpenAiChatModel.builder()
                 .apiKey(openAiApiKey)
                 .modelName("o4-mini")
                 .temperature(1.0)
@@ -56,62 +67,48 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
 
     @Test
     void testSimpleUserMessage() throws InterruptedException {
-
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        final String userMessage = "What is Apache Camel?";
-
-        String response = template.requestBody("direct:send-simple-user-message", userMessage, String.class);
+        String response = template.requestBody("direct:send-simple-user-message", TEST_USER_MESSAGE_SIMPLE, String.class);
+        
         mockEndpoint.assertIsSatisfied();
-        assertNotNull(response);
-        assertNotEquals(userMessage, response);
-        assertTrue(response.contains("Apache Camel"));
-
+        assertNotNull(response, "AI response should not be null");
+        assertNotEquals(TEST_USER_MESSAGE_SIMPLE, response, "AI response should be different from the input message");
+        assertTrue(response.contains("Apache Camel"), "Response should contain information about 'Apache Camel'");
     }
 
     @Test
     void testSimpleUserMessageWithHeaderPrompt() throws InterruptedException {
-
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        final String userMessage = "Write a short story about a lost cat.";
-        final String systemMessage
-                = "You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'";
-
-        String response = template.requestBodyAndHeader("direct:send-simple-user-message", userMessage, SYSTEM_MESSAGE,
-                systemMessage, String.class);
+        String response = template.requestBodyAndHeader("direct:send-simple-user-message", 
+                TEST_USER_MESSAGE_STORY, SYSTEM_MESSAGE, TEST_SYSTEM_MESSAGE, String.class);
+        
         mockEndpoint.assertIsSatisfied();
-        assertNotNull(response);
-        assertNotEquals(userMessage, response);
-        assertTrue(response.contains("Once upon a starlit night"));
-        assertTrue(response.contains("cat"));
-
+        assertNotNull(response, "AI response should not be null");
+        assertNotEquals(TEST_USER_MESSAGE_STORY, response, "AI response should be different from the input message");
+        assertTrue(response.contains(EXPECTED_STORY_START), "Response should start with the expected magical opening phrase");
+        assertTrue(response.contains(EXPECTED_STORY_CONTENT), "Response should contain content about a cat as requested");
     }
 
     @Test
     void testSimpleUserMessageWithBodyBean() throws InterruptedException {
-
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        final String userMessage = "Write a short story about a lost cat.";
-        final String systemMessage
-                = "You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'";
-
         AiAgentBody body = new AiAgentBody()
-                .withSystemMessage(systemMessage)
-                .withUserMessage(userMessage);
+                .withSystemMessage(TEST_SYSTEM_MESSAGE)
+                .withUserMessage(TEST_USER_MESSAGE_STORY);
 
         String response = template.requestBody("direct:send-simple-user-message", body, String.class);
+        
         mockEndpoint.assertIsSatisfied();
-        assertNotNull(response);
-        assertNotEquals(userMessage, response);
-        System.out.println("response: " + response);
-        assertTrue(response.contains("Once upon a starlit night"));
-        assertTrue(response.contains("cat"));
-
+        assertNotNull(response, "AI response should not be null");
+        assertNotEquals(TEST_USER_MESSAGE_STORY, response, "AI response should be different from the input message");
+        assertTrue(response.contains(EXPECTED_STORY_START), "Response should start with the expected magical opening phrase");
+        assertTrue(response.contains(EXPECTED_STORY_CONTENT), "Response should contain content about a cat as requested");
     }
 
     @Override
@@ -123,9 +120,7 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
                 from("direct:send-simple-user-message")
                         .to("langchain4j-agent:test-agent?chatModel=#chatModel")
                         .to("mock:response");
-
             }
         };
     }
-
 }
