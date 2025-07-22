@@ -18,15 +18,14 @@ package org.apache.camel.component.langchain4j.agent;
 
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.service.V;
 
 public interface AiAgentService {
 
-    @UserMessage("{{message}}")
-    String chat(String message);
+    String chat(@UserMessage  String message);
 
     @SystemMessage("{{prompt}}")
-    @UserMessage("{{message}}")
-    String chat(String message, String prompt);
+    String chat(@UserMessage String message, @V("prompt") String prompt);
 
     Object chatJson(String message);
 

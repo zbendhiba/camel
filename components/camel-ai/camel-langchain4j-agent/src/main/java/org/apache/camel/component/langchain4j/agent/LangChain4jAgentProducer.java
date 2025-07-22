@@ -19,8 +19,12 @@ package org.apache.camel.component.langchain4j.agent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import org.apache.camel.Exchange;
+import org.apache.camel.InvalidPayloadException;
+import org.apache.camel.NoSuchHeaderOrPropertyException;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
+
+import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.SYSTEM_MESSAGE;
 
 public class LangChain4jAgentProducer extends DefaultProducer {
 
@@ -38,13 +42,30 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         AiAgentService aiAgentService = AiServices.create(AiAgentService.class, chatModel);
 
         // get the body
-        String userMessage = exchange.getIn().getMandatoryBody(String.class);
-        ObjectHelper.notNull(userMessage, "userMessage");
+        AiAgentBody body;
 
-        String response = aiAgentService.chat(userMessage);
+        // case of simple body userMessage
+        Object bodyExtract = exchange.getIn().getBody();
+        ObjectHelper.notNull(bodyExtract, "body");
+
+        if (bodyExtract instanceof  String) {
+            body = new AiAgentBody()
+                    .withUserMessage((String) bodyExtract)
+                    // get the system message was passed via a header if it exists
+                    .withSystemMessage(exchange.getIn().getHeader(SYSTEM_MESSAGE, String.class));
+        } else   if (bodyExtract instanceof  AiAgentBody){
+            body = (AiAgentBody) bodyExtract;
+        } else throw new InvalidPayloadException(exchange, AiAgentBody.class);
+
+        String response;
+
+        if (body.getSystemMessage() != null) {
+            response = aiAgentService.chat(body.getUserMessage(), body.getSystemMessage());
+        } else {
+            response = aiAgentService.chat(body.getUserMessage());
+        }
 
         exchange.getIn().setBody(response);
-
     }
 
     @Override

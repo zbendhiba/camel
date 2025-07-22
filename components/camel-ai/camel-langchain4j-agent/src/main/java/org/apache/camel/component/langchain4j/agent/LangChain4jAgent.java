@@ -16,6 +16,8 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import org.apache.camel.spi.Metadata;
+
 public class LangChain4jAgent {
     public static final String SCHEME = "langchain4j-agent";
 
@@ -23,6 +25,7 @@ public class LangChain4jAgent {
     }
 
     public static class Headers {
-
+        @Metadata(description = "The system prompt.", javaType = "String")
+        public static final String SYSTEM_MESSAGE = "CamelLangChain4jAgentSystemMessage";
     }
 }

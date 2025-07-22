@@ -31,8 +31,6 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     @Metadata(autowired = true)
     private ChatModel chatModel;
 
-    private String prompt;
-
     public LangChain4jAgentConfiguration() {
     }
 
@@ -57,16 +55,4 @@ public class LangChain4jAgentConfiguration implements Cloneable {
         }
     }
 
-    /**
-     * Prompt for the AI agent
-     *
-     * @return
-     */
-    public String getPrompt() {
-        return prompt;
-    }
-
-    public void setPrompt(String prompt) {
-        this.prompt = prompt;
-    }
 }

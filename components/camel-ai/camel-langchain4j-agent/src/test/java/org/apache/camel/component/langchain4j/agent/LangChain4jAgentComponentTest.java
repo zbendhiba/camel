@@ -19,6 +19,7 @@ package org.apache.camel.component.langchain4j.agent;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.apache.camel.builder.RouteBuilder;
+import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.SYSTEM_MESSAGE;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -54,7 +55,7 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
     }
 
     @Test
-    void testSimpleAiService() throws InterruptedException {
+    void testSimpleUserMessage() throws InterruptedException {
 
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
@@ -66,6 +67,48 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
         assertNotNull(response);
         assertNotEquals(userMessage, response);
         assertTrue(response.contains("Apache Camel"));
+
+    }
+
+    @Test
+    void testSimpleUserMessageWithHeaderPrompt() throws InterruptedException {
+
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        final String userMessage = "Write a short story about a lost cat.";
+        final String systemMessage = "You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'";
+
+        String response = template.requestBodyAndHeader("direct:send-simple-user-message", userMessage, SYSTEM_MESSAGE, systemMessage, String.class);
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response);
+        assertNotEquals(userMessage, response);
+        assertTrue(response.contains("Once upon a starlit night"));
+        assertTrue(response.contains("cat"));
+
+    }
+
+    @Test
+    void testSimpleUserMessageWithBodyBean() throws InterruptedException {
+
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        final String userMessage = "Write a short story about a lost cat.";
+        final String systemMessage = "You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'";
+
+        AiAgentBody body = new AiAgentBody()
+                .withSystemMessage(systemMessage)
+                .withUserMessage(userMessage);
+
+        String response = template.requestBody
+                ("direct:send-simple-user-message", body, String.class);
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response);
+        assertNotEquals(userMessage, response);
+        System.out.println("response: " + response);
+        assertTrue(response.contains("Once upon a starlit night"));
+        assertTrue(response.contains("cat"));
 
     }
 
