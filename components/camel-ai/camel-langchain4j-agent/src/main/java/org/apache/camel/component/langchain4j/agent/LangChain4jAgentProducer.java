@@ -20,7 +20,6 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
-import org.apache.camel.NoSuchHeaderOrPropertyException;
 import org.apache.camel.support.DefaultProducer;
 import org.apache.camel.util.ObjectHelper;
 
@@ -48,14 +47,15 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         Object bodyExtract = exchange.getIn().getBody();
         ObjectHelper.notNull(bodyExtract, "body");
 
-        if (bodyExtract instanceof  String) {
+        if (bodyExtract instanceof String) {
             body = new AiAgentBody()
                     .withUserMessage((String) bodyExtract)
                     // get the system message was passed via a header if it exists
                     .withSystemMessage(exchange.getIn().getHeader(SYSTEM_MESSAGE, String.class));
-        } else   if (bodyExtract instanceof  AiAgentBody){
+        } else if (bodyExtract instanceof AiAgentBody) {
             body = (AiAgentBody) bodyExtract;
-        } else throw new InvalidPayloadException(exchange, AiAgentBody.class);
+        } else
+            throw new InvalidPayloadException(exchange, AiAgentBody.class);
 
         String response;
 

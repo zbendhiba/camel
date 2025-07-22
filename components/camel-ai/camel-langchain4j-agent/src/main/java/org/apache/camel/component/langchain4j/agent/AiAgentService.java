@@ -22,7 +22,7 @@ import dev.langchain4j.service.V;
 
 public interface AiAgentService {
 
-    String chat(@UserMessage  String message);
+    String chat(@UserMessage String message);
 
     @SystemMessage("{{prompt}}")
     String chat(@UserMessage String message, @V("prompt") String prompt);
