@@ -79,12 +79,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     private String getTags(Exchange exchange) {
-        // Priority: exchange header > component configuration
-        String tags = exchange.getIn().getHeader("CamelLangChain4jAgentTags", String.class);
-        if (tags == null || tags.trim().isEmpty()) {
-            tags = endpoint.getConfiguration().getTags();
-        }
-        return tags;
+        // Get tags from configuration via endpoint
+        return endpoint.getConfiguration().getTags();
     }
 
     private void processWithTools(Exchange exchange, Object messagePayload, String tags) throws Exception {
@@ -281,7 +277,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         final List<CamelToolSpecification> callableTools = new ArrayList<>();
 
         final Map<String, Set<CamelToolSpecification>> tools = toolCache.getTools();
-        String[] tagArray = TagsHelper.splitTags(tags);
+        String[] tagArray = ToolsTagsHelper.splitTags(tags);
         
         for (var entry : tools.entrySet()) {
             if (isMatch(tagArray, entry)) {

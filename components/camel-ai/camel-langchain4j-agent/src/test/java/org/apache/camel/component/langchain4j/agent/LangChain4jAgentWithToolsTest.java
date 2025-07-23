@@ -71,10 +71,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        String response = template.requestBodyAndHeader(
+        String response = template.requestBody(
                 "direct:agent-with-user-tools", 
                 "What is the name of user ID 123?",
-                "CamelLangChain4jAgentTags", "users",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
@@ -88,10 +87,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        String response = template.requestBodyAndHeader(
+        String response = template.requestBody(
                 "direct:agent-with-weather-tools", 
                 "What's the weather like in New York?",
-                "CamelLangChain4jAgentTags", "weather",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
@@ -111,10 +109,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
                 "Use the available tools to provide accurate information."));
         messages.add(new UserMessage("Can you tell me the name of user 123 and the weather in New York?"));
 
-        String response = template.requestBodyAndHeader(
+        String response = template.requestBody(
                 "direct:agent-with-multiple-tools", 
                 messages,
-                "CamelLangChain4jAgentTags", "users,weather",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
@@ -166,10 +163,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
         mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
 
-        template.requestBodyAndHeader(
+        template.requestBody(
                 "direct:agent-check-no-tools", 
                 "Tell me a joke",
-                "CamelLangChain4jAgentTags", "nonexistent",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
@@ -179,29 +175,23 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() {
         this.context.getRegistry().bind("chatModel", chatModel);
         
-        // Create agent configuration with weather tags for the configured tags test
-        LangChain4jAgentConfiguration weatherConfig = new LangChain4jAgentConfiguration();
-        weatherConfig.setChatModel(chatModel);
-        weatherConfig.setTags("weather");
-        this.context.getRegistry().bind("weatherAgentConfig", weatherConfig);
-
         return new RouteBuilder() {
             public void configure() {
                 // Agent routes for testing
                 from("direct:agent-with-user-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel&tags=users")
                         .to("mock:agent-response");
 
                 from("direct:agent-with-weather-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel&tags=weather")
                         .to("mock:agent-response");
 
                 from("direct:agent-with-multiple-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel&tags=users,weather")
                         .to("mock:agent-response");
 
                 from("direct:agent-with-configured-tags")
-                        .to("langchain4j-agent:test-agent?configuration=#weatherAgentConfig")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel&tags=weather")
                         .to("mock:agent-response");
 
                 from("direct:agent-without-tools")
@@ -209,7 +199,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
                         .to("mock:agent-response");
 
                 from("direct:agent-check-no-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel&tags=nonexistent")
                         .to("mock:check-no-tools");
 
                 // Tool consumer routes - these will be discovered by tags

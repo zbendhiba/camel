@@ -21,10 +21,9 @@ This component has been enhanced to support tool calling capabilities by integra
 
 ### Tags Configuration
 
-Tools can be configured in two ways (in order of priority):
+Tools are configured through URI parameters:
 
-1. **Exchange Header**: `CamelLangChain4jAgentTags`
-2. **Component Configuration**: Set on the agent configuration
+- **URI Parameter**: `tags=users,weather` - Specify which tool tags to use
 
 ### Example Usage
 
@@ -45,20 +44,18 @@ from("langchain4j-tools:weather?tags=weather&description=Get weather information
 #### 2. Use Agent with Tools
 
 ```java
-// Configure agent with tools
-LangChain4jAgentConfiguration config = new LangChain4jAgentConfiguration();
-config.setChatModel(chatModel);
-config.setTags("users,weather");
-context.getRegistry().bind("agentConfig", config);
-
-// Agent with configured tags
+// Agent with specific tools tags
 from("direct:ask-agent")
-    .to("langchain4j-agent:assistant?configuration=#agentConfig")
+    .to("langchain4j-agent:assistant?chatModel=#chatModel&tags=users,weather")
     .to("mock:result");
 
-// Agent with tags in header (dynamic)
-from("direct:ask-agent-dynamic")
-    .setHeader("CamelLangChain4jAgentTags", constant("users"))
+// Agent with single tool tag
+from("direct:ask-user-agent")
+    .to("langchain4j-agent:assistant?chatModel=#chatModel&tags=users")
+    .to("mock:result");
+
+// Agent without tools (no tags parameter)
+from("direct:ask-agent-no-tools")
     .to("langchain4j-agent:assistant?chatModel=#chatModel")
     .to("mock:result");
 ```
@@ -107,7 +104,6 @@ The enhanced agent supports multiple input types:
 
 ## Headers
 
-- **Input**: `CamelLangChain4jAgentTags` - Specify which tool tags to use
 - **Output**: `LangChain4jToolsNoToolsCalled` - Set to `true` when no tools were called
 
 ## Backward Compatibility

@@ -1,7 +1,7 @@
 package org.apache.camel.component.langchain4j.agent;
 
-final class TagsHelper {
-    private TagsHelper() {
+final class ToolsTagsHelper {
+    private ToolsTagsHelper() {
     }
 
     /**

@@ -47,11 +47,13 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
     private static final String FINAL_AI_RESPONSE = "The user name is John Doe.";
     
     private ChatModel mockChatModel;
+    private ChatModel noToolsChatModel;
 
     @Override
     protected void setupResources() throws Exception {
         super.setupResources();
         mockChatModel = createMockChatModel();
+        noToolsChatModel = createNoToolsChatModel();
     }
 
     private ChatModel createMockChatModel() {
@@ -90,16 +92,27 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         return chatModel;
     }
 
+    private ChatModel createNoToolsChatModel() {
+        ChatModel chatModel = Mockito.mock(ChatModel.class);
+        AiMessage simpleResponse = AiMessage.builder()
+                .text("I don't have access to user information.")
+                .build();
+        ChatResponse response = ChatResponse.builder()
+                .aiMessage(simpleResponse)
+                .build();
+        when(chatModel.chat(any(ChatRequest.class))).thenReturn(response);
+        return chatModel;
+    }
+
     @Test
     void testToolsIntegrationWithTags() throws InterruptedException {
         MockEndpoint mockEndpoint = context.getEndpoint("mock:result", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        // Test with tags in header
-        String response = template.requestBodyAndHeader(
+        // Test with tags in configuration
+        String response = template.requestBody(
                 "direct:agent-with-tools",
                 "What is the name of user 123?",
-                "CamelLangChain4jAgentTags", "users",
                 String.class
         );
 
@@ -127,26 +140,13 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
 
     @Test
     void testNoToolsCalledWhenTagsDontMatch() throws InterruptedException {
-        // Mock for the case when no tools are found
-        ChatModel noToolsChatModel = Mockito.mock(ChatModel.class);
-        AiMessage simpleResponse = AiMessage.builder()
-                .text("I don't have access to user information.")
-                .build();
-        ChatResponse response = ChatResponse.builder()
-                .aiMessage(simpleResponse)
-                .build();
-        when(noToolsChatModel.chat(any(ChatRequest.class))).thenReturn(response);
-        
-        context.getRegistry().bind("noToolsChatModel", noToolsChatModel);
-
         MockEndpoint mockEndpoint = context.getEndpoint("mock:no-tools-result", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
         mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
 
-        template.requestBodyAndHeader(
+        template.requestBody(
                 "direct:agent-no-tools",
                 "What is the name of user 123?",
-                "CamelLangChain4jAgentTags", "nonexistent",
                 String.class
         );
 
@@ -185,25 +185,19 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
     protected RouteBuilder createRouteBuilder() {
         context.getRegistry().bind("mockChatModel", mockChatModel);
         
-        // Create agent configuration with users tags for the configured tags test
-        LangChain4jAgentConfiguration usersConfig = new LangChain4jAgentConfiguration();
-        usersConfig.setChatModel(mockChatModel);
-        usersConfig.setTags("users");
-        context.getRegistry().bind("usersAgentConfig", usersConfig);
-
         return new RouteBuilder() {
             public void configure() {
                 // Routes for testing tools integration
                 from("direct:agent-with-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#mockChatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#mockChatModel&tags=users")
                         .to("mock:result");
 
                 from("direct:agent-with-configured-tags")
-                        .to("langchain4j-agent:test-agent?configuration=#usersAgentConfig")
+                        .to("langchain4j-agent:test-agent?chatModel=#mockChatModel&tags=users")
                         .to("mock:result");
 
                 from("direct:agent-no-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#noToolsChatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#noToolsChatModel&tags=nonexistent")
                         .to("mock:no-tools-result");
 
                 from("direct:agent-regular")
