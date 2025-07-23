@@ -42,43 +42,44 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
                 .description("Query user database by user ID to get user information")
                 .parameters(JsonObjectSchema.builder()
                         .addProperty("userId", JsonIntegerSchema.builder().description("The user ID to query").build())
-                        .addProperty("includeDetails", JsonStringSchema.builder().description("Whether to include detailed info").build())
+                        .addProperty("includeDetails",
+                                JsonStringSchema.builder().description("Whether to include detailed info").build())
                         .build())
                 .build();
 
         // Create mock consumer
         LangChain4jToolsConsumer mockConsumer = Mockito.mock(LangChain4jToolsConsumer.class);
-        
+
         // Create CamelToolSpecification (same as what camel-langchain4j-tools creates)
         CamelToolSpecification camelToolSpec = new CamelToolSpecification(toolSpec, mockConsumer);
-        
+
         // Create mock exchange
         Exchange mockExchange = Mockito.mock(Exchange.class);
-        
+
         // Create our tool wrapper
-        LangChain4jAgentProducer.CamelRouteToolWrapper toolWrapper = 
-                new LangChain4jAgentProducer.CamelRouteToolWrapper(camelToolSpec, mockExchange, new ObjectMapper());
+        LangChain4jAgentProducer.CamelRouteToolWrapper toolWrapper
+                = new LangChain4jAgentProducer.CamelRouteToolWrapper(camelToolSpec, mockExchange, new ObjectMapper());
 
         // Verify that the wrapper correctly extracts metadata
         assertEquals("query-user-database", toolWrapper.getToolName());
         assertEquals("Query user database by user ID to get user information", toolWrapper.getDescription());
-        
+
         // Verify the ToolSpecification is properly accessible
         ToolSpecification extractedSpec = camelToolSpec.getToolSpecification();
         assertNotNull(extractedSpec);
         assertEquals("query-user-database", extractedSpec.name());
         assertEquals("Query user database by user ID to get user information", extractedSpec.description());
-        
+
         // Verify parameters are correctly defined
         assertNotNull(extractedSpec.parameters());
         assertTrue(extractedSpec.parameters().toString().contains("userId"));
         assertTrue(extractedSpec.parameters().toString().contains("includeDetails"));
-        
+
         // Test toString method
         String toolString = toolWrapper.toString();
         assertTrue(toolString.contains("query-user-database"));
         assertTrue(toolString.contains("Query user database"));
-        
+
         System.out.println("✅ Tool Name: " + toolWrapper.getToolName());
         System.out.println("✅ Tool Description: " + toolWrapper.getDescription());
         System.out.println("✅ Tool Parameters: " + extractedSpec.parameters());
@@ -88,7 +89,7 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
     @Test
     void testMultipleToolSpecifications() {
         // Create multiple tool specifications to simulate different Camel routes
-        
+
         // Tool 1: User query
         ToolSpecification userTool = ToolSpecification.builder()
                 .name("query-user-by-id")
@@ -98,7 +99,7 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
                         .build())
                 .build();
 
-        // Tool 2: Weather query  
+        // Tool 2: Weather query
         ToolSpecification weatherTool = ToolSpecification.builder()
                 .name("get-weather-info")
                 .description("Get weather information for a specific city")
@@ -111,27 +112,27 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
         // Create mock consumers
         LangChain4jToolsConsumer mockConsumer1 = Mockito.mock(LangChain4jToolsConsumer.class);
         LangChain4jToolsConsumer mockConsumer2 = Mockito.mock(LangChain4jToolsConsumer.class);
-        
+
         // Create CamelToolSpecifications
         CamelToolSpecification camelUserTool = new CamelToolSpecification(userTool, mockConsumer1);
         CamelToolSpecification camelWeatherTool = new CamelToolSpecification(weatherTool, mockConsumer2);
-        
+
         // Create mock exchange
         Exchange mockExchange = Mockito.mock(Exchange.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        
+
         // Create tool wrappers
-        LangChain4jAgentProducer.CamelRouteToolWrapper userWrapper = 
-                new LangChain4jAgentProducer.CamelRouteToolWrapper(camelUserTool, mockExchange, objectMapper);
-        LangChain4jAgentProducer.CamelRouteToolWrapper weatherWrapper = 
-                new LangChain4jAgentProducer.CamelRouteToolWrapper(camelWeatherTool, mockExchange, objectMapper);
+        LangChain4jAgentProducer.CamelRouteToolWrapper userWrapper
+                = new LangChain4jAgentProducer.CamelRouteToolWrapper(camelUserTool, mockExchange, objectMapper);
+        LangChain4jAgentProducer.CamelRouteToolWrapper weatherWrapper
+                = new LangChain4jAgentProducer.CamelRouteToolWrapper(camelWeatherTool, mockExchange, objectMapper);
 
         // Verify user tool
         assertEquals("query-user-by-id", userWrapper.getToolName());
         assertEquals("Query user database by user ID", userWrapper.getDescription());
         assertTrue(userTool.parameters().toString().contains("userId"));
 
-        // Verify weather tool  
+        // Verify weather tool
         assertEquals("get-weather-info", weatherWrapper.getToolName());
         assertEquals("Get weather information for a specific city", weatherWrapper.getDescription());
         assertTrue(weatherTool.parameters().toString().contains("city"));
@@ -143,7 +144,7 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
         System.out.println("✅ Weather Tool Parameters: " + weatherTool.parameters());
     }
 
-    @Test 
+    @Test
     void testToolParameterExtraction() {
         // Create a tool with complex parameters to test parameter extraction
         ToolSpecification complexTool = ToolSpecification.builder()
@@ -169,28 +170,28 @@ public class CamelRouteToolWrapperTest extends CamelTestSupport {
         LangChain4jToolsConsumer mockConsumer = Mockito.mock(LangChain4jToolsConsumer.class);
         CamelToolSpecification camelToolSpec = new CamelToolSpecification(complexTool, mockConsumer);
         Exchange mockExchange = Mockito.mock(Exchange.class);
-        
+
         // Create tool wrapper
-        LangChain4jAgentProducer.CamelRouteToolWrapper toolWrapper = 
-                new LangChain4jAgentProducer.CamelRouteToolWrapper(camelToolSpec, mockExchange, new ObjectMapper());
+        LangChain4jAgentProducer.CamelRouteToolWrapper toolWrapper
+                = new LangChain4jAgentProducer.CamelRouteToolWrapper(camelToolSpec, mockExchange, new ObjectMapper());
 
         // Verify tool metadata
         assertEquals("complex-database-query", toolWrapper.getToolName());
         assertEquals("Execute complex database query with multiple parameters", toolWrapper.getDescription());
-        
+
         // Verify all parameters are present in the specification
         String parametersString = complexTool.parameters().toString();
         assertTrue(parametersString.contains("tableName"));
         assertTrue(parametersString.contains("userId"));
         assertTrue(parametersString.contains("limit"));
         assertTrue(parametersString.contains("sortOrder"));
-        
+
         System.out.println("✅ Complex Tool: " + toolWrapper);
         System.out.println("✅ Complex Tool Parameters: " + complexTool.parameters());
-        
+
         // Verify that this would work with LangChain4j AI Services
         assertNotNull(toolWrapper.getToolName());
         assertNotNull(toolWrapper.getDescription());
         assertTrue(toolWrapper.getDescription().length() > 0);
     }
-} 
+}

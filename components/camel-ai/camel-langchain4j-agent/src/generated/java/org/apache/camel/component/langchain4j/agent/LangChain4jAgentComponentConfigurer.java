@@ -39,6 +39,7 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "tags": getOrCreateConfiguration(target).setTags(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
     }
@@ -60,6 +61,7 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "configuration": return org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "tags": return java.lang.String.class;
         default: return null;
         }
     }
@@ -77,6 +79,7 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "configuration": return target.getConfiguration();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "tags": return getOrCreateConfiguration(target).getTags();
         default: return null;
         }
     }

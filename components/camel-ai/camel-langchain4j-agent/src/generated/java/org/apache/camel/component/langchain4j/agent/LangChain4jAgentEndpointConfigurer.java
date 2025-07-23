@@ -33,6 +33,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exchangePattern": target.setExchangePattern(property(camelContext, org.apache.camel.ExchangePattern.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "tags": target.getConfiguration().setTags(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
     }
@@ -55,6 +56,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exchangePattern": return org.apache.camel.ExchangePattern.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "tags": return java.lang.String.class;
         default: return null;
         }
     }
@@ -73,6 +75,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exchangePattern": return target.getExchangePattern();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "tags": return target.getConfiguration().getTags();
         default: return null;
         }
     }

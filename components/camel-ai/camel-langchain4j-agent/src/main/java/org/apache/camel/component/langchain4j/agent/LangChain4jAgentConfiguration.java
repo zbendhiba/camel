@@ -60,8 +60,7 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     }
 
     /**
-     * Set tags for discovering and calling Camel route tools.
-     * Multiple tags can be specified separated by commas.
+     * Set tags for discovering and calling Camel route tools. Multiple tags can be specified separated by commas.
      *
      * @param tags the tags
      */

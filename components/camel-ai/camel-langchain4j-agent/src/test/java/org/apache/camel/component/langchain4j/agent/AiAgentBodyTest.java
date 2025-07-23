@@ -121,4 +121,4 @@ public class AiAgentBodyTest {
         assertEquals("Response", ((AiMessage) body.getMessages().get(1)).text());
         assertEquals("Second message", ((UserMessage) body.getMessages().get(2)).singleText());
     }
-} 
+}

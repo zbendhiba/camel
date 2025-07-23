@@ -40,7 +40,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
     private static final String USER_DB_NAME = "John Doe";
     private static final String WEATHER_INFO = "sunny, 25°C";
-    
+
     protected ChatModel chatModel;
     private String openAiApiKey;
 
@@ -48,7 +48,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
     protected void setupResources() throws Exception {
         super.setupResources();
 
-        openAiApiKey = System.getProperty("openai.api.key");
+        openAiApiKey = System.getenv("OPENAI_API_KEY");
         if (openAiApiKey == null || openAiApiKey.trim().isEmpty()) {
             throw new IllegalStateException("openai.api.key system property is required for testing");
         }
@@ -58,7 +58,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
     protected ChatModel createModel() {
         return OpenAiChatModel.builder()
                 .apiKey(openAiApiKey)
-                .modelName("gpt-4o-mini")
+                .modelName("o4-mini")
                 .temperature(0.0)
                 .timeout(ofSeconds(60))
                 .logRequests(true)
@@ -72,13 +72,13 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
 
         String response = template.requestBody(
-                "direct:agent-with-user-tools", 
+                "direct:agent-with-user-tools",
                 "What is the name of user ID 123?",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(USER_DB_NAME), 
+        assertTrue(response.contains(USER_DB_NAME),
                 "Response should contain the user name from the database tool");
     }
 
@@ -88,13 +88,13 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
 
         String response = template.requestBody(
-                "direct:agent-with-weather-tools", 
+                "direct:agent-with-weather-tools",
                 "What's the weather like in New York?",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(WEATHER_INFO), 
+        assertTrue(response.contains(WEATHER_INFO),
                 "Response should contain weather information from the weather tool");
     }
 
@@ -106,19 +106,19 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         List<ChatMessage> messages = new ArrayList<>();
         messages.add(new SystemMessage(
                 "You are a helpful assistant that can access user database and weather information. " +
-                "Use the available tools to provide accurate information."));
+                                       "Use the available tools to provide accurate information."));
         messages.add(new UserMessage("Can you tell me the name of user 123 and the weather in New York?"));
 
         String response = template.requestBody(
-                "direct:agent-with-multiple-tools", 
+                "direct:agent-with-multiple-tools",
                 messages,
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(USER_DB_NAME), 
+        assertTrue(response.contains(USER_DB_NAME),
                 "Response should contain the user name from the database tool");
-        assertTrue(response.contains(WEATHER_INFO), 
+        assertTrue(response.contains(WEATHER_INFO),
                 "Response should contain weather information from the weather tool");
     }
 
@@ -128,13 +128,13 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
 
         String response = template.requestBody(
-                "direct:agent-with-configured-tags", 
+                "direct:agent-with-configured-tags",
                 "What's the weather in Paris?",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(WEATHER_INFO), 
+        assertTrue(response.contains(WEATHER_INFO),
                 "Response should contain weather information from the weather tool");
     }
 
@@ -144,13 +144,13 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
 
         String response = template.requestBody(
-                "direct:agent-without-tools", 
+                "direct:agent-without-tools",
                 "What is Apache Camel?",
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains("Apache Camel"), 
+        assertTrue(response.contains("Apache Camel"),
                 "Response should contain information about Apache Camel");
         // Verify no tool called header is set
         assertTrue(context.getEndpoints().stream()
@@ -164,7 +164,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
 
         template.requestBody(
-                "direct:agent-check-no-tools", 
+                "direct:agent-check-no-tools",
                 "Tell me a joke",
                 String.class);
 
@@ -174,7 +174,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
     @Override
     protected RouteBuilder createRouteBuilder() {
         this.context.getRegistry().bind("chatModel", chatModel);
-        
+
         return new RouteBuilder() {
             public void configure() {
                 // Agent routes for testing
@@ -214,4 +214,4 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
             }
         };
     }
-} 
+}

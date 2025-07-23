@@ -22,26 +22,25 @@ import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.service.UserMessage;
 
 /**
- * AI Agent Service interface for LangChain4j integration.
- * Supports both simple chat and tool-enabled chat with a unified interface.
+ * AI Agent Service interface for LangChain4j integration. Supports both simple chat and tool-enabled chat with a
+ * unified interface.
  */
 public interface AiAgentService {
 
     /**
      * Simple chat with a single user message
      *
-     * @param message the user message
-     * @return the AI response
+     * @param  message the user message
+     * @return         the AI response
      */
     String chat(@UserMessage String message);
 
     /**
-     * Chat using a list of ChatMessage objects.
-     * This method can handle both simple chat and tool-enabled chat
-     * depending on the configuration and available tools.
+     * Chat using a list of ChatMessage objects. This method can handle both simple chat and tool-enabled chat depending
+     * on the configuration and available tools.
      *
-     * @param messages the list of chat messages (system, user, assistant, tool result messages)
-     * @return the AI response after processing messages and potentially calling tools
+     * @param  messages the list of chat messages (system, user, assistant, tool result messages)
+     * @return          the AI response after processing messages and potentially calling tools
      */
     String chat(List<ChatMessage> messages);
 }
