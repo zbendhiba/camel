@@ -34,8 +34,9 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
     // Test constants
     private static final String TEST_USER_MESSAGE_SIMPLE = "What is Apache Camel?";
     private static final String TEST_USER_MESSAGE_STORY = "Write a short story about a lost cat.";
-    private static final String TEST_SYSTEM_MESSAGE = """
-            You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'""";
+    private static final String TEST_SYSTEM_MESSAGE
+            = """
+                    You are a whimsical storyteller. Your responses should be imaginative, descriptive, and always include a touch of magic. Start every story with 'Once upon a starlit night...'""";
     private static final String EXPECTED_STORY_START = "Once upon a starlit night";
     private static final String EXPECTED_STORY_CONTENT = "cat";
 
@@ -71,7 +72,7 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
         mockEndpoint.expectedMessageCount(1);
 
         String response = template.requestBody("direct:send-simple-user-message", TEST_USER_MESSAGE_SIMPLE, String.class);
-        
+
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
         assertNotEquals(TEST_USER_MESSAGE_SIMPLE, response, "AI response should be different from the input message");
@@ -83,9 +84,9 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
         MockEndpoint mockEndpoint = this.context.getEndpoint("mock:response", MockEndpoint.class);
         mockEndpoint.expectedMessageCount(1);
 
-        String response = template.requestBodyAndHeader("direct:send-simple-user-message", 
+        String response = template.requestBodyAndHeader("direct:send-simple-user-message",
                 TEST_USER_MESSAGE_STORY, SYSTEM_MESSAGE, TEST_SYSTEM_MESSAGE, String.class);
-        
+
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
         assertNotEquals(TEST_USER_MESSAGE_STORY, response, "AI response should be different from the input message");
@@ -103,7 +104,7 @@ public class LangChain4jAgentComponentTest extends CamelTestSupport {
                 .withUserMessage(TEST_USER_MESSAGE_STORY);
 
         String response = template.requestBody("direct:send-simple-user-message", body, String.class);
-        
+
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
         assertNotEquals(TEST_USER_MESSAGE_STORY, response, "AI response should be different from the input message");
