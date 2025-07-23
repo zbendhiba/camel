@@ -1,0 +1,227 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.camel.component.langchain4j.agent;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.openai.OpenAiChatModel;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.langchain4j.tools.LangChain4jTools;
+import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.test.junit5.CamelTestSupport;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
+
+import static java.time.Duration.ofSeconds;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@EnabledIfSystemProperty(named = "openai.api.key", matches = ".*", disabledReason = "OpenAI API key required")
+public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
+
+    private static final String USER_DB_NAME = "John Doe";
+    private static final String WEATHER_INFO = "sunny, 25°C";
+    
+    protected ChatModel chatModel;
+    private String openAiApiKey;
+
+    @Override
+    protected void setupResources() throws Exception {
+        super.setupResources();
+
+        openAiApiKey = System.getProperty("openai.api.key");
+        if (openAiApiKey == null || openAiApiKey.trim().isEmpty()) {
+            throw new IllegalStateException("openai.api.key system property is required for testing");
+        }
+        chatModel = createModel();
+    }
+
+    protected ChatModel createModel() {
+        return OpenAiChatModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName("gpt-4o-mini")
+                .temperature(0.0)
+                .timeout(ofSeconds(60))
+                .logRequests(true)
+                .logResponses(true)
+                .build();
+    }
+
+    @Test
+    void testAgentWithUserDatabaseTools() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        String response = template.requestBodyAndHeader(
+                "direct:agent-with-user-tools", 
+                "What is the name of user ID 123?",
+                "CamelLangChain4jAgentTags", "users",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response, "AI response should not be null");
+        assertTrue(response.contains(USER_DB_NAME), 
+                "Response should contain the user name from the database tool");
+    }
+
+    @Test
+    void testAgentWithWeatherTools() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        String response = template.requestBodyAndHeader(
+                "direct:agent-with-weather-tools", 
+                "What's the weather like in New York?",
+                "CamelLangChain4jAgentTags", "weather",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response, "AI response should not be null");
+        assertTrue(response.contains(WEATHER_INFO), 
+                "Response should contain weather information from the weather tool");
+    }
+
+    @Test
+    void testAgentWithMultipleTagsAndChatMessages() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(new SystemMessage(
+                "You are a helpful assistant that can access user database and weather information. " +
+                "Use the available tools to provide accurate information."));
+        messages.add(new UserMessage("Can you tell me the name of user 123 and the weather in New York?"));
+
+        String response = template.requestBodyAndHeader(
+                "direct:agent-with-multiple-tools", 
+                messages,
+                "CamelLangChain4jAgentTags", "users,weather",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response, "AI response should not be null");
+        assertTrue(response.contains(USER_DB_NAME), 
+                "Response should contain the user name from the database tool");
+        assertTrue(response.contains(WEATHER_INFO), 
+                "Response should contain weather information from the weather tool");
+    }
+
+    @Test
+    void testAgentWithConfiguredTags() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        String response = template.requestBody(
+                "direct:agent-with-configured-tags", 
+                "What's the weather in Paris?",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response, "AI response should not be null");
+        assertTrue(response.contains(WEATHER_INFO), 
+                "Response should contain weather information from the weather tool");
+    }
+
+    @Test
+    void testAgentWithoutToolsNoTagsProvided() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:agent-response", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+
+        String response = template.requestBody(
+                "direct:agent-without-tools", 
+                "What is Apache Camel?",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+        assertNotNull(response, "AI response should not be null");
+        assertTrue(response.contains("Apache Camel"), 
+                "Response should contain information about Apache Camel");
+        // Verify no tool called header is set
+        assertTrue(context.getEndpoints().stream()
+                .anyMatch(e -> e.getEndpointUri().contains("mock:agent-response")));
+    }
+
+    @Test
+    void testAgentWithNoToolsCalledHeader() throws InterruptedException {
+        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:check-no-tools", MockEndpoint.class);
+        mockEndpoint.expectedMessageCount(1);
+        mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
+
+        template.requestBodyAndHeader(
+                "direct:agent-check-no-tools", 
+                "Tell me a joke",
+                "CamelLangChain4jAgentTags", "nonexistent",
+                String.class);
+
+        mockEndpoint.assertIsSatisfied();
+    }
+
+    @Override
+    protected RouteBuilder createRouteBuilder() {
+        this.context.getRegistry().bind("chatModel", chatModel);
+        
+        // Create agent configuration with weather tags for the configured tags test
+        LangChain4jAgentConfiguration weatherConfig = new LangChain4jAgentConfiguration();
+        weatherConfig.setChatModel(chatModel);
+        weatherConfig.setTags("weather");
+        this.context.getRegistry().bind("weatherAgentConfig", weatherConfig);
+
+        return new RouteBuilder() {
+            public void configure() {
+                // Agent routes for testing
+                from("direct:agent-with-user-tools")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("mock:agent-response");
+
+                from("direct:agent-with-weather-tools")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("mock:agent-response");
+
+                from("direct:agent-with-multiple-tools")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("mock:agent-response");
+
+                from("direct:agent-with-configured-tags")
+                        .to("langchain4j-agent:test-agent?configuration=#weatherAgentConfig")
+                        .to("mock:agent-response");
+
+                from("direct:agent-without-tools")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("mock:agent-response");
+
+                from("direct:agent-check-no-tools")
+                        .to("langchain4j-agent:test-agent?chatModel=#chatModel")
+                        .to("mock:check-no-tools");
+
+                // Tool consumer routes - these will be discovered by tags
+                from("langchain4j-tools:userDb?tags=users&description=Query user database by user ID&parameter.userId=integer")
+                        .setBody(constant("{\"name\": \"" + USER_DB_NAME + "\", \"id\": \"123\"}"));
+
+                from("langchain4j-tools:weatherService?tags=weather&description=Get weather information for a city&parameter.city=string")
+                        .setBody(constant("{\"weather\": \"" + WEATHER_INFO + "\", \"city\": \"New York\"}"));
+
+                from("langchain4j-tools:parisWeather?tags=weather&description=Get weather information for Paris&parameter.location=string")
+                        .setBody(constant("{\"weather\": \"" + WEATHER_INFO + "\", \"city\": \"Paris\"}"));
+            }
+        };
+    }
+} 

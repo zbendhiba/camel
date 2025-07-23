@@ -31,6 +31,9 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     @Metadata(autowired = true)
     private ChatModel chatModel;
 
+    @UriParam(description = "Tags for discovering and calling Camel route tools")
+    private String tags;
+
     public LangChain4jAgentConfiguration() {
     }
 
@@ -45,6 +48,25 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     public void setChatModel(ChatModel chatModel) {
         this.chatModel = chatModel;
+    }
+
+    /**
+     * Tags for discovering and calling Camel route tools
+     *
+     * @return the tags
+     */
+    public String getTags() {
+        return tags;
+    }
+
+    /**
+     * Set tags for discovering and calling Camel route tools.
+     * Multiple tags can be specified separated by commas.
+     *
+     * @param tags the tags
+     */
+    public void setTags(String tags) {
+        this.tags = tags;
     }
 
     public LangChain4jAgentConfiguration copy() {

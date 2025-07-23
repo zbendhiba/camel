@@ -16,6 +16,9 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import java.util.List;
+
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
@@ -27,7 +30,21 @@ public interface AiAgentService {
     @SystemMessage("{{prompt}}")
     String chat(@UserMessage String message, @V("prompt") String prompt);
 
-    Object chatJson(String message);
+    /**
+     * Chat with tools support using a single user message
+     *
+     * @param message the user message
+     * @return the AI response after potentially calling tools
+     */
+    String chatWithTools(@UserMessage String message);
 
-    Object chatJson(String message, String prompt);
+    /**
+     * Chat with tools support using a single user message and system prompt
+     *
+     * @param message the user message
+     * @param prompt the system prompt
+     * @return the AI response after potentially calling tools
+     */
+    @SystemMessage("{{prompt}}")
+    String chatWithTools(@UserMessage String message, @V("prompt") String prompt);
 }

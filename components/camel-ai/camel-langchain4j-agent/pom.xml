@@ -42,6 +42,11 @@
       <artifactId>langchain4j</artifactId>
       <version>${langchain4j-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-langchain4j-tools</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
 
     <dependency>
@@ -59,6 +64,12 @@
           <groupId>dev.langchain4j</groupId>
           <artifactId>langchain4j-open-ai</artifactId>
           <version>${langchain4j-version}</version>
+          <scope>test</scope>
+      </dependency>
+      <dependency>
+          <groupId>org.mockito</groupId>
+          <artifactId>mockito-core</artifactId>
+          <version>5.18.0</version>
           <scope>test</scope>
       </dependency>
   </dependencies>
