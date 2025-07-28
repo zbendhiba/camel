@@ -31,6 +31,10 @@ import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.tool.ToolExecutor;
+import dev.langchain4j.service.tool.ToolProvider;
+import dev.langchain4j.service.tool.ToolProviderRequest;
+import dev.langchain4j.service.tool.ToolProviderResult;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.component.langchain4j.tools.spec.CamelToolExecutorCache;
@@ -104,16 +108,16 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             if (!availableTools.isEmpty()) {
                 LOG.debug("Creating AI Service with {} tools for tags: {}", availableTools.size(), tags);
 
-                // Create programmatic tool specifications and executors
-                Map<ToolSpecification, Object> toolsMap = createProgrammaticTools(availableTools, exchange);
+                // Create dynamic tool provider that returns Camel route tools
+                ToolProvider toolProvider = createCamelToolProvider(availableTools, exchange);
                 
                 // Log available tool specifications for reference
                 logAvailableTools(availableTools);
                 
-                // Create AI agent service with programmatic tools
+                // Create AI agent service with tool provider
                 return AiServices.builder(AiAgentService.class)
                         .chatModel(chatModel)
-                        .tools(toolsMap)
+                        .toolProvider(toolProvider)
                         .build();
             } else {
                 LOG.debug("No tools found for tags: {}, using simple AI Service", tags);
@@ -125,86 +129,63 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Create programmatic tools using LangChain4j's low-level API.
-     * This bypasses @Tool annotations and directly uses ToolSpecification + ToolExecutor.
+     * Create a dynamic tool provider that returns all Camel route tools.
+     * This uses LangChain4j's ToolProvider API for dynamic tool registration.
      */
-    private Map<ToolSpecification, Object> createProgrammaticTools(Map<String, CamelToolSpecification> availableTools, Exchange exchange) {
-        Map<ToolSpecification, Object> toolsMap = new HashMap<>();
-        
-        for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
-            String toolName = entry.getKey();
-            CamelToolSpecification camelToolSpec = entry.getValue();
+    private ToolProvider createCamelToolProvider(Map<String, CamelToolSpecification> availableTools, Exchange exchange) {
+        return (ToolProviderRequest toolProviderRequest) -> {
+            // Build the tool provider result with all available Camel tools
+            ToolProviderResult.Builder resultBuilder = ToolProviderResult.builder();
             
-            // Get the existing ToolSpecification from CamelToolSpecification
-            ToolSpecification toolSpecification = camelToolSpec.getToolSpecification();
-            
-            // Create a ToolExecutor for this specific Camel route
-            Object toolExecutor = createCamelToolExecutor(toolName, camelToolSpec, exchange);
-            
-            // Register the ToolSpecification with its executor
-            toolsMap.put(toolSpecification, toolExecutor);
-            
-            LOG.info("Created programmatic tool: '{}' - {}", toolSpecification.name(), toolSpecification.description());
-        }
-        
-        return toolsMap;
-    }
+            for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
+                String toolName = entry.getKey();
+                CamelToolSpecification camelToolSpec = entry.getValue();
+                
+                // Get the existing ToolSpecification from CamelToolSpecification
+                ToolSpecification toolSpecification = camelToolSpec.getToolSpecification();
+                
+                // Create a functional tool executor for this specific Camel route
+                // ToolExecutor signature: (ToolExecutionRequest, Object) -> String
+                ToolExecutor toolExecutor = (toolExecutionRequest, memoryId) -> {
+                    LOG.info("Executing Camel route tool: '{}' with arguments: {}", toolName, toolExecutionRequest.arguments());
+                    
+                    try {
+                        // Parse JSON arguments if provided
+                        String arguments = toolExecutionRequest.arguments();
+                        if (arguments != null && !arguments.trim().isEmpty()) {
+                            JsonNode jsonNode = objectMapper.readValue(arguments, JsonNode.class);
+                            jsonNode.fieldNames()
+                                    .forEachRemaining(name -> exchange.getMessage().setHeader(name, jsonNode.get(name)));
+                        }
 
-    /**
-     * Create a ToolExecutor implementation for a specific Camel route.
-     * This handles the actual execution when LangChain4j calls the tool.
-     */
-    private Object createCamelToolExecutor(String toolName, CamelToolSpecification camelToolSpec, Exchange exchange) {
-        return new CamelToolExecutor(toolName, camelToolSpec, exchange, objectMapper);
-    }
+                        // Set the tool name as a header for route identification
+                        exchange.getMessage().setHeader("CamelToolName", toolName);
 
-    /**
-     * ToolExecutor implementation that executes Camel routes.
-     * This is what LangChain4j will call when the LLM wants to use a tool.
-     */
-    public static class CamelToolExecutor {
-        private final String toolName;
-        private final CamelToolSpecification toolSpec;
-        private final Exchange exchange;
-        private final ObjectMapper objectMapper;
-        private static final Logger LOG = LoggerFactory.getLogger(CamelToolExecutor.class);
+                        // Execute the consumer route
+                        camelToolSpec.getConsumer().getProcessor().process(exchange);
 
-        public CamelToolExecutor(String toolName, CamelToolSpecification toolSpec, Exchange exchange, ObjectMapper objectMapper) {
-            this.toolName = toolName;
-            this.toolSpec = toolSpec;
-            this.exchange = exchange;
-            this.objectMapper = objectMapper;
-        }
+                        // Return the result
+                        String result = exchange.getIn().getBody(String.class);
+                        LOG.info("Tool '{}' execution completed successfully", toolName);
+                        return result != null ? result : "No result";
 
-        // This method will be called by LangChain4j's ToolExecutor interface
-        public String execute(String toolExecutionRequestArguments) {
-            LOG.info("Executing Camel route tool: '{}' with arguments: {}", toolName, toolExecutionRequestArguments);
-            
-            try {
-                // Parse JSON arguments if provided
-                if (toolExecutionRequestArguments != null && !toolExecutionRequestArguments.trim().isEmpty()) {
-                    JsonNode jsonNode = objectMapper.readValue(toolExecutionRequestArguments, JsonNode.class);
-                    jsonNode.fieldNames()
-                            .forEachRemaining(name -> exchange.getMessage().setHeader(name, jsonNode.get(name)));
-                }
-
-                // Set the tool name as a header for route identification
-                exchange.getMessage().setHeader("CamelToolName", toolName);
-
-                // Execute the consumer route
-                toolSpec.getConsumer().getProcessor().process(exchange);
-
-                // Return the result
-                String result = exchange.getIn().getBody(String.class);
-                LOG.info("Tool '{}' execution completed successfully", toolName);
-                return result != null ? result : "No result";
-
-            } catch (Exception e) {
-                LOG.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
-                return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
+                    } catch (Exception e) {
+                        LOG.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
+                        return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
+                    }
+                };
+                
+                // Add this tool to the result
+                resultBuilder.add(toolSpecification, toolExecutor);
+                
+                LOG.info("Added dynamic tool: '{}' - {}", toolSpecification.name(), toolSpecification.description());
             }
-        }
+            
+            return resultBuilder.build();
+        };
     }
+
+
 
     /**
      * Log available tools for debugging and reference
@@ -219,10 +200,11 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
             }
         }
-        LOG.info("LangChain4j will see {} individual ToolSpecification objects programmatically registered", availableTools.size());
+        LOG.info("LangChain4j will receive {} tools dynamically via ToolProvider", availableTools.size());
         LOG.info("Tool names that will be available to LLM: {}", String.join(", ", availableTools.keySet()));
-        LOG.info("This bypasses @Tool annotations completely and uses LangChain4j's low-level API");
-        LOG.info("================================================================");
+        LOG.info("This bypasses @Tool annotations completely and uses LangChain4j's dynamic tool API");
+        LOG.info("Each tool will be registered programmatically with its own ToolSpecification and ToolExecutor");
+        LOG.info("==========================================================================");
     }
 
     /**
