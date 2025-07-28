@@ -66,7 +66,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
         // Let AI Service handle everything (chat + tools)
         String response = agentService.chat(messages);
-        exchange.getIn().setBody(response);
+        exchange.getMessage().setBody(response);
     }
 
     /**

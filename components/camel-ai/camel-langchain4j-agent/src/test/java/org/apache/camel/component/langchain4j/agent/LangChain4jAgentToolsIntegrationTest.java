@@ -42,13 +42,13 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
     private static final String FINAL_AI_RESPONSE = "The user name is John Doe.";
 
     private ChatModel mockChatModel;
-    private ChatModel noToolsChatModel;
+    private ChatModel regularChatModel;
 
     @Override
     protected void setupResources() throws Exception {
         super.setupResources();
         mockChatModel = createMockChatModel();
-        noToolsChatModel = createNoToolsChatModel();
+        regularChatModel = createRegularChatModel();
     }
 
     private ChatModel createMockChatModel() {
@@ -58,8 +58,8 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         List<ToolExecutionRequest> toolRequests = new ArrayList<>();
         toolRequests.add(ToolExecutionRequest.builder()
                 .id("tool-call-1")
-                .name("query-database-by-user-id")
-                .arguments("{\"userId\": \"123\"}")
+                .name("executeCamelRoute")
+                .arguments("{\"routeOperation\": \"getUser\", \"id\": \"123\"}")
                 .build());
 
         AiMessage aiMessageWithTool = AiMessage.builder()
@@ -87,16 +87,17 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         return chatModel;
     }
 
-    private ChatModel createNoToolsChatModel() {
-        ChatModel chatModel = Mockito.mock(ChatModel.class);
-        AiMessage simpleResponse = AiMessage.builder()
-                .text("I don't have access to user information.")
+    private ChatModel createRegularChatModel() {
+        ChatModel regularChatModel = Mockito.mock(ChatModel.class);
+        AiMessage regularResponse = AiMessage.builder()
+                .text("Apache Camel is an integration framework.")
                 .build();
+
         ChatResponse response = ChatResponse.builder()
-                .aiMessage(simpleResponse)
+                .aiMessage(regularResponse)
                 .build();
-        when(chatModel.chat(any(ChatRequest.class))).thenReturn(response);
-        return chatModel;
+        when(regularChatModel.chat(any(ChatRequest.class))).thenReturn(response);
+        return regularChatModel;
     }
 
     @Test
@@ -116,32 +117,7 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
     }
 
     @Test
-    void testToolsIntegrationWithConfiguredTags() throws InterruptedException {
-        MockEndpoint mockEndpoint = context.getEndpoint("mock:result", MockEndpoint.class);
-        mockEndpoint.expectedMessageCount(1);
-
-        // Test with tags configured on endpoint
-        String response = template.requestBody(
-                "direct:agent-with-configured-tags",
-                "What is the name of user 123?",
-                String.class);
-
-        mockEndpoint.assertIsSatisfied();
-        assertNotNull(response);
-        assertEquals(FINAL_AI_RESPONSE, response);
-    }
-
-    @Test
     void testRegularChatWithoutTools() throws InterruptedException {
-        // Mock for regular chat without tools
-        ChatModel regularChatModel = Mockito.mock(ChatModel.class);
-        AiMessage regularResponse = AiMessage.builder()
-                .text("Apache Camel is an integration framework.")
-                .build();
-        ChatResponse response = ChatResponse.builder()
-                .aiMessage(regularResponse)
-                .build();
-        when(regularChatModel.chat(any(ChatRequest.class))).thenReturn(response);
 
         context.getRegistry().bind("regularChatModel", regularChatModel);
 
@@ -161,28 +137,24 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
     @Override
     protected RouteBuilder createRouteBuilder() {
         context.getRegistry().bind("mockChatModel", mockChatModel);
+        context.getRegistry().bind("regularChatModel", regularChatModel);
 
         return new RouteBuilder() {
             public void configure() {
                 // Routes for testing tools integration
                 from("direct:agent-with-tools")
                         .to("langchain4j-agent:test-agent?chatModel=#mockChatModel&tags=users")
+                        .process(e ->{
+                            System.out.println("processor ::: body is " + e.getIn().getBody(String.class));
+                        })
                         .to("mock:result");
-
-                from("direct:agent-with-configured-tags")
-                        .to("langchain4j-agent:test-agent?chatModel=#mockChatModel&tags=users")
-                        .to("mock:result");
-
-                from("direct:agent-no-tools")
-                        .to("langchain4j-agent:test-agent?chatModel=#noToolsChatModel&tags=nonexistent")
-                        .to("mock:no-tools-result");
 
                 from("direct:agent-regular")
-                        .to("langchain4j-agent:test-agent?chatModel=#regularChatModel")
+                        .to("langchain4j-agent:test-agent?chatModel=#regularChatModel&tags=nonexistent")
                         .to("mock:regular-result");
 
                 // Tool consumer routes
-                from("langchain4j-tools:userDatabase?tags=users&description=Query database by user ID&parameter.userId=integer")
+                from("langchain4j-tools:userDb?tags=users&description=Query user database by user ID&parameter.userId=integer")
                         .setBody(constant(TOOL_RESPONSE))
                         .log("Tool called with headers: ${headers}");
             }
