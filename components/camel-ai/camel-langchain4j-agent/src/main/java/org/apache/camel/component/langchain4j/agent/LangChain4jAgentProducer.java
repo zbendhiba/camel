@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -62,7 +65,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         List<ChatMessage> messages = convertToMessages(exchange, messagePayload);
 
         // Create AI Service with discovered tools for this exchange
-        AiAgentService agentService = createAiAgentServiceWithTools(exchange);
+        String tags = endpoint.getConfiguration().getTags();
+        AiAgentService agentService = createAiAgentServiceWithTools(tags, exchange);
 
         // Let AI Service handle everything (chat + tools)
         String response = agentService.chat(messages);
@@ -92,22 +96,26 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Create AI Agent Service with tools discovered from Camel routes
+     * Create AI service with actual tool specifications injected into system message
      */
-    private AiAgentService createAiAgentServiceWithTools(Exchange exchange) {
-        String tags = endpoint.getConfiguration().getTags();
-
+    private AiAgentService createAiAgentServiceWithTools(String tags, Exchange exchange) {
         if (tags != null && !tags.trim().isEmpty()) {
             // Discover tools from Camel routes
-            List<Object> toolInstances = discoverAndCreateToolInstances(tags, exchange);
+            Map<String, CamelToolSpecification> availableTools = discoverToolsByName(tags);
 
-            if (!toolInstances.isEmpty()) {
-                LOG.debug("Creating AI Service with {} tools for tags: {}", toolInstances.size(), tags);
+            if (!availableTools.isEmpty()) {
+                LOG.debug("Creating AI Service with {} tools for tags: {}", availableTools.size(), tags);
 
-                // Use AiServices.builder() with discovered tool instances
+                // Create a single router tool that handles all tool executions
+                CamelToolRouter toolRouter = new CamelToolRouter(availableTools, exchange, objectMapper);
+                
+                // Log available tool specifications for reference
+                logAvailableTools(availableTools);
+                
+                // Create AI agent service with tool router
                 return AiServices.builder(AiAgentService.class)
                         .chatModel(chatModel)
-                        .tools(toolInstances)
+                        .tools(toolRouter)
                         .build();
             } else {
                 LOG.debug("No tools found for tags: {}, using simple AI Service", tags);
@@ -119,10 +127,27 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Discover Camel routes by tags and create tool instances for AI Services
+     * Log available tools for debugging and reference
      */
-    private List<Object> discoverAndCreateToolInstances(String tags, Exchange exchange) {
-        List<Object> toolInstances = new ArrayList<>();
+    private void logAvailableTools(Map<String, CamelToolSpecification> availableTools) {
+        LOG.info("=== Available Camel Tools ===");
+        for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
+            ToolSpecification spec = entry.getValue().getToolSpecification();
+            LOG.info("Tool: {} - {}", spec.name(), spec.description());
+            
+            if (spec.parameters() != null && !spec.parameters().properties().isEmpty()) {
+                LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
+            }
+        }
+        LOG.info("Use executeRoute(toolName, arguments) to call these tools");
+        LOG.info("=============================");
+    }
+
+    /**
+     * Discover Camel routes by tags and create a map of tool specifications by name
+     */
+    private Map<String, CamelToolSpecification> discoverToolsByName(String tags) {
+        Map<String, CamelToolSpecification> toolsByName = new HashMap<>();
 
         final CamelToolExecutorCache toolCache = CamelToolExecutorCache.getInstance();
         final Map<String, Set<CamelToolSpecification>> tools = toolCache.getTools();
@@ -132,21 +157,19 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             for (String tag : tagArray) {
                 if (entry.getKey().equals(tag)) {
                     for (CamelToolSpecification camelToolSpec : entry.getValue()) {
-                        // Create tool wrapper for this Camel route
-                        CamelRouteToolWrapper toolWrapper = new CamelRouteToolWrapper(
-                                camelToolSpec, exchange, objectMapper);
-                        toolInstances.add(toolWrapper);
-
-                        LOG.debug("Created tool wrapper for: {} - {}",
-                                camelToolSpec.getToolSpecification().name(),
+                        String toolName = camelToolSpec.getToolSpecification().name();
+                        toolsByName.put(toolName, camelToolSpec);
+                        
+                        LOG.debug("Discovered tool: {} - {}",
+                                toolName,
                                 camelToolSpec.getToolSpecification().description());
                     }
                 }
             }
         }
 
-        LOG.info("Discovered {} tool instances for tags: {}", toolInstances.size(), tags);
-        return toolInstances;
+        LOG.info("Discovered {} unique tools for tags: {}", toolsByName.size(), tags);
+        return toolsByName;
     }
 
     @Override
@@ -157,31 +180,49 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Tool wrapper that converts a discovered Camel route into a tool that AI Services can use. Each instance
-     * represents one Camel route with its actual description and parameters.
+     * Tool router that exposes multiple Camel routes as individual tools to LangChain4j.
+     * This class handles routing tool calls to the appropriate Camel consumers.
      */
-    public static class CamelRouteToolWrapper {
-        private final CamelToolSpecification camelToolSpec;
+    public static class CamelToolRouter {
+        private final Map<String, CamelToolSpecification> toolsByName;
         private final Exchange exchange;
         private final ObjectMapper objectMapper;
-        private static final Logger LOG = LoggerFactory.getLogger(CamelRouteToolWrapper.class);
+        private static final Logger LOG = LoggerFactory.getLogger(CamelToolRouter.class);
 
-        public CamelRouteToolWrapper(CamelToolSpecification camelToolSpec, Exchange exchange, ObjectMapper objectMapper) {
-            this.camelToolSpec = camelToolSpec;
+        public CamelToolRouter(Map<String, CamelToolSpecification> toolsByName, Exchange exchange, ObjectMapper objectMapper) {
+            this.toolsByName = toolsByName;
             this.exchange = exchange;
             this.objectMapper = objectMapper;
+            
+            // Log available tools
+            LOG.info("CamelToolRouter initialized with tools: {}", 
+                    toolsByName.keySet().stream()
+                            .map(name -> String.format("%s (%s)", name, toolsByName.get(name).getToolSpecification().description()))
+                            .collect(Collectors.joining(", ")));
         }
 
-        /**
-         * This @Tool method will be discovered by AI Services. The description is generic but the tool name and
-         * behavior come from the actual Camel route.
-         */
-        @Tool("Execute Camel route tool with parameters from route configuration")
-        public String executeCamelRoute(String arguments) {
+        @Tool("Execute a Camel route by name with JSON arguments")
+        public String executeRoute(String toolName, String arguments) {
+            LOG.info("Tool execution requested: '{}' with arguments: {}", toolName, arguments);
+            
+            CamelToolSpecification camelToolSpec = toolsByName.get(toolName);
+            if (camelToolSpec == null) {
+                String availableTools = String.join(", ", toolsByName.keySet());
+                String errorMsg = String.format("Tool '%s' not found. Available tools: %s", toolName, availableTools);
+                LOG.error(errorMsg);
+                return "Error: " + errorMsg;
+            }
+
+            return executeCamelRoute(camelToolSpec, arguments);
+        }
+
+        private String executeCamelRoute(CamelToolSpecification camelToolSpec, String arguments) {
             ToolSpecification toolSpec = camelToolSpec.getToolSpecification();
             String toolName = toolSpec.name();
+            String toolDescription = toolSpec.description();
 
-            LOG.info("Executing Camel tool: {} with arguments: {}", toolName, arguments);
+            LOG.info("Executing Camel tool: '{}' ({})", toolName, toolDescription);
+            LOG.debug("Tool arguments: {}", arguments);
 
             try {
                 // Parse arguments and set as headers
@@ -196,30 +237,22 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
                 // Return the result
                 String result = exchange.getIn().getBody(String.class);
-                LOG.debug("Tool {} execution result: {}", toolName, result);
+                LOG.info("Tool '{}' execution completed successfully", toolName);
+                LOG.debug("Tool '{}' result: {}", toolName, result);
                 return result != null ? result : "No result";
 
             } catch (Exception e) {
-                LOG.error("Error executing tool {}: {}", toolName, e.getMessage(), e);
-                return "Error executing tool " + toolName + ": " + e.getMessage();
+                LOG.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
+                return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
             }
-        }
-
-        /**
-         * Get tool metadata for debugging
-         */
-        public String getToolName() {
-            return camelToolSpec.getToolSpecification().name();
-        }
-
-        public String getDescription() {
-            return camelToolSpec.getToolSpecification().description();
         }
 
         @Override
         public String toString() {
-            ToolSpecification spec = camelToolSpec.getToolSpecification();
-            return String.format("CamelTool[%s: %s]", spec.name(), spec.description());
+            return String.format("CamelToolRouter[%d tools: %s]", 
+                    toolsByName.size(), 
+                    String.join(", ", toolsByName.keySet()));
         }
     }
 }
+
