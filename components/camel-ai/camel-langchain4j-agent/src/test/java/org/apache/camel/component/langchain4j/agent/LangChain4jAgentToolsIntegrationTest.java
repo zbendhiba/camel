@@ -144,7 +144,7 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
                 // Routes for testing tools integration
                 from("direct:agent-with-tools")
                         .to("langchain4j-agent:test-agent?chatModel=#mockChatModel&tags=users")
-                        .process(e ->{
+                        .process(e -> {
                             System.out.println("processor ::: body is " + e.getIn().getBody(String.class));
                         })
                         .to("mock:result");

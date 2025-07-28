@@ -34,7 +34,7 @@ import static java.time.Duration.ofSeconds;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@EnabledIfSystemProperty(named = "openai.api.key", matches = ".*", disabledReason = "OpenAI API key required")
+@EnabledIfSystemProperty(named = "OPENAI_API_KEY", matches = ".*", disabledReason = "OpenAI API key required")
 public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
     private static final String USER_DB_NAME = "John Doe";
@@ -95,7 +95,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        System.out.println("response testAgentWithWeatherTools is :: "+response);
+        System.out.println("response testAgentWithWeatherTools is :: " + response);
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
                 "Response should contain weather information from the weather tool");
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),
@@ -142,7 +142,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        System.out.println("response testAgentWithConfiguredTags is :: "+response);
+        System.out.println("response testAgentWithConfiguredTags is :: " + response);
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
                 "Response should contain weather information from the weather tool");
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),

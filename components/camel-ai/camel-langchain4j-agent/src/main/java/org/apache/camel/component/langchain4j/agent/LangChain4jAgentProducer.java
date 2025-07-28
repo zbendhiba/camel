@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
@@ -110,10 +109,10 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
                 // Create dynamic tool provider that returns Camel route tools
                 ToolProvider toolProvider = createCamelToolProvider(availableTools, exchange);
-                
+
                 // Log available tool specifications for reference
                 logAvailableTools(availableTools);
-                
+
                 // Create AI agent service with tool provider
                 return AiServices.builder(AiAgentService.class)
                         .chatModel(chatModel)
@@ -129,26 +128,26 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Create a dynamic tool provider that returns all Camel route tools.
-     * This uses LangChain4j's ToolProvider API for dynamic tool registration.
+     * Create a dynamic tool provider that returns all Camel route tools. This uses LangChain4j's ToolProvider API for
+     * dynamic tool registration.
      */
     private ToolProvider createCamelToolProvider(Map<String, CamelToolSpecification> availableTools, Exchange exchange) {
         return (ToolProviderRequest toolProviderRequest) -> {
             // Build the tool provider result with all available Camel tools
             ToolProviderResult.Builder resultBuilder = ToolProviderResult.builder();
-            
+
             for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
                 String toolName = entry.getKey();
                 CamelToolSpecification camelToolSpec = entry.getValue();
-                
+
                 // Get the existing ToolSpecification from CamelToolSpecification
                 ToolSpecification toolSpecification = camelToolSpec.getToolSpecification();
-                
+
                 // Create a functional tool executor for this specific Camel route
                 // ToolExecutor signature: (ToolExecutionRequest, Object) -> String
                 ToolExecutor toolExecutor = (toolExecutionRequest, memoryId) -> {
                     LOG.info("Executing Camel route tool: '{}' with arguments: {}", toolName, toolExecutionRequest.arguments());
-                    
+
                     try {
                         // Parse JSON arguments if provided
                         String arguments = toolExecutionRequest.arguments();
@@ -174,18 +173,16 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                         return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
                     }
                 };
-                
+
                 // Add this tool to the result
                 resultBuilder.add(toolSpecification, toolExecutor);
-                
+
                 LOG.info("Added dynamic tool: '{}' - {}", toolSpecification.name(), toolSpecification.description());
             }
-            
+
             return resultBuilder.build();
         };
     }
-
-
 
     /**
      * Log available tools for debugging and reference
@@ -195,7 +192,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
             ToolSpecification spec = entry.getValue().getToolSpecification();
             LOG.info("Tool: {} - {}", spec.name(), spec.description());
-            
+
             if (spec.parameters() != null && !spec.parameters().properties().isEmpty()) {
                 LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
             }
@@ -223,7 +220,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                     for (CamelToolSpecification camelToolSpec : entry.getValue()) {
                         String toolName = camelToolSpec.getToolSpecification().name();
                         toolsByName.put(toolName, camelToolSpec);
-                        
+
                         LOG.info("=== DISCOVERED TOOL ===");
                         LOG.info("Tool name: '{}'", toolName);
                         LOG.info("Description: '{}'", camelToolSpec.getToolSpecification().description());
@@ -246,4 +243,3 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         ObjectHelper.notNull(chatModel, "chatModel");
     }
 }
-
