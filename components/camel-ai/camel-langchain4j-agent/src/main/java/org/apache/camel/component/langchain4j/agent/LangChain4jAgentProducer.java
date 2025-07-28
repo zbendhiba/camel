@@ -99,7 +99,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Create AI service with individual tool objects for each Camel route
+     * Create AI service with a single universal tool that handles multiple Camel routes
      */
     private AiAgentService createAiAgentServiceWithTools(String tags, Exchange exchange) {
         if (tags != null && !tags.trim().isEmpty()) {
@@ -109,16 +109,16 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             if (!availableTools.isEmpty()) {
                 LOG.debug("Creating AI Service with {} tools for tags: {}", availableTools.size(), tags);
 
-                // Create individual tool objects - one per Camel route
-                List<Object> toolObjects = createToolObjects(availableTools, exchange);
+                // Create single universal executor that handles all tools by name
+                UniversalCamelToolExecutor toolExecutor = new UniversalCamelToolExecutor(availableTools, exchange, objectMapper);
                 
                 // Log available tool specifications for reference
                 logAvailableTools(availableTools);
                 
-                // Create AI agent service with individual tool objects
+                // Create AI agent service with the universal tool executor
                 return AiServices.builder(AiAgentService.class)
                         .chatModel(chatModel)
-                        .tools(toolObjects)
+                        .tools(toolExecutor)
                         .build();
             } else {
                 LOG.debug("No tools found for tags: {}, using simple AI Service", tags);
@@ -130,61 +130,69 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Create individual tool objects for each Camel route.
-     * Each tool object exposes its own tool method named after the tool.
+     * Universal tool executor that handles all Camel route tools by name.
+     * Uses available tools specifications to inform LLM about individual tools.
      */
-    private List<Object> createToolObjects(Map<String, CamelToolSpecification> availableTools, Exchange exchange) {
-        List<Object> toolObjects = new ArrayList<>();
-        
-        for (CamelToolSpecification camelToolSpec : availableTools.values()) {
-            CamelRouteToolWrapper toolWrapper = new CamelRouteToolWrapper(camelToolSpec, exchange, objectMapper);
-            toolObjects.add(toolWrapper);
-            
-            LOG.debug("Created tool object for: {}", camelToolSpec.getToolSpecification().name());
-        }
-        
-        return toolObjects;
-    }
-
-    /**
-     * Individual tool wrapper that exposes a Camel route as a LangChain4j tool.
-     * Each instance represents one tool with its own method named after the tool.
-     */
-    public static class CamelRouteToolWrapper {
-        private final CamelToolSpecification camelToolSpec;
+    public static class UniversalCamelToolExecutor {
+        private final Map<String, CamelToolSpecification> toolsByName;
         private final Exchange exchange;
         private final ObjectMapper objectMapper;
-        private static final Logger LOG = LoggerFactory.getLogger(CamelRouteToolWrapper.class);
+        private final String availableToolsDescription;
+        private static final Logger LOG = LoggerFactory.getLogger(UniversalCamelToolExecutor.class);
 
-        public CamelRouteToolWrapper(CamelToolSpecification camelToolSpec, Exchange exchange, ObjectMapper objectMapper) {
-            this.camelToolSpec = camelToolSpec;
+        public UniversalCamelToolExecutor(Map<String, CamelToolSpecification> toolsByName, Exchange exchange, ObjectMapper objectMapper) {
+            this.toolsByName = toolsByName;
             this.exchange = exchange;
             this.objectMapper = objectMapper;
+            this.availableToolsDescription = buildToolsDescription(toolsByName);
         }
 
         /**
-         * Get the tool name from the specification
+         * Build a description of all available tools for the LLM
          */
-        public String getToolName() {
-            return camelToolSpec.getToolSpecification().name();
+        private String buildToolsDescription(Map<String, CamelToolSpecification> toolsByName) {
+            StringBuilder description = new StringBuilder("Execute Camel route tools. Available tools:\n");
+            for (Map.Entry<String, CamelToolSpecification> entry : toolsByName.entrySet()) {
+                ToolSpecification spec = entry.getValue().getToolSpecification();
+                description.append("- ").append(spec.name()).append(": ").append(spec.description());
+                if (spec.parameters() != null && !spec.parameters().properties().isEmpty()) {
+                    description.append(" (Parameters: ").append(String.join(", ", spec.parameters().properties().keySet())).append(")");
+                }
+                description.append("\n");
+            }
+            description.append("Use the toolName parameter to specify which tool to execute.");
+            return description.toString();
         }
 
-        /**
-         * Get the tool description from the specification
-         */
-        public String getDescription() {
-            return camelToolSpec.getToolSpecification().description();
-        }
-
-        /**
-         * Execute this specific Camel route tool.
-         * LangChain4j will discover this method and treat it as the tool execution method.
-         */
-        public String execute(String arguments) {
-            String toolName = getToolName();
-            String toolDescription = getDescription();
+        @Tool("Execute a Camel route tool by name. First parameter 'toolName' specifies which tool to execute - use the exact name of available tools. Second parameter 'arguments' contains the tool arguments as JSON.")
+        public String executeTool(String toolName, String arguments) {
+            LOG.info("Executing tool: '{}' with arguments: {}", toolName, arguments);
             
-            LOG.info("Executing Camel tool: '{}' ({})", toolName, toolDescription);
+            // Validate tool name
+            if (toolName == null || toolName.trim().isEmpty()) {
+                return "Error: toolName parameter is required. Available tools: " + String.join(", ", toolsByName.keySet());
+            }
+            
+            // Map tool name to Camel route
+            CamelToolSpecification camelToolSpec = toolsByName.get(toolName.trim());
+            if (camelToolSpec == null) {
+                String errorMsg = String.format("Unknown tool: '%s'. Available tools: %s", 
+                    toolName, String.join(", ", toolsByName.keySet()));
+                LOG.error(errorMsg);
+                return errorMsg;
+            }
+            
+            return executeToolRoute(toolName, arguments, camelToolSpec);
+        }
+
+        /**
+         * Execute the specific Camel route for the named tool
+         */
+        private String executeToolRoute(String toolName, String arguments, CamelToolSpecification camelToolSpec) {
+            ToolSpecification toolSpec = camelToolSpec.getToolSpecification();
+            String toolDescription = toolSpec.description();
+            
+            LOG.info("Executing Camel route for tool: '{}' ({})", toolName, toolDescription);
             
             try {
                 // Parse arguments and set as headers for the Camel route
@@ -211,11 +219,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
             }
         }
-
-        @Override
-        public String toString() {
-            return String.format("CamelTool[%s: %s]", getToolName(), getDescription());
-        }
     }
 
     /**
@@ -231,8 +234,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
             }
         }
-        LOG.info("LangChain4j will see {} individual tool objects", availableTools.size());
-        LOG.info("Each tool has its own execute() method, no annotations needed");
+        LOG.info("LangChain4j will see one universal executor with {} tool definitions in description", availableTools.size());
+        LOG.info("Tool names: {}", String.join(", ", availableTools.keySet()));
         LOG.info("=============================");
     }
 

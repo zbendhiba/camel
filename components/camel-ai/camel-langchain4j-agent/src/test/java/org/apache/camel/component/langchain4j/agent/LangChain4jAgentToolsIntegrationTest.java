@@ -58,8 +58,8 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         List<ToolExecutionRequest> toolRequests = new ArrayList<>();
         toolRequests.add(ToolExecutionRequest.builder()
                 .id("tool-call-1")
-                .name("executeCamelRoute")
-                .arguments("{\"routeOperation\": \"getUser\", \"id\": \"123\"}")
+                .name("executeTool")
+                .arguments("{\"toolName\":\"QueryUserDatabaseByUserID\",\"arguments\":\"{\\\"id\\\":\\\"123\\\"}\"}")
                 .build());
 
         AiMessage aiMessageWithTool = AiMessage.builder()

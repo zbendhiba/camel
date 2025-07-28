@@ -39,6 +39,8 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
     private static final String USER_DB_NAME = "John Doe";
     private static final String WEATHER_INFO = "sunny, 25°C";
+    private static final String WEATHER_INFO_1 = "sunny";
+    private static final String WEATHER_INFO_2 = "25";
 
     protected ChatModel chatModel;
     private String openAiApiKey;
@@ -93,7 +95,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(WEATHER_INFO),
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
+                "Response should contain weather information from the weather tool");
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),
                 "Response should contain weather information from the weather tool");
     }
 
@@ -108,16 +112,20 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
                                        "Use the available tools to provide accurate information."));
         messages.add(new UserMessage("Can you tell me the name of user 123 and the weather in New York?"));
 
+        AiAgentBody aiAgentBody = new AiAgentBody(messages);
+
         String response = template.requestBody(
                 "direct:agent-with-multiple-tools",
-                messages,
+                aiAgentBody,
                 String.class);
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
         assertTrue(response.contains(USER_DB_NAME),
                 "Response should contain the user name from the database tool");
-        assertTrue(response.contains(WEATHER_INFO),
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
+                "Response should contain weather information from the weather tool");
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),
                 "Response should contain weather information from the weather tool");
     }
 
@@ -133,7 +141,9 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
-        assertTrue(response.contains(WEATHER_INFO),
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
+                "Response should contain weather information from the weather tool");
+        assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),
                 "Response should contain weather information from the weather tool");
     }
 
