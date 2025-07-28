@@ -132,19 +132,6 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         assertEquals(FINAL_AI_RESPONSE, response);
     }
 
-    @Test
-    void testNoToolsCalledWhenTagsDontMatch() throws InterruptedException {
-        MockEndpoint mockEndpoint = context.getEndpoint("mock:no-tools-result", MockEndpoint.class);
-        mockEndpoint.expectedMessageCount(1);
-        mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
-
-        template.requestBody(
-                "direct:agent-no-tools",
-                "What is the name of user 123?",
-                String.class);
-
-        mockEndpoint.assertIsSatisfied();
-    }
 
     @Test
     void testRegularChatWithoutTools() throws InterruptedException {

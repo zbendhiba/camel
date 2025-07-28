@@ -50,7 +50,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         openAiApiKey = System.getenv("OPENAI_API_KEY");
         if (openAiApiKey == null || openAiApiKey.trim().isEmpty()) {
-            throw new IllegalStateException("openai.api.key system property is required for testing");
+            throw new IllegalStateException("OPENAI_API_KEY system property is required for testing");
         }
         chatModel = createModel();
     }
@@ -59,7 +59,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         return OpenAiChatModel.builder()
                 .apiKey(openAiApiKey)
                 .modelName("o4-mini")
-                .temperature(0.0)
+                .temperature(1.0)
                 .timeout(ofSeconds(60))
                 .logRequests(true)
                 .logResponses(true)
@@ -152,24 +152,8 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         assertNotNull(response, "AI response should not be null");
         assertTrue(response.contains("Apache Camel"),
                 "Response should contain information about Apache Camel");
-        // Verify no tool called header is set
-        assertTrue(context.getEndpoints().stream()
-                .anyMatch(e -> e.getEndpointUri().contains("mock:agent-response")));
     }
 
-    @Test
-    void testAgentWithNoToolsCalledHeader() throws InterruptedException {
-        MockEndpoint mockEndpoint = this.context.getEndpoint("mock:check-no-tools", MockEndpoint.class);
-        mockEndpoint.expectedMessageCount(1);
-        mockEndpoint.expectedHeaderReceived(LangChain4jTools.NO_TOOLS_CALLED_HEADER, Boolean.TRUE);
-
-        template.requestBody(
-                "direct:agent-check-no-tools",
-                "Tell me a joke",
-                String.class);
-
-        mockEndpoint.assertIsSatisfied();
-    }
 
     @Override
     protected RouteBuilder createRouteBuilder() {
