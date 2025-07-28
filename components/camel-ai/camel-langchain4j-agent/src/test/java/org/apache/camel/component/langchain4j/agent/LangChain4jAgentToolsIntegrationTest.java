@@ -25,7 +25,6 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.request.ChatRequest;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.langchain4j.tools.LangChain4jTools;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -131,7 +130,6 @@ public class LangChain4jAgentToolsIntegrationTest extends CamelTestSupport {
         assertNotNull(response);
         assertEquals(FINAL_AI_RESPONSE, response);
     }
-
 
     @Test
     void testRegularChatWithoutTools() throws InterruptedException {

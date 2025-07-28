@@ -25,7 +25,6 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.langchain4j.tools.LangChain4jTools;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -153,7 +152,6 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
         assertTrue(response.contains("Apache Camel"),
                 "Response should contain information about Apache Camel");
     }
-
 
     @Override
     protected RouteBuilder createRouteBuilder() {
