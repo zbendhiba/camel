@@ -17,19 +17,14 @@
 package org.apache.camel.component.langchain4j.agent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.stream.Collectors;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -109,16 +104,16 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             if (!availableTools.isEmpty()) {
                 LOG.debug("Creating AI Service with {} tools for tags: {}", availableTools.size(), tags);
 
-                // Create single universal executor that handles all tools by name
-                UniversalCamelToolExecutor toolExecutor = new UniversalCamelToolExecutor(availableTools, exchange, objectMapper);
+                // Create programmatic tool specifications and executors
+                Map<ToolSpecification, Object> toolsMap = createProgrammaticTools(availableTools, exchange);
                 
                 // Log available tool specifications for reference
                 logAvailableTools(availableTools);
                 
-                // Create AI agent service with the universal tool executor
+                // Create AI agent service with programmatic tools
                 return AiServices.builder(AiAgentService.class)
                         .chatModel(chatModel)
-                        .tools(toolExecutor)
+                        .tools(toolsMap)
                         .build();
             } else {
                 LOG.debug("No tools found for tags: {}, using simple AI Service", tags);
@@ -129,6 +124,87 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         return AiServices.create(AiAgentService.class, chatModel);
     }
 
+    /**
+     * Create programmatic tools using LangChain4j's low-level API.
+     * This bypasses @Tool annotations and directly uses ToolSpecification + ToolExecutor.
+     */
+    private Map<ToolSpecification, Object> createProgrammaticTools(Map<String, CamelToolSpecification> availableTools, Exchange exchange) {
+        Map<ToolSpecification, Object> toolsMap = new HashMap<>();
+        
+        for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
+            String toolName = entry.getKey();
+            CamelToolSpecification camelToolSpec = entry.getValue();
+            
+            // Get the existing ToolSpecification from CamelToolSpecification
+            ToolSpecification toolSpecification = camelToolSpec.getToolSpecification();
+            
+            // Create a ToolExecutor for this specific Camel route
+            Object toolExecutor = createCamelToolExecutor(toolName, camelToolSpec, exchange);
+            
+            // Register the ToolSpecification with its executor
+            toolsMap.put(toolSpecification, toolExecutor);
+            
+            LOG.info("Created programmatic tool: '{}' - {}", toolSpecification.name(), toolSpecification.description());
+        }
+        
+        return toolsMap;
+    }
+
+    /**
+     * Create a ToolExecutor implementation for a specific Camel route.
+     * This handles the actual execution when LangChain4j calls the tool.
+     */
+    private Object createCamelToolExecutor(String toolName, CamelToolSpecification camelToolSpec, Exchange exchange) {
+        return new CamelToolExecutor(toolName, camelToolSpec, exchange, objectMapper);
+    }
+
+    /**
+     * ToolExecutor implementation that executes Camel routes.
+     * This is what LangChain4j will call when the LLM wants to use a tool.
+     */
+    public static class CamelToolExecutor {
+        private final String toolName;
+        private final CamelToolSpecification toolSpec;
+        private final Exchange exchange;
+        private final ObjectMapper objectMapper;
+        private static final Logger LOG = LoggerFactory.getLogger(CamelToolExecutor.class);
+
+        public CamelToolExecutor(String toolName, CamelToolSpecification toolSpec, Exchange exchange, ObjectMapper objectMapper) {
+            this.toolName = toolName;
+            this.toolSpec = toolSpec;
+            this.exchange = exchange;
+            this.objectMapper = objectMapper;
+        }
+
+        // This method will be called by LangChain4j's ToolExecutor interface
+        public String execute(String toolExecutionRequestArguments) {
+            LOG.info("Executing Camel route tool: '{}' with arguments: {}", toolName, toolExecutionRequestArguments);
+            
+            try {
+                // Parse JSON arguments if provided
+                if (toolExecutionRequestArguments != null && !toolExecutionRequestArguments.trim().isEmpty()) {
+                    JsonNode jsonNode = objectMapper.readValue(toolExecutionRequestArguments, JsonNode.class);
+                    jsonNode.fieldNames()
+                            .forEachRemaining(name -> exchange.getMessage().setHeader(name, jsonNode.get(name)));
+                }
+
+                // Set the tool name as a header for route identification
+                exchange.getMessage().setHeader("CamelToolName", toolName);
+
+                // Execute the consumer route
+                toolSpec.getConsumer().getProcessor().process(exchange);
+
+                // Return the result
+                String result = exchange.getIn().getBody(String.class);
+                LOG.info("Tool '{}' execution completed successfully", toolName);
+                return result != null ? result : "No result";
+
+            } catch (Exception e) {
+                LOG.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
+                return String.format("Error executing tool '%s': %s", toolName, e.getMessage());
+            }
+        }
+    }
 
     /**
      * Log available tools for debugging and reference
@@ -143,9 +219,10 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
             }
         }
-        LOG.info("LangChain4j will see one universal executor with {} tool definitions in description", availableTools.size());
-        LOG.info("Tool names: {}", String.join(", ", availableTools.keySet()));
-        LOG.info("=============================");
+        LOG.info("LangChain4j will see {} individual ToolSpecification objects programmatically registered", availableTools.size());
+        LOG.info("Tool names that will be available to LLM: {}", String.join(", ", availableTools.keySet()));
+        LOG.info("This bypasses @Tool annotations completely and uses LangChain4j's low-level API");
+        LOG.info("================================================================");
     }
 
     /**
