@@ -53,6 +53,12 @@ final class UniversalCamelToolExecutor {
         this.exchange = exchange;
         this.objectMapper = objectMapper;
         this.availableToolsDescription = buildToolsDescription(toolsByName);
+        
+        // Log available tools for debugging
+        LOG.info("=== UniversalCamelToolExecutor Created ===");
+        LOG.info("Available tools count: {}", toolsByName.size());
+        LOG.info("Available toolName values: {}", String.join(", ", toolsByName.keySet()));
+        LOG.info("==========================================");
     }
 
     /**
@@ -62,13 +68,13 @@ final class UniversalCamelToolExecutor {
         StringBuilder description = new StringBuilder("Execute Camel route tools. Available tools:\n");
         for (Map.Entry<String, CamelToolSpecification> entry : toolsByName.entrySet()) {
             ToolSpecification spec = entry.getValue().getToolSpecification();
-            description.append("- ").append(spec.name()).append(": ").append(spec.description());
+            description.append("toolName: '").append(spec.name()).append("' - ").append(spec.description());
             if (spec.parameters() != null && !spec.parameters().properties().isEmpty()) {
                 description.append(" (Parameters: ").append(String.join(", ", spec.parameters().properties().keySet())).append(")");
             }
             description.append("\n");
         }
-        description.append("Use the toolName parameter to specify which tool to execute.");
+        description.append("Use the exact toolName parameter values shown above to specify which tool to execute.");
         return description.toString();
     }
 
@@ -80,26 +86,45 @@ final class UniversalCamelToolExecutor {
      * @param arguments JSON string containing the tool arguments
      * @return The result of the tool execution
      */
-    @Tool("Execute a Camel route tool by name. First parameter 'toolName' specifies which tool to execute - use the exact name of available tools. Second parameter 'arguments' contains the tool arguments as JSON.")
+    @Tool("Execute a Camel route tool by name. IMPORTANT: The 'toolName' parameter must be the EXACT string from available tools. DO NOT abbreviate or modify. Examples: use 'QueryUserDatabaseByUserID' NOT 'GetUserById', use 'GetWeatherInformationForParis' NOT 'GetWeather'. First parameter 'toolName' = exact tool name, second parameter 'arguments' = JSON string.")
     public String executeTool(String toolName, String arguments) {
-        LOG.info("Executing tool: '{}' with arguments: {}", toolName, arguments);
+        LOG.info("=== TOOL EXECUTION REQUEST ===");
+        LOG.info("LLM requested toolName: '{}'", toolName);
+        LOG.info("Available toolName values: {}", String.join(", ", toolsByName.keySet()));
+        LOG.info("Arguments: {}", arguments);
+        LOG.info("=============================");
         
         // Validate tool name
         if (toolName == null || toolName.trim().isEmpty()) {
-            return "Error: toolName parameter is required. Available tools: " + String.join(", ", toolsByName.keySet());
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append("ERROR: toolName parameter is required. Available toolName values:\n");
+            for (String validToolName : toolsByName.keySet()) {
+                errorMsg.append("✓ '").append(validToolName).append("'\n");
+            }
+            LOG.error("Missing toolName parameter");
+            return errorMsg.toString();
         }
         
         // Map tool name to Camel route
         CamelToolSpecification camelToolSpec = toolsByName.get(toolName.trim());
         if (camelToolSpec == null) {
-            String errorMsg = String.format("Unknown tool: '%s'. Available tools: %s", 
-                toolName, String.join(", ", toolsByName.keySet()));
-            LOG.error(errorMsg);
-            return errorMsg;
+            StringBuilder errorMsg = new StringBuilder();
+            errorMsg.append(String.format("TOOL ERROR: '%s' is not valid. ", toolName));
+            errorMsg.append("You must use EXACT toolName values. ");
+            errorMsg.append("Available options:\n");
+            for (String validToolName : toolsByName.keySet()) {
+                errorMsg.append("✓ toolName: '").append(validToolName).append("'\n");
+            }
+            errorMsg.append("Please retry with one of these exact strings as toolName parameter.");
+            
+            LOG.error("Tool name mismatch - LLM used: '{}', Available toolName values: {}", toolName, String.join(", ", toolsByName.keySet()));
+            return errorMsg.toString();
         }
         
         return executeToolRoute(toolName, arguments, camelToolSpec);
     }
+
+
 
     /**
      * Execute the specific Camel route for the named tool

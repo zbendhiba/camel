@@ -95,6 +95,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
+        System.out.println("response testAgentWithWeatherTools is :: "+response);
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
                 "Response should contain weather information from the weather tool");
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),
@@ -141,6 +142,7 @@ public class LangChain4jAgentWithToolsTest extends CamelTestSupport {
 
         mockEndpoint.assertIsSatisfied();
         assertNotNull(response, "AI response should not be null");
+        System.out.println("response testAgentWithConfiguredTags is :: "+response);
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_1),
                 "Response should contain weather information from the weather tool");
         assertTrue(response.toLowerCase().contains(WEATHER_INFO_2),

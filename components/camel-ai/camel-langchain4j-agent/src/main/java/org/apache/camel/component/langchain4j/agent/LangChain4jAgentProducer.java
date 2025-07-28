@@ -130,7 +130,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
 
-
     /**
      * Log available tools for debugging and reference
      */
@@ -166,7 +165,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                         String toolName = camelToolSpec.getToolSpecification().name();
                         toolsByName.put(toolName, camelToolSpec);
                         
-                        LOG.debug("Discovered tool: {} -> Camel route tag: {}", toolName, tag);
+                        LOG.info("=== DISCOVERED TOOL ===");
+                        LOG.info("Tool name: '{}'", toolName);
+                        LOG.info("Description: '{}'", camelToolSpec.getToolSpecification().description());
+                        LOG.info("Camel route tag: '{}'", tag);
+                        LOG.info("Parameters: {}", camelToolSpec.getToolSpecification().parameters());
+                        LOG.info("======================");
                     }
                 }
             }
