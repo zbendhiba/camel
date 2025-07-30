@@ -49,7 +49,7 @@ public abstract class AbstractRAGTest extends CamelTestSupport {
 
             RENTAL AGREEMENT
             - This agreement is between Miles of Camels Car Rental ("Company") and the customer ("Renter").
-            
+
             RENTAL POLICIES:
             - Minimum age: 21 years old
             - Valid driver's license required
@@ -61,7 +61,7 @@ public abstract class AbstractRAGTest extends CamelTestSupport {
             - Mid-size cars: Starting at $39/day
             - SUVs: Starting at $59/day
             - Luxury vehicles: Starting at $89/day
-            
+
             CANCELLATION POLICY
             - Cancellations made 24 hours before pickup: Full refund
             - Cancellations made 12-24 hours before pickup: 50% refund

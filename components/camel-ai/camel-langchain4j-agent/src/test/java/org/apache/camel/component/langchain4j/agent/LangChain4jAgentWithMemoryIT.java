@@ -16,30 +16,26 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import java.util.List;
 import java.util.Map;
 
-import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.langchain4j.agent.pojos.PersistentChatMemoryStore;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
-import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
-import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.time.Duration.ofSeconds;
 import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.MEMORY_ID;
 import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.SYSTEM_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 @EnabledIfSystemProperty(named = "OPENAI_API_KEY", matches = ".*", disabledReason = "OpenAI API key required")
 public class LangChain4jAgentWithMemoryIT extends CamelTestSupport {
@@ -91,8 +87,7 @@ public class LangChain4jAgentWithMemoryIT extends CamelTestSupport {
 
     @BeforeEach
     void setup() {
-        store.deleteMessages(MEMORY_ID_SESSION_1);
-        store.deleteMessages(MEMORY_ID_SESSION_2);
+        store.clearAll();
     }
 
     @Test
@@ -278,32 +273,6 @@ public class LangChain4jAgentWithMemoryIT extends CamelTestSupport {
                         .setBody(constant("{\"weather\": \"sunny, 22°C\", \"city\": \"Paris\"}"));
             }
         };
-    }
-
-    static class PersistentChatMemoryStore implements ChatMemoryStore {
-
-        private final Map<Object, String> memoryMap = new java.util.concurrent.ConcurrentHashMap<>();
-
-        @Override
-        public List<ChatMessage> getMessages(Object memoryId) {
-            String json = memoryMap.get(memoryId);
-            if (json == null || json.isEmpty()) {
-                return new java.util.ArrayList<>();
-            }
-            return messagesFromJson(json);
-        }
-
-        @Override
-        public void updateMessages(Object memoryId, List<ChatMessage> messages) {
-            String json = messagesToJson(messages);
-            memoryMap.put(memoryId, json);
-        }
-
-        @Override
-        public void deleteMessages(Object memoryId) {
-            memoryMap.remove(memoryId);
-        }
-
     }
 
 }

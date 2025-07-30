@@ -25,9 +25,9 @@ import org.apache.camel.component.langchain4j.agent.pojos.TestSuccessInputGuardr
 import org.apache.camel.component.mock.MockEndpoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 /**
  * Class to test a mix match between all those different concepts : memory / tool / RAG / guardrails
