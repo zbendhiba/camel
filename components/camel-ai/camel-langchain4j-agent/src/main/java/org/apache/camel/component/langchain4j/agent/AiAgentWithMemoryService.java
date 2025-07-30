@@ -16,31 +16,35 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 
 /**
  * AI Agent Service interface for LangChain4j integration. Supports both simple chat and tool-enabled chat with a
- * unified interface.
+ * unified interface. There's a need for a seperate class due @MemoryId usage
  */
-public interface AiAgentService {
+public interface AiAgentWithMemoryService {
 
     /**
-     * Simple chat with a single user message
+     * Simple chat with a user message and window memory
      *
-     * @param message the user message
+     * @param  memoryId
+     * @param  message
+     * @return
      */
-    String chat(@UserMessage String message);
+    String chat(@MemoryId String memoryId, @UserMessage String message);
 
     /**
-     * Simple chat with a single user message and single prompt
+     * Simple chat with a user message, system message and memory window
      *
+     * @param  memoryId
      * @param  message
      * @param  prompt
      * @return
      */
     @SystemMessage("{{prompt}}")
-    String chat(@UserMessage String message, @V("prompt") String prompt);
+    String chat(@MemoryId String memoryId, @UserMessage String message, @V("prompt") String prompt);
 
 }

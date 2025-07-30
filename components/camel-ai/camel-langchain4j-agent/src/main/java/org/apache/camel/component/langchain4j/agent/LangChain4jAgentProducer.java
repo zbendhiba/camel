@@ -16,18 +16,14 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -35,7 +31,7 @@ import dev.langchain4j.service.tool.ToolProvider;
 import dev.langchain4j.service.tool.ToolProviderRequest;
 import dev.langchain4j.service.tool.ToolProviderResult;
 import org.apache.camel.Exchange;
-import org.apache.camel.InvalidPayloadException;
+import org.apache.camel.InvalidPayloadRuntimeException;
 import org.apache.camel.component.langchain4j.tools.spec.CamelToolExecutorCache;
 import org.apache.camel.component.langchain4j.tools.spec.CamelToolSpecification;
 import org.apache.camel.support.DefaultProducer;
@@ -43,6 +39,7 @@ import org.apache.camel.util.ObjectHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.MEMORY_ID;
 import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.SYSTEM_MESSAGE;
 
 public class LangChain4jAgentProducer extends DefaultProducer {
@@ -62,44 +59,89 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         Object messagePayload = exchange.getIn().getBody();
         ObjectHelper.notNull(messagePayload, "body");
 
-        // Convert input to ChatMessage list
-        List<ChatMessage> messages = convertToMessages(exchange, messagePayload);
+        AiAgentBody aiAgentBody = processBody(messagePayload, exchange);
+
+        // get chatMemory if specified
+        ChatMemory chatMemory = endpoint.getConfiguration().chatMemory;
+
+        if (chatMemory != null) {
+            ObjectHelper.notNull(aiAgentBody.getMemoryId(), "memoryId");
+        }
 
         // Create AI Service with discovered tools for this exchange
         String tags = endpoint.getConfiguration().getTags();
-        AiAgentService agentService = createAiAgentServiceWithTools(tags, exchange);
 
-        // Let AI Service handle everything (chat + tools)
-        String response = agentService.chat(messages);
+        // Let AI Service handle everything (chat + tools + memoryId)
+        String response = "";
+        if (chatMemory != null) {
+            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemory, exchange);
+            response = aiAgentBody.getSystemMessage() != null
+                    ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
+                    : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
+        } else {
+            AiAgentService agentService = createAiAgentService(tags, exchange);
+            response = aiAgentBody.getSystemMessage() != null
+                    ? agentService.chat(aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
+                    : agentService.chat(aiAgentBody.getUserMessage());
+
+        }
         exchange.getMessage().setBody(response);
     }
 
-    /**
-     * Convert input payload to ChatMessage list
-     */
-    private List<ChatMessage> convertToMessages(Exchange exchange, Object messagePayload) throws InvalidPayloadException {
-        if (messagePayload instanceof String userMessage) {
-            // String payload is treated as user message
-            List<ChatMessage> messages = new ArrayList<>();
-            // System message can optionally be provided via header
-            String systemMessage = exchange.getIn().getHeader(SYSTEM_MESSAGE, String.class);
-            if (systemMessage != null && !systemMessage.trim().isEmpty()) {
-                messages.add(new SystemMessage(systemMessage));
-            }
-            messages.add(new UserMessage(userMessage));
-            return messages;
-        } else if (messagePayload instanceof AiAgentBody aiAgentBody) {
-            // Use AiAgentBody's messages
-            return aiAgentBody.getMessages();
-        } else {
-            throw new InvalidPayloadException(exchange, AiAgentBody.class);
+    private AiAgentBody processBody(Object messagePayload, Exchange exchange) {
+        if (messagePayload instanceof AiAgentBody) {
+            return (AiAgentBody) messagePayload;
         }
+
+        if (!(messagePayload instanceof String)) {
+            throw new InvalidPayloadRuntimeException(exchange, AiAgentBody.class);
+        }
+
+        String systemMessage = exchange.getIn().getHeader(SYSTEM_MESSAGE, String.class);
+        String memoryId = exchange.getIn().getHeader(MEMORY_ID, String.class);
+
+        AiAgentBody aiAgentBody = new AiAgentBody((String) messagePayload, systemMessage, memoryId);
+        return aiAgentBody;
+
     }
 
     /**
      * Create AI service with a single universal tool that handles multiple Camel routes
      */
-    private AiAgentService createAiAgentServiceWithTools(String tags, Exchange exchange) {
+    private AiAgentService createAiAgentService(String tags, Exchange exchange) {
+        ToolProvider toolProvider = getToolProvider(tags, exchange);
+
+        // Use simple AI Service when no tags or no tools found if specified
+
+        var builder = AiServices.builder(AiAgentService.class)
+                .chatModel(chatModel);
+        if (toolProvider != null) {
+            builder.toolProvider(toolProvider);
+        }
+        return builder.build();
+
+    }
+
+    /**
+     * Create AI service with a single universal tool that handles multiple Camel routes
+     */
+    private AiAgentWithMemoryService createAiAgentWithMemoryService(String tags, ChatMemory chatMemory, Exchange exchange) {
+        ToolProvider toolProvider = getToolProvider(tags, exchange);
+
+        // Use simple AI Service when no tags or no tools found and memory chat
+
+        var builder = AiServices.builder(AiAgentWithMemoryService.class)
+                .chatModel(chatModel)
+                .chatMemory(chatMemory);
+        if (toolProvider != null) {
+            builder.toolProvider(toolProvider);
+        }
+        return builder.build();
+
+    }
+
+    private ToolProvider getToolProvider(String tags, Exchange exchange) {
+        ToolProvider toolProvider = null;
         if (tags != null && !tags.trim().isEmpty()) {
             // Discover tools from Camel routes
             Map<String, CamelToolSpecification> availableTools = discoverToolsByName(tags);
@@ -108,23 +150,13 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 LOG.debug("Creating AI Service with {} tools for tags: {}", availableTools.size(), tags);
 
                 // Create dynamic tool provider that returns Camel route tools
-                ToolProvider toolProvider = createCamelToolProvider(availableTools, exchange);
+                toolProvider = createCamelToolProvider(availableTools, exchange);
 
-                // Log available tool specifications for reference
-                logAvailableTools(availableTools);
-
-                // Create AI agent service with tool provider
-                return AiServices.builder(AiAgentService.class)
-                        .chatModel(chatModel)
-                        .toolProvider(toolProvider)
-                        .build();
             } else {
                 LOG.debug("No tools found for tags: {}, using simple AI Service", tags);
             }
         }
-
-        // Use simple AI Service when no tags or no tools found
-        return AiServices.create(AiAgentService.class, chatModel);
+        return toolProvider;
     }
 
     /**
@@ -182,26 +214,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
             return resultBuilder.build();
         };
-    }
-
-    /**
-     * Log available tools for debugging and reference
-     */
-    private void logAvailableTools(Map<String, CamelToolSpecification> availableTools) {
-        LOG.info("=== Available Camel Tools ===");
-        for (Map.Entry<String, CamelToolSpecification> entry : availableTools.entrySet()) {
-            ToolSpecification spec = entry.getValue().getToolSpecification();
-            LOG.info("Tool: {} - {}", spec.name(), spec.description());
-
-            if (spec.parameters() != null && !spec.parameters().properties().isEmpty()) {
-                LOG.info("  Parameters: {}", String.join(", ", spec.parameters().properties().keySet()));
-            }
-        }
-        LOG.info("LangChain4j will receive {} tools dynamically via ToolProvider", availableTools.size());
-        LOG.info("Tool names that will be available to LLM: {}", String.join(", ", availableTools.keySet()));
-        LOG.info("This bypasses @Tool annotations completely and uses LangChain4j's dynamic tool API");
-        LOG.info("Each tool will be registered programmatically with its own ToolSpecification and ToolExecutor");
-        LOG.info("==========================================================================");
     }
 
     /**

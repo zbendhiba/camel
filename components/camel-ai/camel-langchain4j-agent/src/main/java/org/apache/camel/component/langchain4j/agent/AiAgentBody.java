@@ -16,72 +16,60 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import dev.langchain4j.data.message.ChatMessage;
-import dev.langchain4j.data.message.SystemMessage;
-import dev.langchain4j.data.message.UserMessage;
-
 public class AiAgentBody {
-    private List<ChatMessage> messages;
+    private String userMessage;
+    private String systemMessage;
+    private String memoryId;
 
     public AiAgentBody() {
-        this.messages = new ArrayList<>();
     }
 
-    public AiAgentBody(List<ChatMessage> messages) {
-        this.messages = messages != null ? messages : new ArrayList<>();
+    public AiAgentBody(String userMessage) {
+        this.userMessage = userMessage;
+    }
+
+    public AiAgentBody(String userMessage, String systemMessage, String memoryId) {
+        this.userMessage = userMessage;
+        this.systemMessage = systemMessage;
+        this.memoryId = memoryId;
     }
 
     public AiAgentBody withUserMessage(String userMessage) {
-        if (userMessage != null && !userMessage.trim().isEmpty()) {
-            this.messages.add(new UserMessage(userMessage));
-        }
+        this.userMessage = userMessage;
         return this;
     }
 
     public AiAgentBody withSystemMessage(String systemMessage) {
-        if (systemMessage != null && !systemMessage.trim().isEmpty()) {
-            this.messages.add(0, new SystemMessage(systemMessage)); // Add at beginning
-        }
+        this.systemMessage = systemMessage;
         return this;
     }
 
-    public List<ChatMessage> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<ChatMessage> messages) {
-        this.messages = messages != null ? messages : new ArrayList<>();
-    }
-
-    public AiAgentBody withMessages(List<ChatMessage> messages) {
-        this.messages = messages != null ? messages : new ArrayList<>();
+    public AiAgentBody withMemoryId(String memoryId) {
+        this.memoryId = memoryId;
         return this;
     }
 
-    /**
-     * Add a chat message to the conversation
-     */
-    public AiAgentBody addMessage(ChatMessage message) {
-        if (message != null) {
-            this.messages.add(message);
-        }
-        return this;
+    public String getUserMessage() {
+        return userMessage;
     }
 
-    /**
-     * Check if this body has any chat messages
-     */
-    public boolean hasMessages() {
-        return messages != null && !messages.isEmpty();
+    public void setUserMessage(String userMessage) {
+        this.userMessage = userMessage;
     }
 
-    /**
-     * Create AiAgentBody from ChatMessage list
-     */
-    public static AiAgentBody fromChatMessages(List<ChatMessage> messages) {
-        return new AiAgentBody(messages);
+    public String getSystemMessage() {
+        return systemMessage;
+    }
+
+    public void setSystemMessage(String systemMessage) {
+        this.systemMessage = systemMessage;
+    }
+
+    public String getMemoryId() {
+        return memoryId;
+    }
+
+    public void setMemoryId(String memoryId) {
+        this.memoryId = memoryId;
     }
 }

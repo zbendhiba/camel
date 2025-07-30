@@ -34,6 +34,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": target.setAutowiredEnabled(property(camelContext, boolean.class, value)); return true;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
+        case "chatmemory":
+        case "chatMemory": getOrCreateConfiguration(target).setChatMemory(property(camelContext, dev.langchain4j.memory.ChatMemory.class, value)); return true;
         case "chatmodel":
         case "chatModel": getOrCreateConfiguration(target).setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class, value)); return true;
@@ -46,7 +48,7 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatModel"};
+        return new String[]{"chatMemory", "chatModel"};
     }
 
     @Override
@@ -56,6 +58,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": return boolean.class;
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return boolean.class;
+        case "chatmemory":
+        case "chatMemory": return dev.langchain4j.memory.ChatMemory.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "configuration": return org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class;
@@ -74,6 +78,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "autowiredEnabled": return target.isAutowiredEnabled();
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return target.isBridgeErrorHandler();
+        case "chatmemory":
+        case "chatMemory": return getOrCreateConfiguration(target).getChatMemory();
         case "chatmodel":
         case "chatModel": return getOrCreateConfiguration(target).getChatModel();
         case "configuration": return target.getConfiguration();

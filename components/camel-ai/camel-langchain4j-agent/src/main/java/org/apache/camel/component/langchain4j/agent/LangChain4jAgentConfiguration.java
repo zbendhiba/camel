@@ -16,6 +16,7 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Configurer;
@@ -33,6 +34,10 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     @UriParam(description = "Tags for discovering and calling Camel route tools")
     private String tags;
+
+    @UriParam(label = "advanced")
+    @Metadata(autowired = true)
+    ChatMemory chatMemory;
 
     public LangChain4jAgentConfiguration() {
     }
@@ -59,11 +64,6 @@ public class LangChain4jAgentConfiguration implements Cloneable {
         return tags;
     }
 
-    /**
-     * Set tags for discovering and calling Camel route tools. Multiple tags can be specified separated by commas.
-     *
-     * @param tags the tags
-     */
     public void setTags(String tags) {
         this.tags = tags;
     }
@@ -76,4 +76,16 @@ public class LangChain4jAgentConfiguration implements Cloneable {
         }
     }
 
+    /**
+     * Chat Memory of type dev.langchain4j.memory.ChatMemory
+     *
+     * @return
+     */
+    public ChatMemory getChatMemory() {
+        return chatMemory;
+    }
+
+    public void setChatMemory(ChatMemory chatMemory) {
+        this.chatMemory = chatMemory;
+    }
 }

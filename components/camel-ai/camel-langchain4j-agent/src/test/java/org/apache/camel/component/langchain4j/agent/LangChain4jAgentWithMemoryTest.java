@@ -16,19 +16,7 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import org.apache.camel.spi.Metadata;
+import org.apache.camel.test.junit5.CamelTestSupport;
 
-public class LangChain4jAgent {
-    public static final String SCHEME = "langchain4j-agent";
-
-    private LangChain4jAgent() {
-    }
-
-    public static class Headers {
-        @Metadata(description = "The system prompt.", javaType = "String")
-        public static final String SYSTEM_MESSAGE = "CamelLangChain4jAgentSystemMessage";
-
-        @Metadata(description = "Memory ID.", javaType = "String")
-        public static final String MEMORY_ID = "CamelLangChain4jAgentMemoryId";
-    }
+public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
 }
