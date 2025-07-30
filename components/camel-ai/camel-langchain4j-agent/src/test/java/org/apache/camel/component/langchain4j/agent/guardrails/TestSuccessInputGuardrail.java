@@ -21,11 +21,11 @@ import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 
 /**
- * Test input guardrail that always succeeds. Used for testing the guardrail integration mechanism with OpenAI.
+ * Test input guardrail that always succeeds. This is the simplest guardrail for basic integration testing.
  */
 public class TestSuccessInputGuardrail implements InputGuardrail {
 
-    public static boolean wasValidated = false;
+    private static volatile boolean wasValidated = false;
 
     @Override
     public InputGuardrailResult validate(UserMessage userMessage) {
@@ -35,5 +35,12 @@ public class TestSuccessInputGuardrail implements InputGuardrail {
 
     public static void reset() {
         wasValidated = false;
+    }
+
+    /**
+     * @return true if this guardrail was validated at least once
+     */
+    public static boolean wasValidated() {
+        return wasValidated;
     }
 }

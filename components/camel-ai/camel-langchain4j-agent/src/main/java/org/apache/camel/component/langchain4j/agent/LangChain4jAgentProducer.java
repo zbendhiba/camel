@@ -16,12 +16,8 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -140,12 +136,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         }
         // Input Guardrails
         if (inputGuardrailClasses != null && !inputGuardrailClasses.isEmpty()) {
-            builder.inputGuardrailClasses(inputGuardrailClasses.toArray(new Class[0]));
+            builder.inputGuardrailClasses((List) inputGuardrailClasses);
         }
 
         // Output Guardrails
         if (outputGuardrailClasses != null && !outputGuardrailClasses.isEmpty()) {
-            builder.outputGuardrailClasses(outputGuardrailClasses.toArray(new Class[0]));
+            builder.outputGuardrailClasses((List) outputGuardrailClasses);
         }
         return builder.build();
 
@@ -174,12 +170,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
         // Input Guardrails
         if (inputGuardrailClasses != null && !inputGuardrailClasses.isEmpty()) {
-            builder.inputGuardrailClasses(inputGuardrailClasses.toArray(new Class[0]));
+            builder.inputGuardrailClasses((List) inputGuardrailClasses);
         }
 
         // Output Guardrails
         if (outputGuardrailClasses != null && !outputGuardrailClasses.isEmpty()) {
-            builder.outputGuardrailClasses(outputGuardrailClasses.toArray(new Class[0]));
+            builder.outputGuardrailClasses((List) outputGuardrailClasses);
         }
         return builder.build();
 
@@ -261,25 +257,22 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     }
 
     /**
-     * Discover Camel routes by tags and create a map of tool specifications by name
+     * Discover Camel routes by tags and create a map of tool specifications by name.
      */
     private Map<String, CamelToolSpecification> discoverToolsByName(String tags) {
-        Map<String, CamelToolSpecification> toolsByName = new HashMap<>();
-
         final CamelToolExecutorCache toolCache = CamelToolExecutorCache.getInstance();
         final Map<String, Set<CamelToolSpecification>> tools = toolCache.getTools();
-        String[] tagArray = ToolsTagsHelper.splitTags(tags);
+        final String[] tagArray = ToolsTagsHelper.splitTags(tags);
 
-        for (var entry : tools.entrySet()) {
-            for (String tag : tagArray) {
-                if (entry.getKey().equals(tag)) {
-                    for (CamelToolSpecification camelToolSpec : entry.getValue()) {
-                        String toolName = camelToolSpec.getToolSpecification().name();
-                        toolsByName.put(toolName, camelToolSpec);
-                    }
-                }
-            }
-        }
+        final Map<String, CamelToolSpecification> toolsByName = Arrays.stream(tagArray)
+                .flatMap(tag -> tools.entrySet().stream()
+                        .filter(entry -> entry.getKey().equals(tag))
+                        .flatMap(entry -> entry.getValue().stream()))
+                .collect(Collectors.toMap(
+                        camelToolSpec -> camelToolSpec.getToolSpecification().name(),
+                        camelToolSpec -> camelToolSpec,
+                        (existing, replacement) -> existing // Keep first if duplicate names
+                ));
 
         LOG.info("Discovered {} unique tools for tags: {}", toolsByName.size(), tags);
         return toolsByName;
@@ -317,28 +310,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             LOG.warn("Failed to load guardrail class: {}", className, e);
             return null;
         }
-    }
-
-    /**
-     * Load guardrail classes from their class names using reflection.
-     *
-     * @param  classNames list of fully qualified class names
-     * @return            list of loaded classes, empty list if no classes could be loaded
-     */
-    private List<Class<?>> loadGuardrailClasses(List<String> classNames) {
-        List<Class<?>> classes = new java.util.ArrayList<>();
-
-        for (String className : classNames) {
-            try {
-                Class<?> clazz = Class.forName(className);
-                classes.add(clazz);
-                LOG.debug("Successfully loaded guardrail class: {}", className);
-            } catch (ClassNotFoundException e) {
-                LOG.warn("Could not load guardrail class: {} - {}", className, e.getMessage());
-            }
-        }
-
-        return classes;
     }
 
     @Override

@@ -26,7 +26,7 @@ import dev.langchain4j.guardrail.OutputGuardrailResult;
  */
 public class TestJsonOutputGuardrail extends JsonExtractorOutputGuardrail<Object> {
 
-    public static boolean wasValidated = false;
+    private static volatile boolean wasValidated = false;
 
     public TestJsonOutputGuardrail() {
         super(Object.class);
@@ -54,19 +54,23 @@ public class TestJsonOutputGuardrail extends JsonExtractorOutputGuardrail<Object
      * Extracts JSON from text by finding the first { and matching }.
      */
     private String extractJsonFromText(String text) {
-        if (text == null)
+        if (text == null) {
             return null;
+        }
 
-        int start = text.indexOf('{');
-        if (start == -1)
+        final int start = text.indexOf('{');
+        if (start == -1) {
             return null;
+        }
 
         int count = 0;
         for (int i = start; i < text.length(); i++) {
-            if (text.charAt(i) == '{')
-                count++;
-            else if (text.charAt(i) == '}')
-                count--;
+            count = switch (text.charAt(i)) {
+                case '{' -> count + 1;
+                case '}' -> count - 1;
+                default -> count;
+            };
+
             if (count == 0) {
                 return text.substring(start, i + 1);
             }
@@ -76,5 +80,12 @@ public class TestJsonOutputGuardrail extends JsonExtractorOutputGuardrail<Object
 
     public static void reset() {
         wasValidated = false;
+    }
+
+    /**
+     * @return true if this guardrail was validated at least once
+     */
+    public static boolean wasValidated() {
+        return wasValidated;
     }
 }
