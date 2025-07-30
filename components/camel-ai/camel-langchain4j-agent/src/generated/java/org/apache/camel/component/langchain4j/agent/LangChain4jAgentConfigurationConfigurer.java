@@ -27,6 +27,10 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": target.setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
+        case "inputguardrails":
+        case "inputGuardrails": target.setInputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
+        case "outputguardrails":
+        case "outputGuardrails": target.setOutputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
         case "retrievalaugmentor":
         case "retrievalAugmentor": target.setRetrievalAugmentor(property(camelContext, dev.langchain4j.rag.RetrievalAugmentor.class, value)); return true;
         case "tags": target.setTags(property(camelContext, java.lang.String.class, value)); return true;
@@ -41,6 +45,10 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
+        case "inputguardrails":
+        case "inputGuardrails": return java.lang.String.class;
+        case "outputguardrails":
+        case "outputGuardrails": return java.lang.String.class;
         case "retrievalaugmentor":
         case "retrievalAugmentor": return dev.langchain4j.rag.RetrievalAugmentor.class;
         case "tags": return java.lang.String.class;
@@ -56,6 +64,10 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": return target.getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getChatModel();
+        case "inputguardrails":
+        case "inputGuardrails": return target.getInputGuardrails();
+        case "outputguardrails":
+        case "outputGuardrails": return target.getOutputGuardrails();
         case "retrievalaugmentor":
         case "retrievalAugmentor": return target.getRetrievalAugmentor();
         case "tags": return target.getTags();

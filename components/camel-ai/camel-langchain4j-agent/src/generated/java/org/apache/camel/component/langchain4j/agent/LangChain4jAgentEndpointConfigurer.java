@@ -33,8 +33,12 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exceptionHandler": target.setExceptionHandler(property(camelContext, org.apache.camel.spi.ExceptionHandler.class, value)); return true;
         case "exchangepattern":
         case "exchangePattern": target.setExchangePattern(property(camelContext, org.apache.camel.ExchangePattern.class, value)); return true;
+        case "inputguardrails":
+        case "inputGuardrails": target.getConfiguration().setInputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "outputguardrails":
+        case "outputGuardrails": target.getConfiguration().setOutputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
         case "retrievalaugmentor":
         case "retrievalAugmentor": target.getConfiguration().setRetrievalAugmentor(property(camelContext, dev.langchain4j.rag.RetrievalAugmentor.class, value)); return true;
         case "tags": target.getConfiguration().setTags(property(camelContext, java.lang.String.class, value)); return true;
@@ -60,8 +64,12 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exceptionHandler": return org.apache.camel.spi.ExceptionHandler.class;
         case "exchangepattern":
         case "exchangePattern": return org.apache.camel.ExchangePattern.class;
+        case "inputguardrails":
+        case "inputGuardrails": return java.lang.String.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "outputguardrails":
+        case "outputGuardrails": return java.lang.String.class;
         case "retrievalaugmentor":
         case "retrievalAugmentor": return dev.langchain4j.rag.RetrievalAugmentor.class;
         case "tags": return java.lang.String.class;
@@ -83,8 +91,12 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "exceptionHandler": return target.getExceptionHandler();
         case "exchangepattern":
         case "exchangePattern": return target.getExchangePattern();
+        case "inputguardrails":
+        case "inputGuardrails": return target.getConfiguration().getInputGuardrails();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "outputguardrails":
+        case "outputGuardrails": return target.getConfiguration().getOutputGuardrails();
         case "retrievalaugmentor":
         case "retrievalAugmentor": return target.getConfiguration().getRetrievalAugmentor();
         case "tags": return target.getConfiguration().getTags();

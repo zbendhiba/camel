@@ -39,8 +39,12 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": getOrCreateConfiguration(target).setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class, value)); return true;
+        case "inputguardrails":
+        case "inputGuardrails": getOrCreateConfiguration(target).setInputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "outputguardrails":
+        case "outputGuardrails": getOrCreateConfiguration(target).setOutputGuardrails(property(camelContext, java.lang.String.class, value)); return true;
         case "retrievalaugmentor":
         case "retrievalAugmentor": getOrCreateConfiguration(target).setRetrievalAugmentor(property(camelContext, dev.langchain4j.rag.RetrievalAugmentor.class, value)); return true;
         case "tags": getOrCreateConfiguration(target).setTags(property(camelContext, java.lang.String.class, value)); return true;
@@ -65,8 +69,12 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "configuration": return org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class;
+        case "inputguardrails":
+        case "inputGuardrails": return java.lang.String.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "outputguardrails":
+        case "outputGuardrails": return java.lang.String.class;
         case "retrievalaugmentor":
         case "retrievalAugmentor": return dev.langchain4j.rag.RetrievalAugmentor.class;
         case "tags": return java.lang.String.class;
@@ -87,8 +95,12 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": return getOrCreateConfiguration(target).getChatModel();
         case "configuration": return target.getConfiguration();
+        case "inputguardrails":
+        case "inputGuardrails": return getOrCreateConfiguration(target).getInputGuardrails();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "outputguardrails":
+        case "outputGuardrails": return getOrCreateConfiguration(target).getOutputGuardrails();
         case "retrievalaugmentor":
         case "retrievalAugmentor": return getOrCreateConfiguration(target).getRetrievalAugmentor();
         case "tags": return getOrCreateConfiguration(target).getTags();

@@ -44,6 +44,12 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     @Metadata(autowired = true)
     RetrievalAugmentor retrievalAugmentor;
 
+    @UriParam(description = "Comma-separated list of input guardrail class names to validate user input before sending to LLM")
+    private String inputGuardrails;
+
+    @UriParam(description = "Comma-separated list of output guardrail class names to validate LLM responses")
+    private String outputGuardrails;
+
     public LangChain4jAgentConfiguration() {
     }
 
@@ -108,5 +114,33 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     public void setRetrievalAugmentor(RetrievalAugmentor retrievalAugmentor) {
         this.retrievalAugmentor = retrievalAugmentor;
+    }
+
+    /**
+     * Input guardrails class names for validating user input before sending to LLM. Provide comma-separated fully
+     * qualified class names that implement InputGuardrail interface.
+     *
+     * @return comma-separated input guardrail class names
+     */
+    public String getInputGuardrails() {
+        return inputGuardrails;
+    }
+
+    public void setInputGuardrails(String inputGuardrails) {
+        this.inputGuardrails = inputGuardrails;
+    }
+
+    /**
+     * Output guardrails class names for validating LLM responses. Provide comma-separated fully qualified class names
+     * that implement OutputGuardrail interface.
+     *
+     * @return comma-separated output guardrail class names
+     */
+    public String getOutputGuardrails() {
+        return outputGuardrails;
+    }
+
+    public void setOutputGuardrails(String outputGuardrails) {
+        this.outputGuardrails = outputGuardrails;
     }
 }
