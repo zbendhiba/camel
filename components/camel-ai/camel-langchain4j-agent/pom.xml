@@ -74,6 +74,7 @@
           <groupId>dev.langchain4j</groupId>
           <artifactId>langchain4j-embeddings-bge-small-en-v15-q</artifactId>
           <version>${langchain4j-beta-version}</version>
+          <scope>test</scope>
       </dependency>
   </dependencies>
 
