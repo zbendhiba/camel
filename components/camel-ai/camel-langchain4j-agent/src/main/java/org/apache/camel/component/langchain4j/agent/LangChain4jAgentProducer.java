@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -68,8 +68,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
             ObjectHelper.notNull(aiAgentBody.getMemoryId(), "memoryId");
         }
 
-        // Content retriever for naive RAG
-        ContentRetriever contentRetriever = endpoint.getConfiguration().getContentRetriever();
+        // RetrievalAugmentor for naive or advanced RAG
+        RetrievalAugmentor retrievalAugmentor = endpoint.getConfiguration().getRetrievalAugmentor();
 
         // Create AI Service with discovered tools for this exchange
         String tags = endpoint.getConfiguration().getTags();
@@ -78,12 +78,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         String response = "";
         if (chatMemoryProvider != null) {
             AiAgentWithMemoryService agentService
-                    = createAiAgentWithMemoryService(tags, chatMemoryProvider, contentRetriever, exchange);
+                    = createAiAgentWithMemoryService(tags, chatMemoryProvider, retrievalAugmentor, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
         } else {
-            AiAgentService agentService = createAiAgentService(tags, contentRetriever, exchange);
+            AiAgentService agentService = createAiAgentService(tags, retrievalAugmentor, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getUserMessage());
@@ -112,16 +112,18 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Create AI service with a single universal tool that handles multiple Camel routes
      */
-    private AiAgentService createAiAgentService(String tags, ContentRetriever contentRetriever, Exchange exchange) {
+    private AiAgentService createAiAgentService(String tags, RetrievalAugmentor retrievalAugmentor, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
 
         var builder = AiServices.builder(AiAgentService.class)
                 .chatModel(chatModel);
+        // Apache Camel Tool Provide
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }
-        if (contentRetriever != null) {
-            builder.contentRetriever(contentRetriever);
+        // RAG
+        if (retrievalAugmentor != null) {
+            builder.retrievalAugmentor(retrievalAugmentor);
         }
         return builder.build();
 
@@ -131,17 +133,20 @@ public class LangChain4jAgentProducer extends DefaultProducer {
      * Create AI service with a single universal tool that handles multiple Camel routes and Memory Provider
      */
     private AiAgentWithMemoryService createAiAgentWithMemoryService(
-            String tags, ChatMemoryProvider chatMemoryProvider, ContentRetriever contentRetriever, Exchange exchange) {
+            String tags, ChatMemoryProvider chatMemoryProvider, RetrievalAugmentor retrievalAugmentor, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
 
         var builder = AiServices.builder(AiAgentWithMemoryService.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider);
+
+        // Apache Camel Tool Provide
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }
-        if (contentRetriever != null) {
-            builder.contentRetriever(contentRetriever);
+        // RAG
+        if (retrievalAugmentor != null) {
+            builder.retrievalAugmentor(retrievalAugmentor);
         }
         return builder.build();
 

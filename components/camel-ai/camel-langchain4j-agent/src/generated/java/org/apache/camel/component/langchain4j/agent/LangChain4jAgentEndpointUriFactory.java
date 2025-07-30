@@ -28,10 +28,10 @@ public class LangChain4jAgentEndpointUriFactory extends org.apache.camel.support
         props.add("bridgeErrorHandler");
         props.add("chatMemoryProvider");
         props.add("chatModel");
-        props.add("contentRetriever");
         props.add("exceptionHandler");
         props.add("exchangePattern");
         props.add("lazyStartProducer");
+        props.add("retrievalAugmentor");
         props.add("tags");
         PROPERTY_NAMES = Collections.unmodifiableSet(props);
         SECRET_PROPERTY_NAMES = Collections.emptySet();

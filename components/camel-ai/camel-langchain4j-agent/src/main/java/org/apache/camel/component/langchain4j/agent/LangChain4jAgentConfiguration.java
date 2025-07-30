@@ -18,7 +18,7 @@ package org.apache.camel.component.langchain4j.agent;
 
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
-import dev.langchain4j.rag.content.retriever.ContentRetriever;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Configurer;
 import org.apache.camel.spi.Metadata;
@@ -42,7 +42,7 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     @UriParam(label = "advanced")
     @Metadata(autowired = true)
-    ContentRetriever contentRetriever;
+    RetrievalAugmentor retrievalAugmentor;
 
     public LangChain4jAgentConfiguration() {
     }
@@ -97,15 +97,16 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     }
 
     /**
-     * Content Retriever for Naive RAG of type dev.langchain4j.rag.content.retriever.ContentRetriever
+     * Retrieval Augmentor for advanced RAG of type dev.langchain4j.rag.RetrievalAugmentor. This allows using RAG on
+     * both Naive and Advanced RAG
      *
-     * @return
+     * @return the retrieval augmentor
      */
-    public ContentRetriever getContentRetriever() {
-        return contentRetriever;
+    public RetrievalAugmentor getRetrievalAugmentor() {
+        return retrievalAugmentor;
     }
 
-    public void setContentRetriever(ContentRetriever contentRetriever) {
-        this.contentRetriever = contentRetriever;
+    public void setRetrievalAugmentor(RetrievalAugmentor retrievalAugmentor) {
+        this.retrievalAugmentor = retrievalAugmentor;
     }
 }

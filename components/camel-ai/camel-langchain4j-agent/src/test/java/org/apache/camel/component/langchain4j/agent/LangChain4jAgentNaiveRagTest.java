@@ -27,6 +27,8 @@ import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.embedding.onnx.bgesmallenv15q.BgeSmallEnV15QuantizedEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import dev.langchain4j.rag.DefaultRetrievalAugmentor;
+import dev.langchain4j.rag.RetrievalAugmentor;
 import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.rag.content.retriever.EmbeddingStoreContentRetriever;
 import dev.langchain4j.store.embedding.EmbeddingStore;
@@ -77,7 +79,7 @@ public class LangChain4jAgentNaiveRagTest extends CamelTestSupport {
             """;
 
     protected ChatModel chatModel;
-    protected ContentRetriever contentRetriever;
+    protected RetrievalAugmentor retrievalAugmentor;
     private String openAiApiKey;
 
     @Override
@@ -89,7 +91,7 @@ public class LangChain4jAgentNaiveRagTest extends CamelTestSupport {
             throw new IllegalStateException("OPENAI_API_KEY system property is required for testing");
         }
         chatModel = createModel();
-        contentRetriever = createContentRetriever();
+        retrievalAugmentor = createRetrievalAugmentor();
     }
 
     protected ChatModel createModel() {
@@ -103,7 +105,7 @@ public class LangChain4jAgentNaiveRagTest extends CamelTestSupport {
                 .build();
     }
 
-    protected ContentRetriever createContentRetriever() {
+    protected RetrievalAugmentor createRetrievalAugmentor() {
 
         // Create a document from the terms of use constant
         Document document = Document.from(COMPANY_TERMS_OF_USE);
@@ -124,7 +126,13 @@ public class LangChain4jAgentNaiveRagTest extends CamelTestSupport {
                 .minScore(0.5)
                 .build();
 
-        return contentRetriever;
+        // Create RetrievalAugmentor using DefaultRetrievalAugmentor
+        // this example is a simple example for naive RAG
+        RetrievalAugmentor retrievalAugmentor = DefaultRetrievalAugmentor.builder()
+                .contentRetriever(contentRetriever)
+                .build();
+
+        return retrievalAugmentor;
     }
 
     @Test
@@ -244,12 +252,12 @@ public class LangChain4jAgentNaiveRagTest extends CamelTestSupport {
     @Override
     protected RouteBuilder createRouteBuilder() {
         this.context.getRegistry().bind("chatModel", chatModel);
-        this.context.getRegistry().bind("contentRetriever", contentRetriever);
+        this.context.getRegistry().bind("retrievalAugmentor", retrievalAugmentor);
 
         return new RouteBuilder() {
             public void configure() {
                 from("direct:agent-with-rag")
-                        .to("langchain4j-agent:test-rag-agent?chatModel=#chatModel&contentRetriever=#contentRetriever")
+                        .to("langchain4j-agent:test-rag-agent?chatModel=#chatModel&retrievalAugmentor=#retrievalAugmentor")
                         .to("mock:rag-response");
             }
         };

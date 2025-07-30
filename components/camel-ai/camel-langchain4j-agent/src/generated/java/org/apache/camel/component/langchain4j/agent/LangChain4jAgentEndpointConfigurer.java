@@ -29,14 +29,14 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": target.getConfiguration().setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.getConfiguration().setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
-        case "contentretriever":
-        case "contentRetriever": target.getConfiguration().setContentRetriever(property(camelContext, dev.langchain4j.rag.content.retriever.ContentRetriever.class, value)); return true;
         case "exceptionhandler":
         case "exceptionHandler": target.setExceptionHandler(property(camelContext, org.apache.camel.spi.ExceptionHandler.class, value)); return true;
         case "exchangepattern":
         case "exchangePattern": target.setExchangePattern(property(camelContext, org.apache.camel.ExchangePattern.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
+        case "retrievalaugmentor":
+        case "retrievalAugmentor": target.getConfiguration().setRetrievalAugmentor(property(camelContext, dev.langchain4j.rag.RetrievalAugmentor.class, value)); return true;
         case "tags": target.getConfiguration().setTags(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
@@ -44,7 +44,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatMemoryProvider", "chatModel", "contentRetriever"};
+        return new String[]{"chatMemoryProvider", "chatModel", "retrievalAugmentor"};
     }
 
     @Override
@@ -56,14 +56,14 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
-        case "contentretriever":
-        case "contentRetriever": return dev.langchain4j.rag.content.retriever.ContentRetriever.class;
         case "exceptionhandler":
         case "exceptionHandler": return org.apache.camel.spi.ExceptionHandler.class;
         case "exchangepattern":
         case "exchangePattern": return org.apache.camel.ExchangePattern.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
+        case "retrievalaugmentor":
+        case "retrievalAugmentor": return dev.langchain4j.rag.RetrievalAugmentor.class;
         case "tags": return java.lang.String.class;
         default: return null;
         }
@@ -79,14 +79,14 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": return target.getConfiguration().getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getConfiguration().getChatModel();
-        case "contentretriever":
-        case "contentRetriever": return target.getConfiguration().getContentRetriever();
         case "exceptionhandler":
         case "exceptionHandler": return target.getExceptionHandler();
         case "exchangepattern":
         case "exchangePattern": return target.getExchangePattern();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
+        case "retrievalaugmentor":
+        case "retrievalAugmentor": return target.getConfiguration().getRetrievalAugmentor();
         case "tags": return target.getConfiguration().getTags();
         default: return null;
         }
