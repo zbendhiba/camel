@@ -28,7 +28,7 @@ public class LangChain4jAgent {
         @Metadata(description = "The system prompt.", javaType = "String")
         public static final String SYSTEM_MESSAGE = "CamelLangChain4jAgentSystemMessage";
 
-        @Metadata(description = "Memory ID.", javaType = "String")
+        @Metadata(description = "Memory ID.", javaType = "Object")
         public static final String MEMORY_ID = "CamelLangChain4jAgentMemoryId";
     }
 }

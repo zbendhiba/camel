@@ -16,16 +16,15 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
+import java.util.List;
 import java.util.Map;
 
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.service.AiServices;
-import dev.langchain4j.service.MemoryId;
-import dev.langchain4j.service.UserMessage;
+import dev.langchain4j.store.memory.chat.ChatMemoryStore;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.junit5.CamelTestSupport;
@@ -33,6 +32,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import static dev.langchain4j.data.message.ChatMessageDeserializer.messagesFromJson;
+import static dev.langchain4j.data.message.ChatMessageSerializer.messagesToJson;
 import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.time.Duration.ofSeconds;
 import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.MEMORY_ID;
@@ -51,6 +52,7 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
     protected ChatModel chatModel;
     protected ChatMemoryProvider chatMemoryProvider;
     private String openAiApiKey;
+    private PersistentChatMemoryStore store;
 
     @Override
     protected void setupResources() throws Exception {
@@ -62,6 +64,7 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
         }
 
         chatModel = createModel();
+        store = new PersistentChatMemoryStore();
         chatMemoryProvider = createMemoryProvider();
     }
 
@@ -78,15 +81,18 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
 
     protected ChatMemoryProvider createMemoryProvider() {
         // Create a message window memory that keeps the last 10 messages
-
-        ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.withMaxMessages(10);
+        ChatMemoryProvider chatMemoryProvider = memoryId -> MessageWindowChatMemory.builder()
+                .id(memoryId)
+                .maxMessages(10)
+                .chatMemoryStore(store)
+                .build();
         return chatMemoryProvider;
     }
 
     @BeforeEach
     void setup() {
-        chatMemoryProvider.get(MEMORY_ID_SESSION_1).clear();
-        chatMemoryProvider.get(MEMORY_ID_SESSION_2).clear();
+        store.deleteMessages(MEMORY_ID_SESSION_1);
+        store.deleteMessages(MEMORY_ID_SESSION_2);
     }
 
     @Test
@@ -169,7 +175,6 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
                 "What is my name?",
                 MEMORY_ID, MEMORY_ID_SESSION_2,
                 String.class);
-        System.out.println("session2Response:: " + session2Response);
 
         // Session 1: Ask for name (should remember it)
         String session1Response = template.requestBodyAndHeader(
@@ -177,7 +182,6 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
                 "What is my name?",
                 MEMORY_ID, MEMORY_ID_SESSION_1,
                 String.class);
-        System.out.println("session1Response:: " + session1Response);
 
         mockEndpoint.assertIsSatisfied();
 
@@ -251,6 +255,7 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
     @Override
     protected RouteBuilder createRouteBuilder() {
         this.context.getRegistry().bind("chatModel", chatModel);
+
         this.context.getRegistry().bind("chatMemoryProvider", chatMemoryProvider);
 
         return new RouteBuilder() {
@@ -275,35 +280,30 @@ public class LangChain4jAgentWithMemoryTest extends CamelTestSupport {
         };
     }
 
-    interface Assistant {
+    static class PersistentChatMemoryStore implements ChatMemoryStore {
 
-        String chat(@MemoryId int memoryId, @UserMessage String userMessage);
-    }
+        private final Map<Object, String> memoryMap = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public static void main(String[] args) {
+        @Override
+        public List<ChatMessage> getMessages(Object memoryId) {
+            String json = memoryMap.get(memoryId);
+            if (json == null || json.isEmpty()) {
+                return new java.util.ArrayList<>();
+            }
+            return messagesFromJson(json);
+        }
 
-        ChatModel model = OpenAiChatModel.builder()
-               
-                .modelName(GPT_4_O_MINI)
-                .build();
+        @Override
+        public void updateMessages(Object memoryId, List<ChatMessage> messages) {
+            String json = messagesToJson(messages);
+            memoryMap.put(memoryId, json);
+        }
 
-        ChatMemoryProvider memory = memoryId -> MessageWindowChatMemory.withMaxMessages(10);
-        Assistant assistant = AiServices.builder(Assistant.class)
-                .chatModel(model)
-                .chatMemoryProvider(memory)
-                .build();
+        @Override
+        public void deleteMessages(Object memoryId) {
+            memoryMap.remove(memoryId);
+        }
 
-        System.out.println(assistant.chat(1, "Hello, my name is Klaus"));
-        // Hi Klaus! How can I assist you today?
-
-        // System.out.println(assistant.chat(2, "Hello, my name is Francine"));
-        // Hello Francine! How can I assist you today?
-
-        System.out.println(assistant.chat(1, "What is my name?"));
-        // Your name is Klaus.
-
-        System.out.println(assistant.chat(2, "What is my name?"));
-        // Your name is Francine.
     }
 
 }

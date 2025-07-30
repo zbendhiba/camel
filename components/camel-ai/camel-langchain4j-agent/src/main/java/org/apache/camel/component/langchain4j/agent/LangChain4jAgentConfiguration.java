@@ -77,7 +77,9 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     }
 
     /**
-     * Chat Memory Provider of type dev.langchain4j.memory.ChatMemoryProvider
+     * Chat Memory Provider of type dev.langchain4j.memory.ChatMemoryProvider. Note for this to be successful, you need
+     * to use a reliable ChatMemoryStore. This provider supposes that a user has multiple sessions, if need only a
+     * single session, use a default memoryId
      *
      * @return
      */
