@@ -24,6 +24,7 @@ import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
+import static dev.langchain4j.model.openai.OpenAiChatModelName.GPT_4_O_MINI;
 import static java.time.Duration.ofSeconds;
 import static org.apache.camel.component.langchain4j.agent.LangChain4jAgent.Headers.SYSTEM_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -60,7 +61,7 @@ public class LangChain4jSimpleAgentTest extends CamelTestSupport {
     protected ChatModel createModel() {
         return OpenAiChatModel.builder()
                 .apiKey(openAiApiKey)
-                .modelName("o4-mini")
+                .modelName(GPT_4_O_MINI)
                 .temperature(1.0)
                 .timeout(ofSeconds(60))
                 .logRequests(true)

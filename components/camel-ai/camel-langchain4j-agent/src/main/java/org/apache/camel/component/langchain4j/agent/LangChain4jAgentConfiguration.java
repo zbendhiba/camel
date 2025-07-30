@@ -98,6 +98,7 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     /**
      * Content Retriever for Naive RAG of type dev.langchain4j.rag.content.retriever.ContentRetriever
+     *
      * @return
      */
     public ContentRetriever getContentRetriever() {

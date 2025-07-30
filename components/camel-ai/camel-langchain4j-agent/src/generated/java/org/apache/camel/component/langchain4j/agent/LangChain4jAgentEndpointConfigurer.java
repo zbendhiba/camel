@@ -29,6 +29,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": target.getConfiguration().setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.getConfiguration().setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
+        case "contentretriever":
+        case "contentRetriever": target.getConfiguration().setContentRetriever(property(camelContext, dev.langchain4j.rag.content.retriever.ContentRetriever.class, value)); return true;
         case "exceptionhandler":
         case "exceptionHandler": target.setExceptionHandler(property(camelContext, org.apache.camel.spi.ExceptionHandler.class, value)); return true;
         case "exchangepattern":
@@ -42,7 +44,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatMemoryProvider", "chatModel"};
+        return new String[]{"chatMemoryProvider", "chatModel", "contentRetriever"};
     }
 
     @Override
@@ -54,6 +56,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
+        case "contentretriever":
+        case "contentRetriever": return dev.langchain4j.rag.content.retriever.ContentRetriever.class;
         case "exceptionhandler":
         case "exceptionHandler": return org.apache.camel.spi.ExceptionHandler.class;
         case "exchangepattern":
@@ -75,6 +79,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         case "chatMemoryProvider": return target.getConfiguration().getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getConfiguration().getChatModel();
+        case "contentretriever":
+        case "contentRetriever": return target.getConfiguration().getContentRetriever();
         case "exceptionhandler":
         case "exceptionHandler": return target.getExceptionHandler();
         case "exchangepattern":

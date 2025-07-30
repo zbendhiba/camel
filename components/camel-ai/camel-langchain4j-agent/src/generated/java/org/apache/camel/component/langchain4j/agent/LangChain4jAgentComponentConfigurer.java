@@ -39,6 +39,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": getOrCreateConfiguration(target).setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "configuration": target.setConfiguration(property(camelContext, org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class, value)); return true;
+        case "contentretriever":
+        case "contentRetriever": getOrCreateConfiguration(target).setContentRetriever(property(camelContext, dev.langchain4j.rag.content.retriever.ContentRetriever.class, value)); return true;
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
         case "tags": getOrCreateConfiguration(target).setTags(property(camelContext, java.lang.String.class, value)); return true;
@@ -48,7 +50,7 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatMemoryProvider", "chatModel"};
+        return new String[]{"chatMemoryProvider", "chatModel", "contentRetriever"};
     }
 
     @Override
@@ -63,6 +65,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "configuration": return org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration.class;
+        case "contentretriever":
+        case "contentRetriever": return dev.langchain4j.rag.content.retriever.ContentRetriever.class;
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
         case "tags": return java.lang.String.class;
@@ -83,6 +87,8 @@ public class LangChain4jAgentComponentConfigurer extends PropertyConfigurerSuppo
         case "chatmodel":
         case "chatModel": return getOrCreateConfiguration(target).getChatModel();
         case "configuration": return target.getConfiguration();
+        case "contentretriever":
+        case "contentRetriever": return getOrCreateConfiguration(target).getContentRetriever();
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
         case "tags": return getOrCreateConfiguration(target).getTags();

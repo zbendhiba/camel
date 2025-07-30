@@ -77,7 +77,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         // Let AI Service handle everything (chat + tools + memoryId)
         String response = "";
         if (chatMemoryProvider != null) {
-            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemoryProvider, contentRetriever, exchange);
+            AiAgentWithMemoryService agentService
+                    = createAiAgentWithMemoryService(tags, chatMemoryProvider, contentRetriever, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
@@ -119,7 +120,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }
-        if(contentRetriever != null) {
+        if (contentRetriever != null) {
             builder.contentRetriever(contentRetriever);
         }
         return builder.build();
@@ -139,7 +140,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }
-        if(contentRetriever != null) {
+        if (contentRetriever != null) {
             builder.contentRetriever(contentRetriever);
         }
         return builder.build();

@@ -27,6 +27,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": target.setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
+        case "contentretriever":
+        case "contentRetriever": target.setContentRetriever(property(camelContext, dev.langchain4j.rag.content.retriever.ContentRetriever.class, value)); return true;
         case "tags": target.setTags(property(camelContext, java.lang.String.class, value)); return true;
         default: return false;
         }
@@ -39,6 +41,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
+        case "contentretriever":
+        case "contentRetriever": return dev.langchain4j.rag.content.retriever.ContentRetriever.class;
         case "tags": return java.lang.String.class;
         default: return null;
         }
@@ -52,6 +56,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
         case "chatMemoryProvider": return target.getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getChatModel();
+        case "contentretriever":
+        case "contentRetriever": return target.getContentRetriever();
         case "tags": return target.getTags();
         default: return null;
         }
