@@ -34,7 +34,7 @@ public interface AiAgentWithMemoryService {
      * @param  message
      * @return
      */
-    String chat(@MemoryId String memoryId, @UserMessage String message);
+    String chat(@MemoryId Object memoryId, @UserMessage String message);
 
     /**
      * Simple chat with a user message, system message and memory window
@@ -45,6 +45,6 @@ public interface AiAgentWithMemoryService {
      * @return
      */
     @SystemMessage("{{prompt}}")
-    String chat(@MemoryId String memoryId, @UserMessage String message, @V("prompt") String prompt);
+    String chat(@MemoryId Object memoryId, @UserMessage String message, @V("prompt") String prompt);
 
 }

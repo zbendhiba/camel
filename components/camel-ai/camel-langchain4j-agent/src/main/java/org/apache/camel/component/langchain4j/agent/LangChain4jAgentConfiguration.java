@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.langchain4j.agent;
 
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.spi.Configurer;
@@ -37,7 +37,7 @@ public class LangChain4jAgentConfiguration implements Cloneable {
 
     @UriParam(label = "advanced")
     @Metadata(autowired = true)
-    ChatMemory chatMemory;
+    ChatMemoryProvider chatMemoryProvider;
 
     public LangChain4jAgentConfiguration() {
     }
@@ -77,15 +77,15 @@ public class LangChain4jAgentConfiguration implements Cloneable {
     }
 
     /**
-     * Chat Memory of type dev.langchain4j.memory.ChatMemory
+     * Chat Memory Provider of type dev.langchain4j.memory.ChatMemoryProvider
      *
      * @return
      */
-    public ChatMemory getChatMemory() {
-        return chatMemory;
+    public ChatMemoryProvider getChatMemoryProvider() {
+        return chatMemoryProvider;
     }
 
-    public void setChatMemory(ChatMemory chatMemory) {
-        this.chatMemory = chatMemory;
+    public void setChatMemoryProvider(ChatMemoryProvider chatMemoryProvider) {
+        this.chatMemoryProvider = chatMemoryProvider;
     }
 }

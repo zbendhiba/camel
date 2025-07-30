@@ -25,8 +25,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": target.setBridgeErrorHandler(property(camelContext, boolean.class, value)); return true;
-        case "chatmemory":
-        case "chatMemory": target.getConfiguration().setChatMemory(property(camelContext, dev.langchain4j.memory.ChatMemory.class, value)); return true;
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": target.getConfiguration().setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.getConfiguration().setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "exceptionhandler":
@@ -42,7 +42,7 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatMemory", "chatModel"};
+        return new String[]{"chatMemoryProvider", "chatModel"};
     }
 
     @Override
@@ -50,8 +50,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return boolean.class;
-        case "chatmemory":
-        case "chatMemory": return dev.langchain4j.memory.ChatMemory.class;
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "exceptionhandler":
@@ -71,8 +71,8 @@ public class LangChain4jAgentEndpointConfigurer extends PropertyConfigurerSuppor
         switch (ignoreCase ? name.toLowerCase() : name) {
         case "bridgeerrorhandler":
         case "bridgeErrorHandler": return target.isBridgeErrorHandler();
-        case "chatmemory":
-        case "chatMemory": return target.getConfiguration().getChatMemory();
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": return target.getConfiguration().getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getConfiguration().getChatModel();
         case "exceptionhandler":

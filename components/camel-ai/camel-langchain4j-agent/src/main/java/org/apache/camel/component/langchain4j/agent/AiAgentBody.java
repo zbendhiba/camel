@@ -19,7 +19,7 @@ package org.apache.camel.component.langchain4j.agent;
 public class AiAgentBody {
     private String userMessage;
     private String systemMessage;
-    private String memoryId;
+    private Object memoryId;
 
     public AiAgentBody() {
     }
@@ -28,7 +28,7 @@ public class AiAgentBody {
         this.userMessage = userMessage;
     }
 
-    public AiAgentBody(String userMessage, String systemMessage, String memoryId) {
+    public AiAgentBody(String userMessage, String systemMessage, Object memoryId) {
         this.userMessage = userMessage;
         this.systemMessage = systemMessage;
         this.memoryId = memoryId;
@@ -44,7 +44,7 @@ public class AiAgentBody {
         return this;
     }
 
-    public AiAgentBody withMemoryId(String memoryId) {
+    public AiAgentBody withMemoryId(Object memoryId) {
         this.memoryId = memoryId;
         return this;
     }
@@ -65,11 +65,11 @@ public class AiAgentBody {
         this.systemMessage = systemMessage;
     }
 
-    public String getMemoryId() {
+    public Object getMemoryId() {
         return memoryId;
     }
 
-    public void setMemoryId(String memoryId) {
+    public void setMemoryId(Object memoryId) {
         this.memoryId = memoryId;
     }
 }

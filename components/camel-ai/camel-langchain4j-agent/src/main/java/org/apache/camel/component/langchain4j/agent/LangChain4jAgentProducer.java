@@ -23,7 +23,7 @@ import java.util.Set;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
-import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolExecutor;
@@ -62,9 +62,9 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         AiAgentBody aiAgentBody = processBody(messagePayload, exchange);
 
         // get chatMemory if specified
-        ChatMemory chatMemory = endpoint.getConfiguration().chatMemory;
+        ChatMemoryProvider chatMemoryProvider = endpoint.getConfiguration().getChatMemoryProvider();
 
-        if (chatMemory != null) {
+        if (chatMemoryProvider != null) {
             ObjectHelper.notNull(aiAgentBody.getMemoryId(), "memoryId");
         }
 
@@ -73,8 +73,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
         // Let AI Service handle everything (chat + tools + memoryId)
         String response = "";
-        if (chatMemory != null) {
-            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemory, exchange);
+        if (chatMemoryProvider != null) {
+            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemoryProvider, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
@@ -98,7 +98,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         }
 
         String systemMessage = exchange.getIn().getHeader(SYSTEM_MESSAGE, String.class);
-        String memoryId = exchange.getIn().getHeader(MEMORY_ID, String.class);
+        Object memoryId = exchange.getIn().getHeader(MEMORY_ID);
 
         AiAgentBody aiAgentBody = new AiAgentBody((String) messagePayload, systemMessage, memoryId);
         return aiAgentBody;
@@ -125,14 +125,15 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Create AI service with a single universal tool that handles multiple Camel routes
      */
-    private AiAgentWithMemoryService createAiAgentWithMemoryService(String tags, ChatMemory chatMemory, Exchange exchange) {
+    private AiAgentWithMemoryService createAiAgentWithMemoryService(
+            String tags, ChatMemoryProvider chatMemoryProvider, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
 
         // Use simple AI Service when no tags or no tools found and memory chat
 
         var builder = AiServices.builder(AiAgentWithMemoryService.class)
                 .chatModel(chatModel)
-                .chatMemory(chatMemory);
+                .chatMemoryProvider(chatMemoryProvider);
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }

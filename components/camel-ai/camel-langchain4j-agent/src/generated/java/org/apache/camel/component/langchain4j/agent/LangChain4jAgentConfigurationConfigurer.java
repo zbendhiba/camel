@@ -23,8 +23,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration target = (org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmemory":
-        case "chatMemory": target.setChatMemory(property(camelContext, dev.langchain4j.memory.ChatMemory.class, value)); return true;
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": target.setChatMemoryProvider(property(camelContext, dev.langchain4j.memory.chat.ChatMemoryProvider.class, value)); return true;
         case "chatmodel":
         case "chatModel": target.setChatModel(property(camelContext, dev.langchain4j.model.chat.ChatModel.class, value)); return true;
         case "tags": target.setTags(property(camelContext, java.lang.String.class, value)); return true;
@@ -35,8 +35,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmemory":
-        case "chatMemory": return dev.langchain4j.memory.ChatMemory.class;
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": return dev.langchain4j.memory.chat.ChatMemoryProvider.class;
         case "chatmodel":
         case "chatModel": return dev.langchain4j.model.chat.ChatModel.class;
         case "tags": return java.lang.String.class;
@@ -48,8 +48,8 @@ public class LangChain4jAgentConfigurationConfigurer extends org.apache.camel.su
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration target = (org.apache.camel.component.langchain4j.agent.LangChain4jAgentConfiguration) obj;
         switch (ignoreCase ? name.toLowerCase() : name) {
-        case "chatmemory":
-        case "chatMemory": return target.getChatMemory();
+        case "chatmemoryprovider":
+        case "chatMemoryProvider": return target.getChatMemoryProvider();
         case "chatmodel":
         case "chatModel": return target.getChatModel();
         case "tags": return target.getTags();
