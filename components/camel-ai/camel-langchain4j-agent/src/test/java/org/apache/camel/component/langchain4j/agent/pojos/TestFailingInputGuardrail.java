@@ -14,27 +14,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.langchain4j.agent.guardrails;
+package org.apache.camel.component.langchain4j.agent.pojos;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 
 /**
- * Test input guardrail that always succeeds. This is the simplest guardrail for basic integration testing.
+ * Test input guardrail that tracks call count. This guardrail always succeeds but provides call tracking for
+ * verification.
  */
-public class TestSuccessInputGuardrail implements InputGuardrail {
+public class TestFailingInputGuardrail implements InputGuardrail {
 
+    private static final AtomicInteger callCount = new AtomicInteger(0);
     private static volatile boolean wasValidated = false;
 
     @Override
     public InputGuardrailResult validate(UserMessage userMessage) {
         wasValidated = true;
+        callCount.incrementAndGet();
+
+        // Always succeed - focus on testing the integration mechanism and call tracking
         return InputGuardrailResult.success();
     }
 
+    /**
+     * Resets all tracking state. Should be called before each test.
+     */
     public static void reset() {
         wasValidated = false;
+        callCount.set(0);
+    }
+
+    /**
+     * @return the number of times this guardrail was called
+     */
+    public static int getCallCount() {
+        return callCount.get();
     }
 
     /**
