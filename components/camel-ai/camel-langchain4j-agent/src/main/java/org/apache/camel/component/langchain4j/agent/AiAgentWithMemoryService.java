@@ -23,7 +23,7 @@ import dev.langchain4j.service.V;
 
 /**
  * AI Agent Service interface for LangChain4j integration. Supports both simple chat and tool-enabled chat with a
- * unified interface. There's a need for a seperate class due @MemoryId usage
+ * unified interface. There's a need for a seperate class due limitations in @MemoryId usage
  */
 public interface AiAgentWithMemoryService {
 

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.agent.tool.ToolSpecification;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.rag.content.retriever.ContentRetriever;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.tool.ToolExecutor;
 import dev.langchain4j.service.tool.ToolProvider;
@@ -63,10 +64,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
 
         // get chatMemory if specified
         ChatMemoryProvider chatMemoryProvider = endpoint.getConfiguration().getChatMemoryProvider();
-
         if (chatMemoryProvider != null) {
             ObjectHelper.notNull(aiAgentBody.getMemoryId(), "memoryId");
         }
+
+        // Content retriever for naive RAG
+        ContentRetriever contentRetriever = endpoint.getConfiguration().getContentRetriever();
 
         // Create AI Service with discovered tools for this exchange
         String tags = endpoint.getConfiguration().getTags();
@@ -74,12 +77,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         // Let AI Service handle everything (chat + tools + memoryId)
         String response = "";
         if (chatMemoryProvider != null) {
-            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemoryProvider, exchange);
+            AiAgentWithMemoryService agentService = createAiAgentWithMemoryService(tags, chatMemoryProvider, contentRetriever, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
         } else {
-            AiAgentService agentService = createAiAgentService(tags, exchange);
+            AiAgentService agentService = createAiAgentService(tags, contentRetriever, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getUserMessage());
@@ -108,34 +111,36 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Create AI service with a single universal tool that handles multiple Camel routes
      */
-    private AiAgentService createAiAgentService(String tags, Exchange exchange) {
+    private AiAgentService createAiAgentService(String tags, ContentRetriever contentRetriever, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
-
-        // Use simple AI Service when no tags or no tools found if specified
 
         var builder = AiServices.builder(AiAgentService.class)
                 .chatModel(chatModel);
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
         }
+        if(contentRetriever != null) {
+            builder.contentRetriever(contentRetriever);
+        }
         return builder.build();
 
     }
 
     /**
-     * Create AI service with a single universal tool that handles multiple Camel routes
+     * Create AI service with a single universal tool that handles multiple Camel routes and Memory Provider
      */
     private AiAgentWithMemoryService createAiAgentWithMemoryService(
-            String tags, ChatMemoryProvider chatMemoryProvider, Exchange exchange) {
+            String tags, ChatMemoryProvider chatMemoryProvider, ContentRetriever contentRetriever, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
-
-        // Use simple AI Service when no tags or no tools found and memory chat
 
         var builder = AiServices.builder(AiAgentWithMemoryService.class)
                 .chatModel(chatModel)
                 .chatMemoryProvider(chatMemoryProvider);
         if (toolProvider != null) {
             builder.toolProvider(toolProvider);
+        }
+        if(contentRetriever != null) {
+            builder.contentRetriever(contentRetriever);
         }
         return builder.build();
 
@@ -177,7 +182,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 ToolSpecification toolSpecification = camelToolSpec.getToolSpecification();
 
                 // Create a functional tool executor for this specific Camel route
-                // ToolExecutor signature: (ToolExecutionRequest, Object) -> String
                 ToolExecutor toolExecutor = (toolExecutionRequest, memoryId) -> {
                     LOG.info("Executing Camel route tool: '{}' with arguments: {}", toolName, toolExecutionRequest.arguments());
 
@@ -233,13 +237,6 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                     for (CamelToolSpecification camelToolSpec : entry.getValue()) {
                         String toolName = camelToolSpec.getToolSpecification().name();
                         toolsByName.put(toolName, camelToolSpec);
-
-                        LOG.info("=== DISCOVERED TOOL ===");
-                        LOG.info("Tool name: '{}'", toolName);
-                        LOG.info("Description: '{}'", camelToolSpec.getToolSpecification().description());
-                        LOG.info("Camel route tag: '{}'", tag);
-                        LOG.info("Parameters: {}", camelToolSpec.getToolSpecification().parameters());
-                        LOG.info("======================");
                     }
                 }
             }
