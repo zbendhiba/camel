@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnabledIfSystemProperty(named = "OPENAI_API_KEY", matches = ".*", disabledReason = "OpenAI API key required")
-public class LangChain4jAgentComponentTest extends CamelTestSupport {
+public class LangChain4jSimpleAgentTest extends CamelTestSupport {
 
     // Test constants
     private static final String TEST_USER_MESSAGE_SIMPLE = "What is Apache Camel?";
