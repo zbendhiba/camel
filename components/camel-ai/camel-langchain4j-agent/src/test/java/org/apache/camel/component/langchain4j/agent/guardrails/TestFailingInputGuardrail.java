@@ -23,29 +23,28 @@ import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.InputGuardrailResult;
 
 /**
- * Test input guardrail that checks message length.
- * Used for testing guardrail validation scenarios.
+ * Test input guardrail that checks message length. Used for testing guardrail validation scenarios.
  */
 public class TestFailingInputGuardrail implements InputGuardrail {
-    
+
     private static final AtomicInteger callCount = new AtomicInteger(0);
     public static boolean wasValidated = false;
-    
+
     @Override
     public InputGuardrailResult validate(UserMessage userMessage) {
         wasValidated = true;
         callCount.incrementAndGet();
-        
+
         // For now, always succeed - we'll focus on testing the integration mechanism
         return InputGuardrailResult.success();
     }
-    
+
     public static void reset() {
         wasValidated = false;
         callCount.set(0);
     }
-    
+
     public static int getCallCount() {
         return callCount.get();
     }
-} 
+}

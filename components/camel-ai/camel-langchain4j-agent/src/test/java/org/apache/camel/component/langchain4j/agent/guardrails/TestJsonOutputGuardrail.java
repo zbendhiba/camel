@@ -21,57 +21,60 @@ import dev.langchain4j.guardrail.JsonExtractorOutputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrailResult;
 
 /**
- * Test JSON output guardrail that extends JsonExtractorOutputGuardrail 
- * but returns the JSON as a String instead of a parsed object.
- * This maintains compatibility with LangChain4j service interfaces.
+ * Test JSON output guardrail that extends JsonExtractorOutputGuardrail but returns the JSON as a String instead of a
+ * parsed object. This maintains compatibility with LangChain4j service interfaces.
  */
 public class TestJsonOutputGuardrail extends JsonExtractorOutputGuardrail<Object> {
-    
+
     public static boolean wasValidated = false;
-    
+
     public TestJsonOutputGuardrail() {
         super(Object.class);
     }
-    
+
     @Override
     public OutputGuardrailResult validate(AiMessage aiMessage) {
         wasValidated = true;
-        
+
         // Use the parent's JSON extraction and validation logic
         OutputGuardrailResult parentResult = super.validate(aiMessage);
-        
+
         // If the parent successfully extracted JSON, extract just the JSON part
         // instead of returning the parsed object to maintain String compatibility
         if (parentResult.isSuccess()) {
             String cleanJson = extractJsonFromText(aiMessage.text());
             return OutputGuardrailResult.successWith(cleanJson != null ? cleanJson : aiMessage.text());
         }
-        
+
         // If parent validation failed, return the failure to trigger reprompt with JSON instructions
         return parentResult;
     }
-    
+
     /**
      * Extracts JSON from text by finding the first { and matching }.
      */
     private String extractJsonFromText(String text) {
-        if (text == null) return null;
-        
+        if (text == null)
+            return null;
+
         int start = text.indexOf('{');
-        if (start == -1) return null;
-        
+        if (start == -1)
+            return null;
+
         int count = 0;
         for (int i = start; i < text.length(); i++) {
-            if (text.charAt(i) == '{') count++;
-            else if (text.charAt(i) == '}') count--;
+            if (text.charAt(i) == '{')
+                count++;
+            else if (text.charAt(i) == '}')
+                count--;
             if (count == 0) {
                 return text.substring(start, i + 1);
             }
         }
         return null;
     }
-    
+
     public static void reset() {
         wasValidated = false;
     }
-} 
+}

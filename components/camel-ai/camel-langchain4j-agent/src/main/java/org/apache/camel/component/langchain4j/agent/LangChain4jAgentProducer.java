@@ -87,12 +87,14 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         String response = "";
         if (chatMemoryProvider != null) {
             AiAgentWithMemoryService agentService
-                    = createAiAgentWithMemoryService(tags, chatMemoryProvider, retrievalAugmentor, inputGuardrailClasses, outputGuardrailClasses, exchange);
+                    = createAiAgentWithMemoryService(tags, chatMemoryProvider, retrievalAugmentor, inputGuardrailClasses,
+                            outputGuardrailClasses, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getMemoryId(), aiAgentBody.getUserMessage());
         } else {
-            AiAgentService agentService = createAiAgentService(tags, retrievalAugmentor, inputGuardrailClasses, outputGuardrailClasses, exchange);
+            AiAgentService agentService
+                    = createAiAgentService(tags, retrievalAugmentor, inputGuardrailClasses, outputGuardrailClasses, exchange);
             response = aiAgentBody.getSystemMessage() != null
                     ? agentService.chat(aiAgentBody.getUserMessage(), aiAgentBody.getSystemMessage())
                     : agentService.chat(aiAgentBody.getUserMessage());
@@ -121,7 +123,9 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Create AI service with a single universal tool that handles multiple Camel routes
      */
-    private AiAgentService createAiAgentService(String tags, RetrievalAugmentor retrievalAugmentor, List<Class<?>> inputGuardrailClasses, List<Class<?>> outputGuardrailClasses, Exchange exchange) {
+    private AiAgentService createAiAgentService(
+            String tags, RetrievalAugmentor retrievalAugmentor, List<Class<?>> inputGuardrailClasses,
+            List<Class<?>> outputGuardrailClasses, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
 
         var builder = AiServices.builder(AiAgentService.class)
@@ -151,7 +155,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
      * Create AI service with a single universal tool that handles multiple Camel routes and Memory Provider
      */
     private AiAgentWithMemoryService createAiAgentWithMemoryService(
-            String tags, ChatMemoryProvider chatMemoryProvider, RetrievalAugmentor retrievalAugmentor, List<Class<?>> inputGuardrailClasses, List<Class<?>> outputGuardrailClasses, Exchange exchange) {
+            String tags, ChatMemoryProvider chatMemoryProvider, RetrievalAugmentor retrievalAugmentor,
+            List<Class<?>> inputGuardrailClasses, List<Class<?>> outputGuardrailClasses, Exchange exchange) {
         ToolProvider toolProvider = getToolProvider(tags, exchange);
 
         var builder = AiServices.builder(AiAgentWithMemoryService.class)
@@ -171,7 +176,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         if (inputGuardrailClasses != null && !inputGuardrailClasses.isEmpty()) {
             builder.inputGuardrailClasses(inputGuardrailClasses.toArray(new Class[0]));
         }
-        
+
         // Output Guardrails
         if (outputGuardrailClasses != null && !outputGuardrailClasses.isEmpty()) {
             builder.outputGuardrailClasses(outputGuardrailClasses.toArray(new Class[0]));
@@ -280,17 +285,17 @@ public class LangChain4jAgentProducer extends DefaultProducer {
         return toolsByName;
     }
 
-        /**
+    /**
      * Parse comma-separated guardrail class names into a list of loaded classes.
      *
-     * @param guardrailClassNames comma-separated class names, can be null or empty
-     * @return list of loaded classes, empty list if input is null or empty
+     * @param  guardrailClassNames comma-separated class names, can be null or empty
+     * @return                     list of loaded classes, empty list if input is null or empty
      */
     private List<Class<?>> parseGuardrailClasses(String guardrailClassNames) {
         if (guardrailClassNames == null || guardrailClassNames.trim().isEmpty()) {
             return Collections.emptyList();
         }
-        
+
         return Arrays.stream(guardrailClassNames.split(","))
                 .map(String::trim)
                 .filter(name -> !name.isEmpty())
@@ -302,8 +307,8 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Load a guardrail class by name.
      *
-     * @param className the fully qualified class name
-     * @return the loaded class, or null if loading failed
+     * @param  className the fully qualified class name
+     * @return           the loaded class, or null if loading failed
      */
     private Class<?> loadGuardrailClass(String className) {
         try {
@@ -317,12 +322,12 @@ public class LangChain4jAgentProducer extends DefaultProducer {
     /**
      * Load guardrail classes from their class names using reflection.
      *
-     * @param classNames list of fully qualified class names
-     * @return list of loaded classes, empty list if no classes could be loaded
+     * @param  classNames list of fully qualified class names
+     * @return            list of loaded classes, empty list if no classes could be loaded
      */
     private List<Class<?>> loadGuardrailClasses(List<String> classNames) {
         List<Class<?>> classes = new java.util.ArrayList<>();
-        
+
         for (String className : classNames) {
             try {
                 Class<?> clazz = Class.forName(className);
@@ -332,7 +337,7 @@ public class LangChain4jAgentProducer extends DefaultProducer {
                 LOG.warn("Could not load guardrail class: {} - {}", className, e.getMessage());
             }
         }
-        
+
         return classes;
     }
 
