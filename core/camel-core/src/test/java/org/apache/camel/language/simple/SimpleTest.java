@@ -3795,6 +3795,50 @@ public class SimpleTest extends LanguageTestSupport {
     }
 
     @Test
+    public void testSort() {
+        List body = new ArrayList();
+        body.add("Z");
+        body.add("A");
+        body.add("H");
+        body.add("D");
+        exchange.getMessage().setBody(body);
+
+        Expression expression = context.resolveLanguage("simple").createExpression("${sort()}");
+        List list = expression.evaluate(exchange, List.class);
+        assertEquals(4, list.size());
+        assertEquals("A", list.get(0));
+        assertEquals("D", list.get(1));
+        assertEquals("H", list.get(2));
+        assertEquals("Z", list.get(3));
+
+        expression = context.resolveLanguage("simple").createExpression("${sort(true)}");
+        list = expression.evaluate(exchange, List.class);
+        assertEquals(4, list.size());
+        assertEquals("A", list.get(3));
+        assertEquals("D", list.get(2));
+        assertEquals("H", list.get(1));
+        assertEquals("Z", list.get(0));
+
+        expression = context.resolveLanguage("simple").createExpression("${sort(${body})}");
+        list = expression.evaluate(exchange, List.class);
+        assertEquals(4, list.size());
+        assertEquals("A", list.get(0));
+        assertEquals("D", list.get(1));
+        assertEquals("H", list.get(2));
+        assertEquals("Z", list.get(3));
+
+        exchange.getMessage().setBody("5,2,1,3,4");
+        expression = context.resolveLanguage("simple").createExpression("${sort()}");
+        list = expression.evaluate(exchange, List.class);
+        assertEquals(5, list.size());
+        assertEquals("1", list.get(0));
+        assertEquals("2", list.get(1));
+        assertEquals("3", list.get(2));
+        assertEquals("4", list.get(3));
+        assertEquals("5", list.get(4));
+    }
+
+    @Test
     public void testForEach() {
         exchange.getMessage().setBody("Camel,World,Cheese");
 

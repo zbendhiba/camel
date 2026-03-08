@@ -1192,6 +1192,27 @@ public class SimpleFunctionExpression extends LiteralExpression {
             }
             return SimpleExpressionBuilder.splitStringExpression(exp, separator);
         }
+        // sort function
+        remainder = ifStartsWithReturnRemainder("sort(", function);
+        if (remainder != null) {
+            String values = StringHelper.beforeLast(remainder, ")");
+            String exp = "${body}";
+            boolean reverse = false;
+            if (ObjectHelper.isNotEmpty(values)) {
+                String[] tokens = StringQuoteHelper.splitSafeQuote(values, ',', false);
+                if (tokens.length > 2) {
+                    throw new SimpleParserException(
+                            "Valid syntax: ${sort(reverse)} or ${sort(exp,reverse)} was: " + function, token.getIndex());
+                }
+                if (tokens.length == 2) {
+                    exp = tokens[0];
+                    reverse = Boolean.parseBoolean(tokens[1]);
+                } else {
+                    reverse = Boolean.parseBoolean(tokens[0]);
+                }
+            }
+            return SimpleExpressionBuilder.sortExpression(exp, reverse);
+        }
         // foreach function
         remainder = ifStartsWithReturnRemainder("forEach(", function);
         if (remainder != null) {

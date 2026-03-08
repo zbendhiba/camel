@@ -262,6 +262,7 @@ in arrays or lists.
 |`size()` | `int` | Returns the number of elements in collection or array based message body. If the value is null then 0 is returned, otherwise 1.
 |`size(exp)` | `int` | Returns the number of elements in collection or array based value. If the value is null then 0 is returned, otherwise 1.
 |`skip(number)` | `Iterator` | The skip function iterates the message body and skips the first number of items. This can be used with the Splitter EIP to split a message body and skip the first N number of items.
+|`sort(exp,reverse)` | `List` | Sorts the message body or expression in natural order
 |`split(separator)` | `String[]` | Splits the message body as a `String` value using the separator into a `String` array. The separator is comma by default.
 |`split(exp,separator)` | `String[]` | Splits the expression as a `String` value using the separator into a `String` array. The separator is comma by default.
 |====
@@ -290,7 +291,8 @@ To create an empty `Map` use `${createEmpty(map)}`.
 
 The `reverse` function is to reverse the order of the values.
 For example `${reverse(1,2,3,4,5)}` will return a `List` with the values `5,4,3,2,1`.
-And the `shuffle` function will randomize the order of the values.
+
+And the `shuffle` function will randomize the order of the values. The `sort` function will sort the order of the values (in natural order A...Z).
 
 The `size` functions is used to determine the number of elements, when using `Collection` or array based payloads.
 If not then either 0 or 1 is returned whether the body is `null` or not.

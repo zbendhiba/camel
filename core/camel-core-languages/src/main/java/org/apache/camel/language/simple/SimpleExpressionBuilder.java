@@ -73,6 +73,8 @@ import org.apache.camel.util.SkipIterator;
 import org.apache.camel.util.StringHelper;
 import org.apache.camel.util.StringQuoteHelper;
 
+import static java.io.File.separator;
+
 /**
  * Expression builder used by the simple language.
  */
@@ -1815,6 +1817,42 @@ public final class SimpleExpressionBuilder {
             @Override
             public String toString() {
                 return "split(" + expression + "," + separator + ")";
+            }
+        };
+    }
+
+    /**
+     * Sorts the expression
+     */
+    public static Expression sortExpression(final String expression, final boolean reverse) {
+        return new ExpressionAdapter() {
+            private Expression exp;
+
+            @Override
+            public void init(CamelContext context) {
+                exp = context.resolveLanguage("simple").createExpression(expression);
+                exp.init(context);
+            }
+
+            @Override
+            public Object evaluate(Exchange exchange) {
+                List answer = new ArrayList<>();
+                Object o = exp.evaluate(exchange, Object.class);
+                // this may be an object that we can iterate
+                Iterable<?> it = org.apache.camel.support.ObjectHelper.createIterable(o);
+                for (Object i : it) {
+                    answer.add(i);
+                }
+                Collections.sort(answer);
+                if (reverse) {
+                    Collections.reverse(answer);
+                }
+                return answer;
+            }
+
+            @Override
+            public String toString() {
+                return "sort(" + expression + ")";
             }
         };
     }

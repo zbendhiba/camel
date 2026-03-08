@@ -314,6 +314,10 @@ public final class SimpleConstants {
               javaType = "String", label = "json,xml")
     public static final String PRETTY_BODY = "prettyBody";
 
+    @Metadata(description = "Sorts the message body or expression in natural order",
+              label = "collection", javaType = "List", displayName = "Sort")
+    public static final String SORT = "sort(exp,reverse)";
+
     @Metadata(description = "Converts the expression to JSon String representation.",
               label = "json", javaType = "String", displayName = "To Pretty JSon")
     public static final String TO_PRETTY_JSON = "toPrettyJson(exp)";
