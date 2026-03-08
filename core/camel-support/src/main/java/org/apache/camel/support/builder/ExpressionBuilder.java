@@ -2744,7 +2744,7 @@ public class ExpressionBuilder {
     /**
      * Returns the expression result serialized as a JSON string
      */
-    public static Expression toJsonExpression(final Expression expression) {
+    public static Expression toJsonExpression(final Expression expression, boolean pretty) {
         return new ExpressionAdapter() {
             @Override
             public Object evaluate(Exchange exchange) {
@@ -2755,36 +2755,20 @@ public class ExpressionBuilder {
                 if (value instanceof String) {
                     return value;
                 }
-                return serializeCarelessly(value);
+                String answer = serializeCarelessly(value);
+                if (answer != null && pretty) {
+                    answer = answer.trim();
+                    // only pretty print if json structure
+                    if (answer.startsWith("{") && answer.endsWith("}") || answer.startsWith("[") && answer.endsWith("]")) {
+                        answer = Jsoner.prettyPrint(answer);
+                    }
+                }
+                return answer;
             }
 
             @Override
             public String toString() {
                 return "toJson(" + expression + ")";
-            }
-        };
-    }
-
-    /**
-     * Returns the message body serialized as a JSON string
-     */
-    public static Expression toJsonBodyExpression() {
-        return new ExpressionAdapter() {
-            @Override
-            public Object evaluate(Exchange exchange) {
-                Object body = exchange.getIn().getBody();
-                if (body == null) {
-                    return null;
-                }
-                if (body instanceof String) {
-                    return body;
-                }
-                return serializeCarelessly(body);
-            }
-
-            @Override
-            public String toString() {
-                return "toJsonBody";
             }
         };
     }

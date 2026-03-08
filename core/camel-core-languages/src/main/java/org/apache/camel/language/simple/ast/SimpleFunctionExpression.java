@@ -212,7 +212,18 @@ public class SimpleFunctionExpression extends LiteralExpression {
             }
             exp = StringHelper.removeLeadingAndEndingQuotes(exp);
             Expression inlined = camelContext.resolveLanguage("simple").createExpression(exp);
-            return ExpressionBuilder.toJsonExpression(inlined);
+            return ExpressionBuilder.toJsonExpression(inlined, false);
+        }
+        // toPrettyJson
+        remainder = ifStartsWithReturnRemainder("toPrettyJson(", function);
+        if (remainder != null) {
+            String exp = StringHelper.beforeLast(remainder, ")");
+            if (exp == null) {
+                throw new SimpleParserException("Valid syntax: ${toPrettyJson(exp)} was: " + function, token.getIndex());
+            }
+            exp = StringHelper.removeLeadingAndEndingQuotes(exp);
+            Expression inlined = camelContext.resolveLanguage("simple").createExpression(exp);
+            return ExpressionBuilder.toJsonExpression(inlined, true);
         }
 
         // file: prefix
@@ -732,7 +743,9 @@ public class SimpleFunctionExpression extends LiteralExpression {
         } else if (ObjectHelper.equal(expression, "prettyBody")) {
             return ExpressionBuilder.prettyBodyExpression();
         } else if (ObjectHelper.equal(expression, "toJsonBody")) {
-            return ExpressionBuilder.toJsonBodyExpression();
+            return ExpressionBuilder.toJsonExpression(ExpressionBuilder.bodyExpression(), false);
+        } else if (ObjectHelper.equal(expression, "toPrettyJsonBody")) {
+            return ExpressionBuilder.toJsonExpression(ExpressionBuilder.bodyExpression(), true);
         } else if (ObjectHelper.equal(expression, "bodyOneLine")) {
             return ExpressionBuilder.bodyOneLine();
         } else if (ObjectHelper.equal(expression, "originalBody")) {
@@ -2002,7 +2015,9 @@ public class SimpleFunctionExpression extends LiteralExpression {
         } else if (ObjectHelper.equal(expression, "prettyBody")) {
             return "prettyBody(exchange)";
         } else if (ObjectHelper.equal(expression, "toJsonBody")) {
-            return "toJsonBody(exchange)";
+            return "toJsonBody(exchange, false)";
+        } else if (ObjectHelper.equal(expression, "toPrettyJsonBody")) {
+            return "toJsonBody(exchange, true)";
         } else if (ObjectHelper.equal(expression, "bodyOneLine")) {
             return "bodyOneLine(exchange)";
         } else if (ObjectHelper.equal(expression, "id")) {

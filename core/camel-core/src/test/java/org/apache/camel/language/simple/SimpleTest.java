@@ -60,6 +60,7 @@ import org.apache.camel.support.ExchangeHelper;
 import org.apache.camel.support.LanguageHelper;
 import org.apache.camel.util.InetAddressUtil;
 import org.apache.camel.util.StringHelper;
+import org.apache.camel.util.json.Jsoner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceLock;
 import org.junit.jupiter.api.parallel.Resources;
@@ -3304,19 +3305,32 @@ public class SimpleTest extends LanguageTestSupport {
         exchange.getMessage().setBody(map);
         assertExpression(exchange, "${toJson(${body})}", "{\"name\":\"Jack\",\"id\":123}");
         assertExpression(exchange, "${toJsonBody}", "{\"name\":\"Jack\",\"id\":123}");
+        // pretty mode
+        String pretty = Jsoner.prettyPrint("{\"name\":\"Jack\",\"id\":123}");
+        assertExpression(exchange, "${toPrettyJson(${body})}", pretty);
+        assertExpression(exchange, "${toPrettyJsonBody}", pretty);
 
         // list body is serialized to JSON array
         exchange.getMessage().setBody(List.of("a", "b", "c"));
         assertExpression(exchange, "${toJson(${body})}", "[\"a\",\"b\",\"c\"]");
+        // pretty mode
+        pretty = Jsoner.prettyPrint("[\"a\",\"b\",\"c\"]");
+        assertExpression(exchange, "${toPrettyJson(${body})}", pretty);
+        assertExpression(exchange, "${toPrettyJsonBody}", pretty);
 
         // null body
         exchange.getMessage().setBody(null);
         assertExpression(exchange, "${toJsonBody}", null);
         assertExpression(exchange, "${toJson(${body})}", null);
+        // pretty mode
+        assertExpression(exchange, "${toPrettyJsonBody}", null);
+        assertExpression(exchange, "${toPrettyJson(${body})}", null);
 
         // toJson with a header expression
         exchange.getMessage().setHeader("myNum", 42);
         assertExpression(exchange, "${toJson(${header.myNum})}", "42");
+        // pretty mode
+        assertExpression(exchange, "${toPrettyJson(${header.myNum})}", "42");
     }
 
     @Test

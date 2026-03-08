@@ -594,6 +594,8 @@ Functions to work with XML and JSon payloads.
 |`prettyBody` | `String` | Converts the message body to a `String`, and attempts to pretty print (if JSon or XML) otherwise return the value as-is.
 |`toJson(exp)` | `String` | Converts the expression to a JSon `String` representation. String values are returned as-is, null values return null, all other types are serialized to JSon.
 |`toJsonBody` | `String` | Converts the message body to a JSon `String` representation. String values are returned as-is, null values return null, all other types are serialized to JSon.
+|`toPrettyJson(exp)` | `String` | Converts the expression to a JSon `String` representation. String values are returned as-is, null values return null, all other types are serialized to JSon in pretty mode.
+|`toPrettyJsonBody` | `String` | Converts the message body to a JSon `String` representation. String values are returned as-is, null values return null, all other types are serialized to JSon in pretty mode.
 |`xpath(exp)` | `Object` | When working with XML data, then this allows using the XPath language, for example, to extract data from the message body (in XML format). This requires having camel-xpath JAR on the classpath.
 |`xpath(input,exp)` | `Object` | When working with XML data, then this allows using the XPath language, for example, to extract data from the message body (in XML format). This requires having camel-xpath JAR on the classpath. For input you can choose `header:key`, `exchangeProperty:key` or `variable:key` to use as input for the JSon payload instead of the message body.
 |====
@@ -642,6 +644,21 @@ from("direct:map")
             }""")
         .to("log:data");
 ----
+
+The `toJson` function is to convert the payload to JSon as a `String` value. However if the payload is already a `String` then no conversion happens.
+So suppose the payload is a `Map` object as follows:
+
+[source,java]
+----
+Map<String, Object> map = new LinkedHashMap<>();
+map.put("name", "Jack");
+map.put("id", 123);
+----
+
+Then `toJson` will output: `{"name":"Jack","id":123}`.
+
+There are also _pretty_ alternatives so when calling `toPrettyJson` will output: TODO:
+
 
 The `xpath` function is for working with XML and using XPath expressions to extract data from XML payloads.
 

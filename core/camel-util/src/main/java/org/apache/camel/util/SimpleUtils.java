@@ -132,6 +132,8 @@ public class SimpleUtils {
                     "throwexception",
                     "tojson",
                     "tojsonbody",
+                    "toprettyjson",
+                    "toprettyjsonbody",
                     "trim",
                     "type",
                     "unquote",

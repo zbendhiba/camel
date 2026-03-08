@@ -252,7 +252,7 @@ public final class CSimpleHelper {
         return body;
     }
 
-    public static String toJsonBody(Exchange exchange) {
+    public static String toJsonBody(Exchange exchange, boolean pretty) {
         Object body = exchange.getIn().getBody();
         if (body == null) {
             return null;
@@ -266,7 +266,11 @@ public final class CSimpleHelper {
         } catch (final java.io.IOException caught) {
             /* See StringWriter. */
         }
-        return writer.toString();
+        String answer = writer.toString();
+        if (pretty && answer != null) {
+            answer = Jsoner.prettyPrint(answer);
+        }
+        return answer;
     }
 
     private static String prettyXml(String rawXml) {

@@ -315,6 +315,14 @@ public final class SimpleConstants {
     public static final String PRETTY_BODY = "prettyBody";
 
     @Metadata(description = "Converts the expression to JSon String representation.",
+              label = "json", javaType = "String", displayName = "To Pretty JSon")
+    public static final String TO_PRETTY_JSON = "toPrettyJson(exp)";
+
+    @Metadata(description = "Converts the body to JSon String representation.",
+              javaType = "String", label = "json", displayName = "To Pretty JSon Body")
+    public static final String TO_PRETTY_JSON_BODY = "toPrettyJsonBody";
+
+    @Metadata(description = "Converts the expression to JSon String representation.",
               label = "json", javaType = "String", displayName = "To JSon")
     public static final String TO_JSON = "toJson(exp)";
 
