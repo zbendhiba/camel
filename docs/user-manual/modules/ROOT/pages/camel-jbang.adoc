@@ -111,6 +111,10 @@ Option 1 provides the most deterministic installation and is best suited for ful
 Option 2 offers a simpler installation while still ensuring the version is pinned to a specific Camel release.
 ====
 
+==== Option 3: Use Camel Launcher
+
+See xref:camel-jbang-launcher.adoc[Camel JBang Launcher]
+
 
 == Container Image
 
