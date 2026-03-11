@@ -25,9 +25,13 @@ import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.test.AvailablePortFinder;
 import org.apache.cxf.clustering.FailoverFeature;
 import org.apache.cxf.clustering.RandomStrategy;
+import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
 import org.apache.cxf.frontend.ServerFactoryBean;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,8 +47,29 @@ public class FailOverFeatureTest {
     private static final String PAYLOAD_PROXY_ADDRESS = "http://localhost:" + port2 + "/FailOverFeatureTest/proxy";
     private static final String POJO_PROXY_ADDRESS = "http://localhost:" + port3 + "/FailOverFeatureTest/proxy";
     private static final String NONE_EXIST_ADDRESS = "http://localhost:" + port4 + "/FailOverFeatureTest";
+    private static Server server;
     private DefaultCamelContext context1;
     private DefaultCamelContext context2;
+
+    @AfterEach
+    public void cleanupContexts() {
+        if (context1 != null) {
+            try {
+                context1.stop();
+            } catch (Exception e) {
+                // ignore
+            }
+            context1 = null;
+        }
+        if (context2 != null) {
+            try {
+                context2.stop();
+            } catch (Exception e) {
+                // ignore
+            }
+            context2 = null;
+        }
+    }
 
     @BeforeAll
     public static void init() {
@@ -53,25 +78,28 @@ public class FailOverFeatureTest {
         ServerFactoryBean factory = new ServerFactoryBean();
         factory.setAddress(SERVICE_ADDRESS);
         factory.setServiceBean(new HelloServiceImpl());
-        factory.create();
+        server = factory.create();
     }
 
+    @AfterAll
+    public static void destroy() {
+        if (server != null) {
+            server.stop();
+            server.destroy();
+        }
+    }
+
+    @Disabled("CXF failover not compatible with Undertow 2.4.0.RC1 - NPE in ClientImpl.onMessage due to null inbound message (CXF-9204)")
     @Test
     public void testPojo() throws Exception {
         startRoutePojo();
         assertEquals("hello", tryFailover(POJO_PROXY_ADDRESS));
-        if (context2 != null) {
-            context2.stop();
-        }
     }
 
     @Test
     public void testPayload() throws Exception {
         startRoutePayload();
         assertEquals("hello", tryFailover(PAYLOAD_PROXY_ADDRESS));
-        if (context1 != null) {
-            context1.stop();
-        }
     }
 
     private void startRoutePayload() throws Exception {

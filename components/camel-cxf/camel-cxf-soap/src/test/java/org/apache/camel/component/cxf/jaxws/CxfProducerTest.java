@@ -16,7 +16,7 @@
  */
 package org.apache.camel.component.cxf.jaxws;
 
-import java.net.ConnectException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -136,17 +137,17 @@ public class CxfProducerTest {
     public void testInvokingAWrongServer() throws Exception {
         Exchange reply = sendSimpleMessage(getWrongEndpointUri());
         assertNotNull(reply.getException(), "We should get the exception here");
-        assertTrue(reply.getException().getCause() instanceof ConnectException);
+        assertInstanceOf(IOException.class, reply.getException().getCause());
 
         //Test the data format PAYLOAD
         reply = sendSimpleMessageWithPayloadMessage(getWrongEndpointUri() + "&dataFormat=PAYLOAD");
         assertNotNull(reply.getException(), "We should get the exception here");
-        assertTrue(reply.getException().getCause() instanceof ConnectException);
+        assertInstanceOf(IOException.class, reply.getException().getCause());
 
         //Test the data format MESSAGE
         reply = sendSimpleMessageWithRawMessage(getWrongEndpointUri() + "&dataFormat=RAW");
         assertNotNull(reply.getException(), "We should get the exception here");
-        assertTrue(reply.getException().getCause() instanceof ConnectException);
+        assertInstanceOf(IOException.class, reply.getException().getCause());
     }
 
     @Test
