@@ -60,6 +60,14 @@ public final class LangChain4jAgentConverterLoader implements TypeConverterLoade
                 }
                 return answer;
             });
+        addTypeConverter(registry, org.apache.camel.component.langchain4j.agent.api.AiAgentBody.class, java.lang.String.class, false,
+            (type, exchange, value) -> {
+                Object answer = org.apache.camel.component.langchain4j.agent.LangChain4jAgentConverter.textToAiAgentBody((java.lang.String) value, exchange);
+                if (false && answer == null) {
+                    answer = Void.class;
+                }
+                return answer;
+            });
         addTypeConverter(registry, org.apache.camel.component.langchain4j.agent.api.AiAgentBody.class, org.apache.camel.WrappedFile.class, false,
             (type, exchange, value) -> {
                 Object answer = org.apache.camel.component.langchain4j.agent.LangChain4jAgentConverter.toAiAgentBody((org.apache.camel.WrappedFile) value, exchange);
