@@ -174,6 +174,22 @@ public interface SpringAiChatEndpointBuilderFactory {
             return this;
         }
         /**
+         * Comma-separated tool names for selecting tools by name via Spring
+         * AI's ToolCallbackResolver. This enables selecting Spring Tool
+         * annotated beans or any registered ToolCallback by name.
+         * 
+         * The option is a: <code>java.lang.String</code> type.
+         * 
+         * Group: producer
+         * 
+         * @param toolNames the value to set
+         * @return the dsl builder
+         */
+        default SpringAiChatEndpointBuilder toolNames(String toolNames) {
+            doSetProperty("toolNames", toolNames);
+            return this;
+        }
+        /**
          * Default user message text for multimodal requests. Can be combined
          * with media data in the message body.
          * 
@@ -594,6 +610,83 @@ public interface SpringAiChatEndpointBuilderFactory {
             return this;
         }
         /**
+         * MCP server configurations. Define servers using prefix notation:
+         * mcpServer..transportType=stdiosse, mcpServer..command= (stdio),
+         * mcpServer..args= (stdio), mcpServer..url= (sse),
+         * mcpServer..oauthProfile= (OAuth profile for HTTP auth, requires
+         * camel-oauth). This is a multi-value option with prefix: mcpServer.
+         * 
+         * The option is a: <code>java.util.Map&lt;java.lang.String,
+         * java.lang.Object&gt;</code> type.
+         * The option is multivalued, and you can use the mcpServer(String,
+         * Object) method to add a value (call the method multiple times to set
+         * more values).
+         * 
+         * Group: advanced
+         * 
+         * @param key the option key
+         * @param value the option value
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder mcpServer(String key, Object value) {
+            doSetMultiValueProperty("mcpServer", "mcpServer." + key, value);
+            return this;
+        }
+        /**
+         * MCP server configurations. Define servers using prefix notation:
+         * mcpServer..transportType=stdiosse, mcpServer..command= (stdio),
+         * mcpServer..args= (stdio), mcpServer..url= (sse),
+         * mcpServer..oauthProfile= (OAuth profile for HTTP auth, requires
+         * camel-oauth). This is a multi-value option with prefix: mcpServer.
+         * 
+         * The option is a: <code>java.util.Map&lt;java.lang.String,
+         * java.lang.Object&gt;</code> type.
+         * The option is multivalued, and you can use the mcpServer(String,
+         * Object) method to add a value (call the method multiple times to set
+         * more values).
+         * 
+         * Group: advanced
+         * 
+         * @param values the values
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder mcpServer(Map values) {
+            doSetMultiValueProperties("mcpServer", "mcpServer.", values);
+            return this;
+        }
+        /**
+         * Timeout in seconds for MCP operations including tool execution and
+         * initialization.
+         * 
+         * The option is a: <code>int</code> type.
+         * 
+         * Default: 20
+         * Group: advanced
+         * 
+         * @param mcpTimeout the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder mcpTimeout(int mcpTimeout) {
+            doSetProperty("mcpTimeout", mcpTimeout);
+            return this;
+        }
+        /**
+         * Timeout in seconds for MCP operations including tool execution and
+         * initialization.
+         * 
+         * The option will be converted to a <code>int</code> type.
+         * 
+         * Default: 20
+         * Group: advanced
+         * 
+         * @param mcpTimeout the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder mcpTimeout(String mcpTimeout) {
+            doSetProperty("mcpTimeout", mcpTimeout);
+            return this;
+        }
+        /**
          * The Java class to use for BEAN output format conversion. Required
          * when outputFormat is BEAN.
          * 
@@ -677,6 +770,74 @@ public interface SpringAiChatEndpointBuilderFactory {
             return this;
         }
         /**
+         * Enable structured output validation with automatic retry on
+         * validation failure. When enabled, the
+         * StructuredOutputValidationAdvisor validates the response against a
+         * JSON Schema and re-prompts the LLM with validation errors if the
+         * output is invalid.
+         * 
+         * The option is a: <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: advanced
+         * 
+         * @param structuredOutputValidation the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder structuredOutputValidation(boolean structuredOutputValidation) {
+            doSetProperty("structuredOutputValidation", structuredOutputValidation);
+            return this;
+        }
+        /**
+         * Enable structured output validation with automatic retry on
+         * validation failure. When enabled, the
+         * StructuredOutputValidationAdvisor validates the response against a
+         * JSON Schema and re-prompts the LLM with validation errors if the
+         * output is invalid.
+         * 
+         * The option will be converted to a <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: advanced
+         * 
+         * @param structuredOutputValidation the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder structuredOutputValidation(String structuredOutputValidation) {
+            doSetProperty("structuredOutputValidation", structuredOutputValidation);
+            return this;
+        }
+        /**
+         * Maximum number of retry attempts for structured output validation.
+         * 
+         * The option is a: <code>int</code> type.
+         * 
+         * Default: 3
+         * Group: advanced
+         * 
+         * @param structuredOutputValidationMaxAttempts the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder structuredOutputValidationMaxAttempts(int structuredOutputValidationMaxAttempts) {
+            doSetProperty("structuredOutputValidationMaxAttempts", structuredOutputValidationMaxAttempts);
+            return this;
+        }
+        /**
+         * Maximum number of retry attempts for structured output validation.
+         * 
+         * The option will be converted to a <code>int</code> type.
+         * 
+         * Default: 3
+         * Group: advanced
+         * 
+         * @param structuredOutputValidationMaxAttempts the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder structuredOutputValidationMaxAttempts(String structuredOutputValidationMaxAttempts) {
+            doSetProperty("structuredOutputValidationMaxAttempts", structuredOutputValidationMaxAttempts);
+            return this;
+        }
+        /**
          * Metadata to attach to system messages. This metadata can be used for
          * tracking system prompt versions, model configurations, or other
          * application-specific data.
@@ -737,6 +898,73 @@ public interface SpringAiChatEndpointBuilderFactory {
          */
         default AdvancedSpringAiChatEndpointBuilder temperature(String temperature) {
             doSetProperty("temperature", temperature);
+            return this;
+        }
+        /**
+         * List of ToolCallback instances to register alongside Camel route
+         * tools. Use
+         * MethodToolCallbackProvider.builder().toolObjects(bean).build().getToolCallbacks() to resolve callbacks from Tool-annotated beans.
+         * 
+         * The option is a:
+         * <code>java.util.List&lt;org.springframework.ai.tool.ToolCallback&gt;</code> type.
+         * 
+         * Group: advanced
+         * 
+         * @param toolCallbacks the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder toolCallbacks(List<org.springframework.ai.tool.ToolCallback> toolCallbacks) {
+            doSetProperty("toolCallbacks", toolCallbacks);
+            return this;
+        }
+        /**
+         * List of ToolCallback instances to register alongside Camel route
+         * tools. Use
+         * MethodToolCallbackProvider.builder().toolObjects(bean).build().getToolCallbacks() to resolve callbacks from Tool-annotated beans.
+         * 
+         * The option will be converted to a
+         * <code>java.util.List&lt;org.springframework.ai.tool.ToolCallback&gt;</code> type.
+         * 
+         * Group: advanced
+         * 
+         * @param toolCallbacks the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder toolCallbacks(String toolCallbacks) {
+            doSetProperty("toolCallbacks", toolCallbacks);
+            return this;
+        }
+        /**
+         * Context map to pass to tools during execution. Tool methods accepting
+         * a ToolContext parameter will receive these values.
+         * 
+         * The option is a: <code>java.util.Map&lt;java.lang.String,
+         * java.lang.Object&gt;</code> type.
+         * 
+         * Group: advanced
+         * 
+         * @param toolContext the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder toolContext(Map<java.lang.String, java.lang.Object> toolContext) {
+            doSetProperty("toolContext", toolContext);
+            return this;
+        }
+        /**
+         * Context map to pass to tools during execution. Tool methods accepting
+         * a ToolContext parameter will receive these values.
+         * 
+         * The option will be converted to a
+         * <code>java.util.Map&lt;java.lang.String, java.lang.Object&gt;</code>
+         * type.
+         * 
+         * Group: advanced
+         * 
+         * @param toolContext the value to set
+         * @return the dsl builder
+         */
+        default AdvancedSpringAiChatEndpointBuilder toolContext(String toolContext) {
+            doSetProperty("toolContext", toolContext);
             return this;
         }
         /**
@@ -1300,6 +1528,31 @@ public interface SpringAiChatEndpointBuilderFactory {
          */
         public String springAiChatResponseMetadata() {
             return "CamelSpringAiChatResponseMetadata";
+        }
+        /**
+         * Comma-separated tool names for selecting tools by name via
+         * ToolCallbackResolver.
+         * 
+         * The option is a: {@code String} type.
+         * 
+         * Group: producer
+         * 
+         * @return the name of the header {@code SpringAiChatToolNames}.
+         */
+        public String springAiChatToolNames() {
+            return "CamelSpringAiChatToolNames";
+        }
+        /**
+         * Context map to pass to tools during execution.
+         * 
+         * The option is a: {@code java.util.Map<String, Object>} type.
+         * 
+         * Group: producer
+         * 
+         * @return the name of the header {@code SpringAiChatToolContext}.
+         */
+        public String springAiChatToolContext() {
+            return "CamelSpringAiChatToolContext";
         }
     }
     static SpringAiChatEndpointBuilder endpointBuilder(String componentName, String path) {

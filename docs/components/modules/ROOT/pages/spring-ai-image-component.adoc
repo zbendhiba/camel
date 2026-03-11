@@ -1,0 +1,1 @@
+../../../../../components/camel-spring-parent/camel-spring-ai/camel-spring-ai-image/src/main/docs/spring-ai-image-component.adoc
