@@ -577,6 +577,233 @@ from("direct:chat")
 
 NOTE: Most users should use `ChatModel` and let the component handle `ChatClient` creation automatically. Only use this approach if you have specific requirements that cannot be met with standard configuration options.
 
+=== Spring @Tool Bean Discovery
+
+In addition to Camel route tools (via `tags`), you can use Spring AI `@Tool`-annotated beans directly.
+
+==== Camel Spring Boot (Recommended)
+
+When using Camel Spring Boot, Spring AI's auto-configuration automatically discovers `@Tool`-annotated
+methods from Spring beans via `ToolCallbackResolver`. Simply define your tool as a Spring bean and
+reference it by name using `toolNames`:
+
+[source,java]
+----
+@Component
+public class MyTools {
+
+    @Tool(description = "Get the capital city of a country", name = "getCapital")
+    public String getCapital(String country) {
+        return switch (country.toLowerCase()) {
+            case "france" -> "Paris";
+            case "germany" -> "Berlin";
+            case "italy" -> "Rome";
+            default -> "Unknown";
+        };
+    }
+}
+
+// In your route — no manual callback registration needed
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel&toolNames=getCapital");
+----
+
+==== Without Spring Boot
+
+Outside Spring Boot (e.g., in plain Camel or tests), there is no `ToolCallbackResolver`.
+You need to resolve the callbacks manually and bind them in the registry:
+
+[source,java]
+----
+ToolCallbackProvider provider = MethodToolCallbackProvider.builder()
+    .toolObjects(new MyTools())
+    .build();
+context.getRegistry().bind("myTools", Arrays.asList(provider.getToolCallbacks()));
+
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel&toolCallbacks=#myTools");
+----
+
+==== Tool Selection by Name
+
+Select specific tools by name using the `toolNames` parameter, instead of (or in addition to) tag-based discovery.
+This is useful for selecting individual `@Tool` methods or controlling which tools are available per endpoint:
+
+[source,java]
+----
+// Select only the getCapital tool by name
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel&toolNames=getCapital");
+
+// Select tools dynamically at runtime via header
+template.requestBodyAndHeader("direct:chat", "What is the capital of France?",
+    SpringAiChatConstants.TOOL_NAMES, "getCapital", String.class);
+----
+
+Tool names are resolved via Spring AI's `ToolCallbackResolver`. You can combine `toolNames` with `tags` —
+both tool sources are additive.
+
+=== Tool Context
+
+Pass contextual data (user ID, session info, tenant ID, etc.) to tools during execution.
+Tools with a `ToolContext` parameter receive these values automatically:
+
+[source,java]
+----
+// Tool that uses context
+@Tool(description = "Get user profile")
+public String getUserProfile(@ToolParam(description = "detail level") String detail,
+                              ToolContext toolContext) {
+    String userId = (String) toolContext.getContext().get("userId");
+    return "Profile for user: " + userId;
+}
+
+// Via endpoint configuration
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel&toolCallbacks=#myTools"
+        + "&toolContext.userId=user-42"
+        + "&toolContext.role=admin");
+
+// Via header (overrides endpoint config)
+template.request("direct:chat", e -> {
+    e.getIn().setBody("Get my profile");
+    e.getIn().setHeader(SpringAiChatConstants.TOOL_CONTEXT,
+        Map.of("userId", "user-99", "role", "admin"));
+});
+----
+
+NOTE: Tool context works with Spring AI `@Tool` methods and MCP tools.
+Camel route tools (defined via `spring-ai-tools` consumer) do not receive the `ToolContext`.
+
+=== Structured Output Validation
+
+Enable automatic validation of structured output with retry on failure.
+When the LLM produces invalid output (doesn't match the expected JSON Schema),
+the advisor re-prompts the LLM with validation errors:
+
+[source,java]
+----
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel"
+        + "&outputFormat=BEAN"
+        + "&outputClass=com.example.ActorFilms"
+        + "&structuredOutputValidation=true"
+        + "&structuredOutputValidationMaxAttempts=3");
+----
+
+If all retry attempts fail, the exception propagates to Camel's error handler:
+
+[source,java]
+----
+from("direct:chat")
+    .doTry()
+        .to("spring-ai-chat:chat?chatModel=#chatModel"
+            + "&outputFormat=BEAN&outputClass=com.example.ActorFilms"
+            + "&structuredOutputValidation=true&structuredOutputValidationMaxAttempts=2")
+    .doCatch(Exception.class)
+        .log("Structured output validation failed: ${exception.message}")
+        .to("direct:fallback")
+    .end();
+----
+
+The advisor requires `outputClass` or `entityClass` to be set so it can generate a JSON Schema
+for validation. A warning is logged if neither is configured.
+
+=== MCP Client (Model Context Protocol)
+
+The component supports connecting to MCP servers, enabling the LLM to use tools provided by
+external MCP-compatible services. This follows the same pattern as the
+xref:openai-component.adoc[OpenAI component]'s MCP support.
+
+Configure MCP servers using the `mcpServer.<name>.<property>` prefix notation:
+
+==== Stdio Transport
+
+[source,java]
+----
+// Connect to MCP filesystem server via stdio
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel"
+        + "&mcpServer.fs.transportType=stdio"
+        + "&mcpServer.fs.command=npx"
+        + "&mcpServer.fs.args=-y,@modelcontextprotocol/server-filesystem,/tmp");
+----
+
+==== SSE Transport
+
+[source,java]
+----
+// Connect to MCP server via SSE
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel"
+        + "&mcpServer.weather.transportType=sse"
+        + "&mcpServer.weather.url=http://mcp-server:3001/sse");
+----
+
+==== Multiple MCP Servers
+
+[source,java]
+----
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel"
+        + "&mcpServer.fs.transportType=stdio"
+        + "&mcpServer.fs.command=npx"
+        + "&mcpServer.fs.args=-y,@modelcontextprotocol/server-filesystem,/tmp"
+        + "&mcpServer.weather.transportType=sse"
+        + "&mcpServer.weather.url=http://weather-mcp:3001/sse");
+----
+
+==== OAuth Authentication for MCP Servers
+
+For MCP servers requiring authentication, configure an OAuth profile per server.
+This requires `camel-oauth` on the classpath:
+
+[source,java]
+----
+from("direct:chat")
+    .to("spring-ai-chat:chat?chatModel=#chatModel"
+        + "&mcpServer.api.transportType=sse"
+        + "&mcpServer.api.url=http://secure-mcp:3001/sse"
+        + "&mcpServer.api.oauthProfile=keycloak");
+----
+
+With corresponding properties:
+
+[source,properties]
+----
+camel.oauth.keycloak.client-id=my-client
+camel.oauth.keycloak.client-secret=my-secret
+camel.oauth.keycloak.token-endpoint=https://keycloak/realms/myrealm/protocol/openid-connect/token
+----
+
+IMPORTANT: The Spring AI chat component uses the MCP SDK version managed by the Spring AI BOM.
+Using this component's MCP support alongside `camel-openai` MCP support in the same application
+may cause version conflicts. Choose one approach per application.
+
+=== Observability
+
+When using Camel Spring Boot with `spring-boot-starter-actuator`, Spring AI's built-in
+observability support is automatically enabled. No additional Camel-side configuration is needed —
+the `ChatModel` and `ChatClient` calls are instrumented by Spring AI through Micrometer.
+
+Add the actuator dependency to your Spring Boot application:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+----
+
+This works automatically because the Camel component delegates to Spring AI's
+`ChatClient` and `ChatModel`, which are already instrumented. The component itself does not need
+to add any observation code — Spring AI's auto-configuration handles everything when actuator
+is on the classpath.
+
+Refer to the https://docs.spring.io/spring-ai/reference/observability/index.html[Spring AI Observability documentation]
+for details on available metrics, tracing, and prompt/completion logging configuration.
+
 === Request/Response Logging
 
 The component automatically adds Spring AI's `SimpleLoggerAdvisor` to log requests and responses for debugging. Enable it by setting the logger `org.springframework.ai.chat.client.advisor` to DEBUG level:
@@ -593,5 +820,6 @@ logging.level.org.springframework.ai.chat.client.advisor=DEBUG
 * xref:spring-ai-tools-component.adoc[Spring AI Tools Component]
 * xref:spring-ai-embeddings-component.adoc[Spring AI Embeddings Component]
 * xref:spring-ai-vector-store-component.adoc[Spring AI VectorStore Component]
+* xref:spring-ai-image-component.adoc[Spring AI Image Component]
 
 include::spring-boot:partial$starter.adoc[]

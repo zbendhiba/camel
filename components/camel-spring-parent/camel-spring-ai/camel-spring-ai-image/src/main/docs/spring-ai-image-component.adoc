@@ -2,7 +2,7 @@
 :doctitle: Spring AI Image
 :shortname: spring-ai-image
 :artifactid: camel-spring-ai-image
-:description: Generate images using Spring AI.
+:description: Spring AI Image Generation
 :since: 4.19
 :supportlevel: Preview
 :tabs-sync-option:

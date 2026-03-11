@@ -119,6 +119,14 @@ public final class SpringAiChatConstants {
               javaType = "java.util.Map<String, Object>")
     public static final String RESPONSE_METADATA = "CamelSpringAiChatResponseMetadata";
 
+    @Metadata(description = "Comma-separated tool names for selecting tools by name via ToolCallbackResolver",
+              javaType = "String")
+    public static final String TOOL_NAMES = "CamelSpringAiChatToolNames";
+
+    @Metadata(description = "Context map to pass to tools during execution",
+              javaType = "java.util.Map<String, Object>")
+    public static final String TOOL_CONTEXT = "CamelSpringAiChatToolContext";
+
     private SpringAiChatConstants() {
     }
 }

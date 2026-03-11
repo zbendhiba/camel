@@ -27,6 +27,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.converter.StructuredOutputConverter;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.VectorStore;
 
 @UriParams
@@ -119,6 +120,43 @@ public class SpringAiChatConfiguration implements Cloneable {
 
     @UriParam(label = "advanced", defaultValue = "1048576")
     private long maxFileSize = 1024 * 1024; // 1MB default
+
+    @UriParam(description = "Comma-separated tool names for selecting tools by name via Spring AI's ToolCallbackResolver. "
+                            + "This enables selecting Spring @Tool annotated beans or any registered ToolCallback by name.")
+    private String toolNames;
+
+    @UriParam(label = "advanced",
+              description = "List of ToolCallback instances to register alongside Camel route tools. "
+                            + "Use MethodToolCallbackProvider.builder().toolObjects(bean).build().getToolCallbacks() "
+                            + "to resolve callbacks from @Tool-annotated beans.")
+    @Metadata(autowired = true)
+    private List<ToolCallback> toolCallbacks;
+
+    @UriParam(label = "advanced",
+              description = "Context map to pass to tools during execution. Tool methods accepting a ToolContext parameter will receive these values.")
+    private Map<String, Object> toolContext;
+
+    @UriParam(label = "advanced", defaultValue = "false",
+              description = "Enable structured output validation with automatic retry on validation failure. "
+                            + "When enabled, the StructuredOutputValidationAdvisor validates the response against a JSON Schema "
+                            + "and re-prompts the LLM with validation errors if the output is invalid.")
+    private boolean structuredOutputValidation;
+
+    @UriParam(label = "advanced", defaultValue = "3",
+              description = "Maximum number of retry attempts for structured output validation")
+    private int structuredOutputValidationMaxAttempts = 3;
+
+    @UriParam(prefix = "mcpServer.", multiValue = true, label = "advanced",
+              description = "MCP server configurations. Define servers using prefix notation: "
+                            + "mcpServer.<name>.transportType=stdio|sse, "
+                            + "mcpServer.<name>.command=<cmd> (stdio), mcpServer.<name>.args=<comma-separated> (stdio), "
+                            + "mcpServer.<name>.url=<url> (sse), "
+                            + "mcpServer.<name>.oauthProfile=<profile> (OAuth profile for HTTP auth, requires camel-oauth)")
+    private Map<String, Object> mcpServer;
+
+    @UriParam(label = "advanced", defaultValue = "20",
+              description = "Timeout in seconds for MCP operations including tool execution and initialization")
+    private int mcpTimeout = 20;
 
     public ChatClient getChatClient() {
         return chatClient;
@@ -434,6 +472,96 @@ public class SpringAiChatConfiguration implements Cloneable {
      */
     public void setMaxFileSize(long maxFileSize) {
         this.maxFileSize = maxFileSize;
+    }
+
+    public String getToolNames() {
+        return toolNames;
+    }
+
+    /**
+     * Comma-separated tool names for selecting tools by name via Spring AI's ToolCallbackResolver. This enables
+     * selecting Spring @Tool annotated beans or any registered ToolCallback by name, in addition to tag-based
+     * discovery.
+     */
+    public void setToolNames(String toolNames) {
+        this.toolNames = toolNames;
+    }
+
+    public List<ToolCallback> getToolCallbacks() {
+        return toolCallbacks;
+    }
+
+    /**
+     * List of additional ToolCallback instances to register alongside Camel route tools. These callbacks are added
+     * directly without requiring a ToolCallbackProvider.
+     */
+    public void setToolCallbacks(List<ToolCallback> toolCallbacks) {
+        this.toolCallbacks = toolCallbacks;
+    }
+
+    public Map<String, Object> getToolContext() {
+        return toolContext;
+    }
+
+    /**
+     * Context map to pass to tools during execution. Tool methods accepting a ToolContext parameter will receive these
+     * values. Can be overridden per-request via the CamelSpringAiChatToolContext header.
+     */
+    public void setToolContext(Map<String, Object> toolContext) {
+        this.toolContext = toolContext;
+    }
+
+    public Map<String, Object> getMcpServer() {
+        return mcpServer;
+    }
+
+    /**
+     * MCP server configurations for Model Context Protocol integration. Define servers using prefix notation:
+     * mcpServer.&lt;name&gt;.transportType=stdio|sse, mcpServer.&lt;name&gt;.command=&lt;cmd&gt; (stdio),
+     * mcpServer.&lt;name&gt;.args=&lt;comma-separated&gt; (stdio), mcpServer.&lt;name&gt;.url=&lt;url&gt; (sse).
+     * <p>
+     * <strong>Note:</strong> Using this component with MCP alongside the camel-openai component with MCP may lead to
+     * MCP SDK version conflicts. The spring-ai-chat component uses MCP SDK version managed by Spring AI BOM while
+     * camel-openai uses the version defined in camel-parent. Avoid using both in the same application.
+     * </p>
+     */
+    public void setMcpServer(Map<String, Object> mcpServer) {
+        this.mcpServer = mcpServer;
+    }
+
+    public int getMcpTimeout() {
+        return mcpTimeout;
+    }
+
+    /**
+     * Timeout in seconds for MCP operations including tool execution and initialization. Default is 20.
+     */
+    public void setMcpTimeout(int mcpTimeout) {
+        this.mcpTimeout = mcpTimeout;
+    }
+
+    public boolean isStructuredOutputValidation() {
+        return structuredOutputValidation;
+    }
+
+    /**
+     * Enable structured output validation with automatic retry on validation failure. When enabled, the
+     * StructuredOutputValidationAdvisor validates the response against a JSON Schema derived from the outputClass or
+     * entityClass, and re-prompts the LLM with validation errors if the output is invalid.
+     */
+    public void setStructuredOutputValidation(boolean structuredOutputValidation) {
+        this.structuredOutputValidation = structuredOutputValidation;
+    }
+
+    public int getStructuredOutputValidationMaxAttempts() {
+        return structuredOutputValidationMaxAttempts;
+    }
+
+    /**
+     * Maximum number of retry attempts for structured output validation. Default is 3.
+     */
+    public void setStructuredOutputValidationMaxAttempts(int structuredOutputValidationMaxAttempts) {
+        this.structuredOutputValidationMaxAttempts = structuredOutputValidationMaxAttempts;
     }
 
     public SpringAiChatConfiguration copy() {

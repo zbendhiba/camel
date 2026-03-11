@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.WrappedFile;
+import org.apache.camel.component.springai.chat.mcp.SpringAiChatMcpManager;
 import org.apache.camel.component.springai.tools.TagsHelper;
 import org.apache.camel.component.springai.tools.spec.CamelToolExecutorCache;
 import org.apache.camel.component.springai.tools.spec.CamelToolSpecification;
@@ -40,6 +42,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SafeGuardAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
+import org.springframework.ai.chat.client.advisor.StructuredOutputValidationAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.QuestionAnswerAdvisor;
 import org.springframework.ai.chat.client.advisor.vectorstore.VectorStoreChatMemoryAdvisor;
@@ -72,6 +75,7 @@ public class SpringAiChatProducer extends DefaultProducer {
     private static final Logger LOG = LoggerFactory.getLogger(SpringAiChatProducer.class);
 
     private ChatClient chatClient;
+    private SpringAiChatMcpManager mcpManager;
 
     public SpringAiChatProducer(SpringAiChatEndpoint endpoint) {
         super(endpoint);
@@ -115,6 +119,23 @@ public class SpringAiChatProducer extends DefaultProducer {
 
             this.chatClient = builder.build();
         }
+
+        // Initialize MCP clients if configured
+        Map<String, Object> mcpConfig = getEndpoint().getConfiguration().getMcpServer();
+        if (mcpConfig != null && !mcpConfig.isEmpty()) {
+            mcpManager = new SpringAiChatMcpManager();
+            mcpManager.initialize(mcpConfig, getEndpoint().getConfiguration().getMcpTimeout(),
+                    getEndpoint().getCamelContext());
+        }
+    }
+
+    @Override
+    protected void doStop() throws Exception {
+        if (mcpManager != null) {
+            mcpManager.close();
+            mcpManager = null;
+        }
+        super.doStop();
     }
 
     @Override
@@ -553,6 +574,40 @@ public class SpringAiChatProducer extends DefaultProducer {
         ToolCallingChatOptions options = optionsBuilder.build();
         request.options(options);
 
+        // Add direct ToolCallbacks if configured
+        List<ToolCallback> configuredCallbacks = getEndpoint().getConfiguration().getToolCallbacks();
+        if (configuredCallbacks != null && !configuredCallbacks.isEmpty()) {
+            request.toolCallbacks(configuredCallbacks);
+            LOG.debug("Added {} configured ToolCallbacks", configuredCallbacks.size());
+        }
+
+        // Add MCP tool callbacks if MCP servers are configured
+        if (mcpManager != null && mcpManager.getToolCallbackProvider() != null) {
+            request.toolCallbacks(mcpManager.getToolCallbackProvider());
+            LOG.debug("Added MCP tool callback provider");
+        }
+
+        // Apply tool names for resolution via ToolCallbackResolver
+        String toolNames = exchange.getIn().getHeader(SpringAiChatConstants.TOOL_NAMES, String.class);
+        if (toolNames == null) {
+            toolNames = getEndpoint().getConfiguration().getToolNames();
+        }
+        if (toolNames != null && !toolNames.trim().isEmpty()) {
+            String[] names = Arrays.stream(toolNames.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isEmpty())
+                    .toArray(String[]::new);
+            request.toolNames(names);
+            LOG.debug("Added {} tool names for resolution: {}", names.length, Arrays.toString(names));
+        }
+
+        // Apply tool context if configured
+        Map<String, Object> toolContext = getToolContext(exchange);
+        if (toolContext != null && !toolContext.isEmpty()) {
+            request.toolContext(toolContext);
+            LOG.debug("Added tool context with {} entries", toolContext.size());
+        }
+
         // Apply conversation ID for chat memory if provided
         String conversationId = exchange.getIn().getHeader(SpringAiChatConstants.CONVERSATION_ID, String.class);
         if (conversationId != null) {
@@ -717,6 +772,20 @@ public class SpringAiChatProducer extends DefaultProducer {
 
         // Check configuration for metadata
         return getEndpoint().getConfiguration().getSystemMetadata();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> getToolContext(Exchange exchange) {
+        Map<String, Object> headerContext = exchange.getIn().getHeader(SpringAiChatConstants.TOOL_CONTEXT, Map.class);
+        Map<String, Object> configContext = getEndpoint().getConfiguration().getToolContext();
+
+        if (headerContext != null && configContext != null) {
+            // Merge: header overrides config
+            Map<String, Object> merged = new HashMap<>(configContext);
+            merged.putAll(headerContext);
+            return merged;
+        }
+        return headerContext != null ? headerContext : configContext;
     }
 
     private Class<?> getEntityClass(Exchange exchange) {
@@ -1140,6 +1209,26 @@ public class SpringAiChatProducer extends DefaultProducer {
             LOG.debug("QuestionAnswerAdvisor enabled with topK={}, similarityThreshold={}",
                     getEndpoint().getConfiguration().getTopK(),
                     getEndpoint().getConfiguration().getSimilarityThreshold());
+        }
+
+        // Add StructuredOutputValidationAdvisor if configured
+        if (getEndpoint().getConfiguration().isStructuredOutputValidation()) {
+            Class<?> outputType = getEndpoint().getConfiguration().getOutputClass();
+            if (outputType == null) {
+                outputType = getEndpoint().getConfiguration().getEntityClass();
+            }
+            if (outputType != null) {
+                advisors.add(StructuredOutputValidationAdvisor.builder()
+                        .outputType(outputType)
+                        .maxRepeatAttempts(getEndpoint().getConfiguration().getStructuredOutputValidationMaxAttempts())
+                        .build());
+                LOG.debug("StructuredOutputValidationAdvisor enabled with maxRepeatAttempts={} for type={}",
+                        getEndpoint().getConfiguration().getStructuredOutputValidationMaxAttempts(),
+                        outputType.getName());
+            } else {
+                LOG.warn("structuredOutputValidation is enabled but no outputClass or entityClass is configured. "
+                         + "The advisor requires a type to validate against.");
+            }
         }
 
         // Add custom advisors if configured

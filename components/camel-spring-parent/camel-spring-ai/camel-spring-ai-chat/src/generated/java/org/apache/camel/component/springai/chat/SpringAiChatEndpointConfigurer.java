@@ -42,6 +42,10 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "maxFileSize": target.getConfiguration().setMaxFileSize(property(camelContext, long.class, value)); return true;
         case "maxtokens":
         case "maxTokens": target.getConfiguration().setMaxTokens(property(camelContext, java.lang.Integer.class, value)); return true;
+        case "mcpserver":
+        case "mcpServer": target.getConfiguration().setMcpServer(property(camelContext, java.util.Map.class, value)); return true;
+        case "mcptimeout":
+        case "mcpTimeout": target.getConfiguration().setMcpTimeout(property(camelContext, int.class, value)); return true;
         case "outputclass":
         case "outputClass": target.getConfiguration().setOutputClass(property(camelContext, java.lang.Class.class, value)); return true;
         case "outputformat":
@@ -58,12 +62,22 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "similarityThreshold": target.getConfiguration().setSimilarityThreshold(property(camelContext, double.class, value)); return true;
         case "structuredoutputconverter":
         case "structuredOutputConverter": target.getConfiguration().setStructuredOutputConverter(property(camelContext, org.springframework.ai.converter.StructuredOutputConverter.class, value)); return true;
+        case "structuredoutputvalidation":
+        case "structuredOutputValidation": target.getConfiguration().setStructuredOutputValidation(property(camelContext, boolean.class, value)); return true;
+        case "structuredoutputvalidationmaxattempts":
+        case "structuredOutputValidationMaxAttempts": target.getConfiguration().setStructuredOutputValidationMaxAttempts(property(camelContext, int.class, value)); return true;
         case "systemmessage":
         case "systemMessage": target.getConfiguration().setSystemMessage(property(camelContext, java.lang.String.class, value)); return true;
         case "systemmetadata":
         case "systemMetadata": target.getConfiguration().setSystemMetadata(property(camelContext, java.util.Map.class, value)); return true;
         case "tags": target.getConfiguration().setTags(property(camelContext, java.lang.String.class, value)); return true;
         case "temperature": target.getConfiguration().setTemperature(property(camelContext, java.lang.Double.class, value)); return true;
+        case "toolcallbacks":
+        case "toolCallbacks": target.getConfiguration().setToolCallbacks(property(camelContext, java.util.List.class, value)); return true;
+        case "toolcontext":
+        case "toolContext": target.getConfiguration().setToolContext(property(camelContext, java.util.Map.class, value)); return true;
+        case "toolnames":
+        case "toolNames": target.getConfiguration().setToolNames(property(camelContext, java.lang.String.class, value)); return true;
         case "topk":
         case "topK": target.getConfiguration().setTopK(property(camelContext, int.class, value)); return true;
         case "topksampling":
@@ -82,7 +96,7 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
 
     @Override
     public String[] getAutowiredNames() {
-        return new String[]{"chatClient", "chatMemory", "chatModel", "structuredOutputConverter", "vectorStore"};
+        return new String[]{"chatClient", "chatMemory", "chatModel", "structuredOutputConverter", "toolCallbacks", "vectorStore"};
     }
 
     @Override
@@ -107,6 +121,10 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "maxFileSize": return long.class;
         case "maxtokens":
         case "maxTokens": return java.lang.Integer.class;
+        case "mcpserver":
+        case "mcpServer": return java.util.Map.class;
+        case "mcptimeout":
+        case "mcpTimeout": return int.class;
         case "outputclass":
         case "outputClass": return java.lang.Class.class;
         case "outputformat":
@@ -123,12 +141,22 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "similarityThreshold": return double.class;
         case "structuredoutputconverter":
         case "structuredOutputConverter": return org.springframework.ai.converter.StructuredOutputConverter.class;
+        case "structuredoutputvalidation":
+        case "structuredOutputValidation": return boolean.class;
+        case "structuredoutputvalidationmaxattempts":
+        case "structuredOutputValidationMaxAttempts": return int.class;
         case "systemmessage":
         case "systemMessage": return java.lang.String.class;
         case "systemmetadata":
         case "systemMetadata": return java.util.Map.class;
         case "tags": return java.lang.String.class;
         case "temperature": return java.lang.Double.class;
+        case "toolcallbacks":
+        case "toolCallbacks": return java.util.List.class;
+        case "toolcontext":
+        case "toolContext": return java.util.Map.class;
+        case "toolnames":
+        case "toolNames": return java.lang.String.class;
         case "topk":
         case "topK": return int.class;
         case "topksampling":
@@ -168,6 +196,10 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "maxFileSize": return target.getConfiguration().getMaxFileSize();
         case "maxtokens":
         case "maxTokens": return target.getConfiguration().getMaxTokens();
+        case "mcpserver":
+        case "mcpServer": return target.getConfiguration().getMcpServer();
+        case "mcptimeout":
+        case "mcpTimeout": return target.getConfiguration().getMcpTimeout();
         case "outputclass":
         case "outputClass": return target.getConfiguration().getOutputClass();
         case "outputformat":
@@ -184,12 +216,22 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "similarityThreshold": return target.getConfiguration().getSimilarityThreshold();
         case "structuredoutputconverter":
         case "structuredOutputConverter": return target.getConfiguration().getStructuredOutputConverter();
+        case "structuredoutputvalidation":
+        case "structuredOutputValidation": return target.getConfiguration().isStructuredOutputValidation();
+        case "structuredoutputvalidationmaxattempts":
+        case "structuredOutputValidationMaxAttempts": return target.getConfiguration().getStructuredOutputValidationMaxAttempts();
         case "systemmessage":
         case "systemMessage": return target.getConfiguration().getSystemMessage();
         case "systemmetadata":
         case "systemMetadata": return target.getConfiguration().getSystemMetadata();
         case "tags": return target.getConfiguration().getTags();
         case "temperature": return target.getConfiguration().getTemperature();
+        case "toolcallbacks":
+        case "toolCallbacks": return target.getConfiguration().getToolCallbacks();
+        case "toolcontext":
+        case "toolContext": return target.getConfiguration().getToolContext();
+        case "toolnames":
+        case "toolNames": return target.getConfiguration().getToolNames();
         case "topk":
         case "topK": return target.getConfiguration().getTopK();
         case "topksampling":
@@ -212,12 +254,18 @@ public class SpringAiChatEndpointConfigurer extends PropertyConfigurerSupport im
         case "advisors": return org.springframework.ai.chat.client.advisor.api.Advisor.class;
         case "entityclass":
         case "entityClass": return java.lang.Object.class;
+        case "mcpserver":
+        case "mcpServer": return java.lang.Object.class;
         case "outputclass":
         case "outputClass": return java.lang.Object.class;
         case "structuredoutputconverter":
         case "structuredOutputConverter": return java.lang.Object.class;
         case "systemmetadata":
         case "systemMetadata": return java.lang.Object.class;
+        case "toolcallbacks":
+        case "toolCallbacks": return org.springframework.ai.tool.ToolCallback.class;
+        case "toolcontext":
+        case "toolContext": return java.lang.Object.class;
         case "usermetadata":
         case "userMetadata": return java.lang.Object.class;
         default: return null;
