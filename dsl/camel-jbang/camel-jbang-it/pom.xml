@@ -186,6 +186,18 @@
             <artifactId>camel-test-junit6</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test-infra-cli</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-test-infra-mosquitto</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -266,7 +278,7 @@
             </build>
         </profile>
         <profile>
-            <id>local-camel-cli-process</id>
+            <id>local-cmvn verify -Djbang-it-test -Dcamel-cli.instance.type=local-camel-cli-processamel-cli-process</id>
             <activation>
                 <property>
                     <name>camel-cli.instance.type</name>
@@ -277,20 +289,6 @@
                 <failsafe.forkCount>1</failsafe.forkCount>
                 <failsafe.excludedGroups>container-only</failsafe.excludedGroups>
             </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.apache.camel</groupId>
-                    <artifactId>camel-test-infra-cli</artifactId>
-                    <version>${project.version}</version>
-                    <scope>test</scope>
-                </dependency>
-                <dependency>
-                    <groupId>org.apache.camel</groupId>
-                    <artifactId>camel-test-infra-mosquitto</artifactId>
-                    <version>${project.version}</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
         </profile>
     </profiles>
 
