@@ -103,6 +103,7 @@ public final class MojoHelper {
                         dir.resolve("camel-undertow-spring-security"),
                         dir.resolve("camel-spring-ai").resolve("camel-spring-ai-chat"),
                         dir.resolve("camel-spring-ai").resolve("camel-spring-ai-embeddings"),
+                        dir.resolve("camel-spring-ai").resolve("camel-spring-ai-image"),
                         dir.resolve("camel-spring-ai").resolve("camel-spring-ai-tools"),
                         dir.resolve("camel-spring-ai").resolve("camel-spring-ai-vector-store"));
             case "camel-test":

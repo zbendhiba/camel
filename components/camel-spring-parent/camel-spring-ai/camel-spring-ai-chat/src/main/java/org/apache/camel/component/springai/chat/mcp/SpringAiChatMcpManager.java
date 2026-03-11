@@ -132,7 +132,7 @@ public class SpringAiChatMcpManager {
             try {
                 client.close();
             } catch (Exception e) {
-                LOG.debug("Error closing MCP client: {}", e.getMessage());
+                LOG.warn("Error closing MCP client: {}", e.getMessage());
             }
         }
         mcpClients.clear();
