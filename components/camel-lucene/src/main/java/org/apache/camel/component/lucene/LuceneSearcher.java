@@ -25,6 +25,7 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.StoredFields;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
@@ -69,8 +70,9 @@ public class LuceneSearcher {
         int numberOfHits = doSearch(searchPhrase, maxNumberOfHits, totalHitsThreshold);
         searchHits.setNumberOfHits(numberOfHits);
 
+        StoredFields storedFields = indexSearcher.getIndexReader().storedFields();
         for (ScoreDoc hit : hits) {
-            Document selectedDocument = indexSearcher.getIndexReader().storedFields().document(hit.doc);
+            Document selectedDocument = storedFields.document(hit.doc);
             Hit aHit = new Hit();
             if (returnLuceneDocs) {
                 aHit.setDocument(selectedDocument);
