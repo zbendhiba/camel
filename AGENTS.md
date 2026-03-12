@@ -77,6 +77,12 @@ Packages:
 - Components: `org.apache.camel.component.<name>`
 - Core: `org.apache.camel.<module>`
 
+Deprecation:
+- Add `(deprecated)` suffix to `<name>` in `pom.xml`: `<name>Camel :: MyComponent (deprecated)</name>`
+- Add `(deprecated)` suffix to the doc page title in `src/main/docs/*.adoc`
+- Add `@Deprecated` to Java classes
+- Document in the upgrade guide (`docs/user-manual/modules/ROOT/pages/camel-4x-upgrade-guide-4_XX.adoc`)
+
 Annotations:
 - `@UriPath` for path params
 - `@UriParam` for query params
