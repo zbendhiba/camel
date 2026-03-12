@@ -4526,6 +4526,19 @@ public interface ComponentsBuilderFactory {
         return SpringAiEmbeddingsComponentBuilderFactory.springAiEmbeddings();
     }
     /**
+     * Spring AI Image (camel-spring-ai-image)
+     * Spring AI Image Generation
+     * 
+     * Category: ai
+     * Since: 4.19
+     * Maven coordinates: org.apache.camel:camel-spring-ai-image
+     * 
+     * @return the dsl builder
+     */
+    static SpringAiImageComponentBuilderFactory.SpringAiImageComponentBuilder springAiImage() {
+        return SpringAiImageComponentBuilderFactory.springAiImage();
+    }
+    /**
      * Spring AI Tools (camel-spring-ai-tools)
      * Spring AI Tools and Function Calling Features
      * 

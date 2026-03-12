@@ -344,6 +344,7 @@ public interface EndpointBuilderFactory
             org.apache.camel.builder.endpoint.dsl.SplunkHECEndpointBuilderFactory.SplunkHECBuilders,
             org.apache.camel.builder.endpoint.dsl.SpringAiChatEndpointBuilderFactory.SpringAiChatBuilders,
             org.apache.camel.builder.endpoint.dsl.SpringAiEmbeddingsEndpointBuilderFactory.SpringAiEmbeddingsBuilders,
+            org.apache.camel.builder.endpoint.dsl.SpringAiImageEndpointBuilderFactory.SpringAiImageBuilders,
             org.apache.camel.builder.endpoint.dsl.SpringAiToolsEndpointBuilderFactory.SpringAiToolsBuilders,
             org.apache.camel.builder.endpoint.dsl.SpringAiVectorStoreEndpointBuilderFactory.SpringAiVectorStoreBuilders,
             org.apache.camel.builder.endpoint.dsl.SpringBatchEndpointBuilderFactory.SpringBatchBuilders,

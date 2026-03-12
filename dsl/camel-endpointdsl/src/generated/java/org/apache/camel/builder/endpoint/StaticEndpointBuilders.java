@@ -15118,6 +15118,46 @@ public class StaticEndpointBuilders {
         return SpringAiEmbeddingsEndpointBuilderFactory.endpointBuilder(componentName, path);
     }
     /**
+     * Spring AI Image (camel-spring-ai-image)
+     * Spring AI Image Generation
+     * 
+     * Category: ai
+     * Since: 4.19
+     * Maven coordinates: org.apache.camel:camel-spring-ai-image
+     * 
+     * Syntax: <code>spring-ai-image:imageId</code>
+     * 
+     * Path parameter: imageId (required)
+     * The id
+     * 
+     * @param path imageId
+     * @return the dsl builder
+     */
+    public static SpringAiImageEndpointBuilderFactory.SpringAiImageEndpointBuilder springAiImage(String path) {
+        return springAiImage("spring-ai-image", path);
+    }
+    /**
+     * Spring AI Image (camel-spring-ai-image)
+     * Spring AI Image Generation
+     * 
+     * Category: ai
+     * Since: 4.19
+     * Maven coordinates: org.apache.camel:camel-spring-ai-image
+     * 
+     * Syntax: <code>spring-ai-image:imageId</code>
+     * 
+     * Path parameter: imageId (required)
+     * The id
+     * 
+     * @param componentName to use a custom component name for the endpoint
+     * instead of the default name
+     * @param path imageId
+     * @return the dsl builder
+     */
+    public static SpringAiImageEndpointBuilderFactory.SpringAiImageEndpointBuilder springAiImage(String componentName, String path) {
+        return SpringAiImageEndpointBuilderFactory.endpointBuilder(componentName, path);
+    }
+    /**
      * Spring AI Tools (camel-spring-ai-tools)
      * Spring AI Tools and Function Calling Features
      * 
