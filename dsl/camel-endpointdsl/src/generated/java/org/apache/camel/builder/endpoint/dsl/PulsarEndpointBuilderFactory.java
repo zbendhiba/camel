@@ -611,6 +611,42 @@ public interface PulsarEndpointBuilderFactory {
             return this;
         }
         /**
+         * Determines the subscription mode for the consumer. Durable
+         * subscriptions persist the cursor position if the consumer disconnects
+         * while non-durable subscriptions do not.
+         * 
+         * The option is a:
+         * <code>org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode</code> type.
+         * 
+         * Default: DURABLE
+         * Group: consumer
+         * 
+         * @param subscriptionMode the value to set
+         * @return the dsl builder
+         */
+        default PulsarEndpointConsumerBuilder subscriptionMode(org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode subscriptionMode) {
+            doSetProperty("subscriptionMode", subscriptionMode);
+            return this;
+        }
+        /**
+         * Determines the subscription mode for the consumer. Durable
+         * subscriptions persist the cursor position if the consumer disconnects
+         * while non-durable subscriptions do not.
+         * 
+         * The option will be converted to a
+         * <code>org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode</code> type.
+         * 
+         * Default: DURABLE
+         * Group: consumer
+         * 
+         * @param subscriptionMode the value to set
+         * @return the dsl builder
+         */
+        default PulsarEndpointConsumerBuilder subscriptionMode(String subscriptionMode) {
+            doSetProperty("subscriptionMode", subscriptionMode);
+            return this;
+        }
+        /**
          * Name of the subscription to use.
          * 
          * The option is a: <code>java.lang.String</code> type.

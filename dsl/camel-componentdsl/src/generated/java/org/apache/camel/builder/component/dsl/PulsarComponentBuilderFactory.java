@@ -475,6 +475,26 @@ public interface PulsarComponentBuilderFactory {
     
         
         /**
+         * Determines the subscription mode for the consumer. Durable
+         * subscriptions persist the cursor position if the consumer disconnects
+         * while non-durable subscriptions do not.
+         * 
+         * The option is a:
+         * &lt;code&gt;org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode&lt;/code&gt; type.
+         * 
+         * Default: DURABLE
+         * Group: consumer
+         * 
+         * @param subscriptionMode the value to set
+         * @return the dsl builder
+         */
+        default PulsarComponentBuilder subscriptionMode(org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode subscriptionMode) {
+            doSetProperty("subscriptionMode", subscriptionMode);
+            return this;
+        }
+    
+        
+        /**
          * Name of the subscription to use.
          * 
          * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
@@ -957,6 +977,7 @@ public interface PulsarComponentBuilderFactory {
             case "readCompacted": getOrCreateConfiguration((PulsarComponent) component).setReadCompacted((boolean) value); return true;
             case "retryLetterTopic": getOrCreateConfiguration((PulsarComponent) component).setRetryLetterTopic((java.lang.String) value); return true;
             case "subscriptionInitialPosition": getOrCreateConfiguration((PulsarComponent) component).setSubscriptionInitialPosition((org.apache.camel.component.pulsar.utils.consumers.SubscriptionInitialPosition) value); return true;
+            case "subscriptionMode": getOrCreateConfiguration((PulsarComponent) component).setSubscriptionMode((org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode) value); return true;
             case "subscriptionName": getOrCreateConfiguration((PulsarComponent) component).setSubscriptionName((java.lang.String) value); return true;
             case "subscriptionTopicsMode": getOrCreateConfiguration((PulsarComponent) component).setSubscriptionTopicsMode((org.apache.pulsar.client.api.RegexSubscriptionMode) value); return true;
             case "subscriptionType": getOrCreateConfiguration((PulsarComponent) component).setSubscriptionType((org.apache.camel.component.pulsar.utils.consumers.SubscriptionType) value); return true;
