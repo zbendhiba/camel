@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.component.pulsar.utils.consumers.SubscriptionInitialPosition;
+import org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode;
 import org.apache.camel.component.pulsar.utils.consumers.SubscriptionType;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriParams;
@@ -31,6 +32,7 @@ import org.apache.pulsar.client.api.RedeliveryBackoff;
 import org.apache.pulsar.client.api.RegexSubscriptionMode;
 
 import static org.apache.camel.component.pulsar.utils.consumers.SubscriptionInitialPosition.LATEST;
+import static org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode.DURABLE;
 import static org.apache.camel.component.pulsar.utils.consumers.SubscriptionType.EXCLUSIVE;
 
 @UriParams
@@ -50,6 +52,10 @@ public class PulsarConfiguration implements Cloneable {
     private String subscriptionName = "subs";
     @UriParam(label = "consumer", defaultValue = "EXCLUSIVE", enums = "EXCLUSIVE,SHARED,FAILOVER,KEY_SHARED")
     private SubscriptionType subscriptionType = EXCLUSIVE;
+    @UriParam(label = "consumer", defaultValue = "DURABLE", enums = "DURABLE,NON_DURABLE",
+              description = "Determines the subscription mode for the consumer. Durable subscriptions persist the cursor position "
+                            + "if the consumer disconnects while non-durable subscriptions do not.")
+    private SubscriptionMode subscriptionMode = DURABLE;
     @UriParam(label = "consumer", defaultValue = "1")
     private int numberOfConsumers = 1;
     @UriParam(label = "consumer", defaultValue = "10")
@@ -199,6 +205,17 @@ public class PulsarConfiguration implements Cloneable {
      */
     public void setSubscriptionType(SubscriptionType subscriptionType) {
         this.subscriptionType = subscriptionType;
+    }
+
+    public SubscriptionMode getSubscriptionMode() {
+        return subscriptionMode;
+    }
+
+    /**
+     * Determines the subscription mode for the consumer [DURABLE|NON_DURABLE], defaults to DURABLE
+     */
+    public void setSubscriptionMode(SubscriptionMode subscriptionMode) {
+        this.subscriptionMode = subscriptionMode;
     }
 
     public int getNumberOfConsumers() {

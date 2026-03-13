@@ -17,6 +17,7 @@
 package org.apache.camel.component.pulsar;
 
 import org.apache.camel.component.pulsar.utils.AutoConfiguration;
+import org.apache.camel.component.pulsar.utils.consumers.SubscriptionMode;
 import org.apache.camel.component.pulsar.utils.consumers.SubscriptionType;
 import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -66,6 +67,7 @@ public class PulsarComponentTest extends CamelTestSupport {
         assertNull(endpoint.getPulsarConfiguration().getProducerName());
         assertEquals("subs", endpoint.getPulsarConfiguration().getSubscriptionName());
         assertEquals(SubscriptionType.EXCLUSIVE, endpoint.getPulsarConfiguration().getSubscriptionType());
+        assertEquals(SubscriptionMode.DURABLE, endpoint.getPulsarConfiguration().getSubscriptionMode());
         assertFalse(endpoint.getPulsarConfiguration().isAllowManualAcknowledgement());
         assertFalse(endpoint.getPulsarConfiguration().isReadCompacted());
         assertTrue(endpoint.getPulsarConfiguration().isMessageListener());
@@ -81,6 +83,19 @@ public class PulsarComponentTest extends CamelTestSupport {
                 "pulsar://persistent/test/foobar/BatchCreated?numberOfConsumers=10&subscriptionName=batch-created-subscription&subscriptionType=Shared");
 
         verify(autoConfiguration).ensureNameSpaceAndTenant(ArgumentMatchers.anyString());
+    }
+
+    @Test
+    public void testPulsarEndpointSubscriptionModeNonDurable() throws Exception {
+        PulsarComponent component = context.getComponent("pulsar", PulsarComponent.class);
+        component.setAutoConfiguration(autoConfiguration);
+
+        PulsarEndpoint endpoint = (PulsarEndpoint) component
+                .createEndpoint(
+                        "pulsar://persistent/test/foobar/BatchCreated?subscriptionMode=NON_DURABLE");
+
+        assertNotNull(endpoint);
+        assertEquals(SubscriptionMode.NON_DURABLE, endpoint.getPulsarConfiguration().getSubscriptionMode());
     }
 
     @Test
