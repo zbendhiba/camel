@@ -17,12 +17,10 @@
 
 package org.apache.camel.component.milvus;
 
-import io.milvus.grpc.DataType;
-import io.milvus.param.collection.CollectionSchemaParam;
-import io.milvus.param.collection.CreateCollectionParam;
-import io.milvus.param.collection.FieldType;
 import org.apache.camel.Exchange;
 import org.apache.camel.NoSuchHeaderException;
+import org.apache.camel.component.milvus.helpers.MilvusHelperCreateCollection;
+import org.apache.camel.support.DefaultExchange;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -32,43 +30,22 @@ public class MilvusCreateCollectionTest extends MilvusTestSupport {
 
     @DisplayName("Tests that trying to create a collection without passing the action name triggers a failure")
     @Test
-    public void createCollectionWithoutRequiredParameters() {
-        FieldType fieldType1 = FieldType.newBuilder()
-                .withName("userID")
-                .withDescription("user identification")
-                .withDataType(DataType.Int64)
-                .withPrimaryKey(true)
-                .withAutoID(true)
-                .build();
+    public void createCollectionWithoutRequiredParameters() throws Exception {
+        MilvusHelperCreateCollection ragCreateCollection = new MilvusHelperCreateCollection();
+        ragCreateCollection.setCollectionName("test");
+        ragCreateCollection.setCollectionDescription("customer info");
+        ragCreateCollection.setIdFieldName("userID");
+        ragCreateCollection.setVectorFieldName("userFace");
+        ragCreateCollection.setTextFieldName("userAge");
+        ragCreateCollection.setTextFieldDataType("Int8");
+        ragCreateCollection.setDimension("64");
 
-        FieldType fieldType2 = FieldType.newBuilder()
-                .withName("userFace")
-                .withDescription("face embedding")
-                .withDataType(DataType.FloatVector)
-                .withDimension(64)
-                .build();
+        Exchange tempExchange = new DefaultExchange(context);
+        ragCreateCollection.process(tempExchange);
 
-        FieldType fieldType3 = FieldType.newBuilder()
-                .withName("userAge")
-                .withDescription("user age")
-                .withDataType(DataType.Int8)
-                .build();
-
-        CreateCollectionParam createCollectionReq = CreateCollectionParam.newBuilder()
-                .withCollectionName("test")
-                .withDescription("customer info")
-                .withShardsNum(2)
-                .withSchema(CollectionSchemaParam.newBuilder()
-                        .withEnableDynamicField(false)
-                        .addFieldType(fieldType1)
-                        .addFieldType(fieldType2)
-                        .addFieldType(fieldType3)
-                        .build())
-                .build();
-
+        // Send body without the action header to trigger failure
         Exchange result = fluentTemplate.to("milvus:createCollection")
-                .withBody(
-                        createCollectionReq)
+                .withBody(tempExchange.getIn().getBody())
                 .request(Exchange.class);
 
         assertThat(result).isNotNull();
