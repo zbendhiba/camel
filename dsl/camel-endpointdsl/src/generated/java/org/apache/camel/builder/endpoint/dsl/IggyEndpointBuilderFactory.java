@@ -587,6 +587,87 @@ public interface IggyEndpointBuilderFactory {
             return this;
         }
         /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option is a:
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointConsumerBuilder sslContextParameters(org.apache.camel.support.jsse.SSLContextParameters sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option will be converted to a
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointConsumerBuilder sslContextParameters(String sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * Path to the TLS certificate file for the connection to the Iggy
+         * server.
+         * 
+         * The option is a: <code>java.lang.String</code> type.
+         * 
+         * Group: security
+         * 
+         * @param tlsCertificatePath the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointConsumerBuilder tlsCertificatePath(String tlsCertificatePath) {
+            doSetProperty("tlsCertificatePath", tlsCertificatePath);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option is a: <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointConsumerBuilder tlsEnabled(boolean tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option will be converted to a <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointConsumerBuilder tlsEnabled(String tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+        /**
          * Iggy username.
          * 
          * The option is a: <code>java.lang.String</code> type.
@@ -1099,6 +1180,87 @@ public interface IggyEndpointBuilderFactory {
             return this;
         }
         /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option is a:
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointProducerBuilder sslContextParameters(org.apache.camel.support.jsse.SSLContextParameters sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option will be converted to a
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointProducerBuilder sslContextParameters(String sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * Path to the TLS certificate file for the connection to the Iggy
+         * server.
+         * 
+         * The option is a: <code>java.lang.String</code> type.
+         * 
+         * Group: security
+         * 
+         * @param tlsCertificatePath the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointProducerBuilder tlsCertificatePath(String tlsCertificatePath) {
+            doSetProperty("tlsCertificatePath", tlsCertificatePath);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option is a: <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointProducerBuilder tlsEnabled(boolean tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option will be converted to a <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointProducerBuilder tlsEnabled(String tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+        /**
          * Iggy username.
          * 
          * The option is a: <code>java.lang.String</code> type.
@@ -1505,6 +1667,87 @@ public interface IggyEndpointBuilderFactory {
          */
         default IggyEndpointBuilder streamName(String streamName) {
             doSetProperty("streamName", streamName);
+            return this;
+        }
+        /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option is a:
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointBuilder sslContextParameters(org.apache.camel.support.jsse.SSLContextParameters sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option will be converted to a
+         * <code>org.apache.camel.support.jsse.SSLContextParameters</code> type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointBuilder sslContextParameters(String sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+        /**
+         * Path to the TLS certificate file for the connection to the Iggy
+         * server.
+         * 
+         * The option is a: <code>java.lang.String</code> type.
+         * 
+         * Group: security
+         * 
+         * @param tlsCertificatePath the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointBuilder tlsCertificatePath(String tlsCertificatePath) {
+            doSetProperty("tlsCertificatePath", tlsCertificatePath);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option is a: <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointBuilder tlsEnabled(boolean tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option will be converted to a <code>boolean</code> type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyEndpointBuilder tlsEnabled(String tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
             return this;
         }
         /**

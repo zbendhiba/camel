@@ -53,7 +53,10 @@ public class IggyConsumer extends DefaultConsumer {
                 endpoint.getConfiguration().getPort(),
                 endpoint.getConfiguration().getUsername(),
                 endpoint.getConfiguration().getPassword(),
-                endpoint.getConfiguration().getClientTransport());
+                endpoint.getConfiguration().getClientTransport(),
+                endpoint.getConfiguration().isTlsEnabled(),
+                endpoint.getConfiguration().getTlsCertificatePath(),
+                endpoint.getConfiguration().getSslContextParameters());
 
         IggyBaseClient client = iggyClientConnectionPool.borrowObject();
         endpoint.initializeTopic(client);

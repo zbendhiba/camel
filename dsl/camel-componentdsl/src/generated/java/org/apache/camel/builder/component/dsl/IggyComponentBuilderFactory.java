@@ -507,6 +507,75 @@ public interface IggyComponentBuilderFactory {
         }
     
         /**
+         * SSL configuration using an
+         * org.apache.camel.support.jsse.SSLContextParameters instance. This
+         * takes precedence over tlsEnabled and tlsCertificatePath when
+         * configured.
+         * 
+         * The option is a:
+         * &lt;code&gt;org.apache.camel.support.jsse.SSLContextParameters&lt;/code&gt; type.
+         * 
+         * Group: security
+         * 
+         * @param sslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyComponentBuilder sslContextParameters(org.apache.camel.support.jsse.SSLContextParameters sslContextParameters) {
+            doSetProperty("sslContextParameters", sslContextParameters);
+            return this;
+        }
+    
+        /**
+         * Path to the TLS certificate file for the connection to the Iggy
+         * server.
+         * 
+         * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
+         * 
+         * Group: security
+         * 
+         * @param tlsCertificatePath the value to set
+         * @return the dsl builder
+         */
+        default IggyComponentBuilder tlsCertificatePath(java.lang.String tlsCertificatePath) {
+            doSetProperty("tlsCertificatePath", tlsCertificatePath);
+            return this;
+        }
+    
+        
+        /**
+         * Whether to enable TLS for the connection to the Iggy server.
+         * 
+         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param tlsEnabled the value to set
+         * @return the dsl builder
+         */
+        default IggyComponentBuilder tlsEnabled(boolean tlsEnabled) {
+            doSetProperty("tlsEnabled", tlsEnabled);
+            return this;
+        }
+    
+        
+        /**
+         * Enable usage of global SSL context parameters.
+         * 
+         * The option is a: &lt;code&gt;boolean&lt;/code&gt; type.
+         * 
+         * Default: false
+         * Group: security
+         * 
+         * @param useGlobalSslContextParameters the value to set
+         * @return the dsl builder
+         */
+        default IggyComponentBuilder useGlobalSslContextParameters(boolean useGlobalSslContextParameters) {
+            doSetProperty("useGlobalSslContextParameters", useGlobalSslContextParameters);
+            return this;
+        }
+    
+        /**
          * Iggy username.
          * 
          * The option is a: &lt;code&gt;java.lang.String&lt;/code&gt; type.
@@ -567,6 +636,10 @@ public interface IggyComponentBuilderFactory {
             case "lazyStartProducer": ((IggyComponent) component).setLazyStartProducer((boolean) value); return true;
             case "partitioning": getOrCreateConfiguration((IggyComponent) component).setPartitioning((org.apache.iggy.message.Partitioning) value); return true;
             case "autowiredEnabled": ((IggyComponent) component).setAutowiredEnabled((boolean) value); return true;
+            case "sslContextParameters": getOrCreateConfiguration((IggyComponent) component).setSslContextParameters((org.apache.camel.support.jsse.SSLContextParameters) value); return true;
+            case "tlsCertificatePath": getOrCreateConfiguration((IggyComponent) component).setTlsCertificatePath((java.lang.String) value); return true;
+            case "tlsEnabled": getOrCreateConfiguration((IggyComponent) component).setTlsEnabled((boolean) value); return true;
+            case "useGlobalSslContextParameters": ((IggyComponent) component).setUseGlobalSslContextParameters((boolean) value); return true;
             case "username": getOrCreateConfiguration((IggyComponent) component).setUsername((java.lang.String) value); return true;
             default: return false;
             }
