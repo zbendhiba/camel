@@ -26,12 +26,15 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.spi.LifecycleStrategy;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledForJreRange;
+import org.junit.jupiter.api.condition.JRE;
 
 import static org.apache.camel.management.DefaultManagementObjectNameStrategy.TYPE_THREAD_POOL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@EnabledForJreRange(min = JRE.JAVA_21)
 public class ManagedVirtualThreadExecutorTest extends ManagementTestSupport {
 
     private ExecutorService vte;
@@ -41,7 +44,9 @@ public class ManagedVirtualThreadExecutorTest extends ManagementTestSupport {
         CamelContext ctx = super.createCamelContext();
         // register the virtual thread executor during context creation (before it starts)
         // so that shouldRegister returns true
-        vte = Executors.newVirtualThreadPerTaskExecutor();
+        vte = (ExecutorService) Executors.class
+                .getMethod("newVirtualThreadPerTaskExecutor")
+                .invoke(null);
         for (LifecycleStrategy lifecycle : ctx.getLifecycleStrategies()) {
             lifecycle.onThreadPoolAdd(ctx, vte, "myVirtualPool", "test", null, null);
         }
