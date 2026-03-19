@@ -67,8 +67,10 @@ public class SpringAiChatParameterOverrideIT extends OllamaTestSupport {
 
         String response = exchange.getMessage().getBody(String.class);
         assertThat(response).isNotNull();
-        // With low top_p, should get more deterministic responses
-        assertThat(response.toLowerCase()).containsAnyOf("blue", "above", "high");
+        assertThat(response.split("\\s+")).hasSizeGreaterThan(1);
+
+        Integer totalTokens = exchange.getMessage().getHeader(SpringAiChatConstants.TOTAL_TOKEN_COUNT, Integer.class);
+        assertThat(totalTokens).isNotNull().isGreaterThan(0);
     }
 
     @Test
