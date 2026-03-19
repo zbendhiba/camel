@@ -38,7 +38,7 @@ TOOLBOX_PLUGIN="eu.maveniverse.maven.plugins:toolbox"
 detect_changed_properties() {
   local base_branch="$1"
 
-  git diff "${base_branch}" -- parent/pom.xml | \
+  git diff "${base_branch}"...HEAD -- parent/pom.xml | \
     grep -E '^[+-][[:space:]]*<[^>]+>[^<]*</[^>]+>' | \
     grep -vE '^\+\+\+|^---' | \
     sed -E 's/^[+-][[:space:]]*<([^>]+)>.*/\1/' | \
@@ -124,7 +124,7 @@ main() {
   git fetch origin "$base_branch":"$base_branch" 2>/dev/null || true
 
   # Check if parent/pom.xml was actually changed
-  if ! git diff --name-only "${base_branch}" -- parent/pom.xml | grep -q .; then
+  if ! git diff --name-only "${base_branch}"...HEAD -- parent/pom.xml | grep -q .; then
     echo "parent/pom.xml not changed, nothing to do"
     exit 0
   fi
