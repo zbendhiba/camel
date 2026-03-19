@@ -272,8 +272,27 @@ main() {
     exit 0
   fi
 
+  # Filter out modules that are in the exclusion list
+  local filtered_ids=""
+  local IFS_backup="$IFS"
+  IFS=','
+  for mod_id in $all_module_ids; do
+    if ! echo ",$exclusionList," | grep -q ",!${mod_id},"; then
+      filtered_ids="${filtered_ids:+${filtered_ids},}${mod_id}"
+    else
+      echo "  Skipping excluded module: $mod_id"
+    fi
+  done
+  IFS="$IFS_backup"
+
+  if [ -z "$filtered_ids" ]; then
+    echo "All affected modules are in the exclusion list, skipping targeted tests"
+    write_comment "$changed_props" "$all_module_ids" "$module_count" "skip"
+    exit 0
+  fi
+
   echo "Running targeted tests for affected modules..."
-  $mavenBinary -l $log $MVND_OPTS test -pl "${all_module_ids},${exclusionList}" -amd
+  $mavenBinary -l $log $MVND_OPTS test -pl "${filtered_ids},${exclusionList}" -amd
   local ret=$?
 
   if [ ${ret} -eq 0 ]; then
