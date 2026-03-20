@@ -36,8 +36,10 @@ public class JmsJettyAsyncTest extends CamelTestSupport {
     @RegisterExtension
     public static JmsServiceExtension jmsServiceExtension = JmsServiceExtension.createExtension();
 
+    @RegisterExtension
+    static AvailablePortFinder.Port portFinder = AvailablePortFinder.find();
     private int size = 100;
-    private int port;
+    private int port = portFinder.getPort();
 
     @Test
     void testJmsJettyAsyncTest() throws Exception {
@@ -53,7 +55,6 @@ public class JmsJettyAsyncTest extends CamelTestSupport {
 
     @Override
     protected RouteBuilder createRouteBuilder() {
-        port = AvailablePortFinder.getNextAvailable();
 
         return new RouteBuilder() {
             @Override
