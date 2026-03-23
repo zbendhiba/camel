@@ -1056,7 +1056,7 @@ public class Run extends CamelCommand {
 
     protected int runQuarkus() throws Exception {
         if (background) {
-            printer().println("Run Camel Quarkus with --background is not supported");
+            printer().printErr("Run Camel Quarkus with --background is not supported");
             return 1;
         }
 
@@ -1162,7 +1162,7 @@ public class Run extends CamelCommand {
 
     protected int runSpringBoot() throws Exception {
         if (background) {
-            printer().println("Run Camel Spring Boot with --background is not supported");
+            printer().printErr("Run Camel Spring Boot with --background is not supported");
             return 1;
         }
 
@@ -1575,7 +1575,7 @@ public class Run extends CamelCommand {
             if (!p.isAlive()) {
                 ec = p.exitValue();
                 if (ec != 0) {
-                    printer().println(kind + ": " + name + " startup failure");
+                    printer().printErr(kind + ": " + name + " startup failure");
                     printer().println("");
                     String text = Files.readString(logPath);
                     printer().print(text);
