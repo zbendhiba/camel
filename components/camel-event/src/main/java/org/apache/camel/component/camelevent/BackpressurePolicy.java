@@ -16,24 +16,23 @@
  */
 package org.apache.camel.component.camelevent;
 
-import java.util.Map;
-
-import org.apache.camel.Endpoint;
-import org.apache.camel.support.DefaultComponent;
-
 /**
- * The Event component allows subscribing to Camel internal events such as route events and exchange events.
+ * Backpressure policy for the async event queue.
  */
-@org.apache.camel.spi.annotations.Component("event")
-public class EventComponent extends DefaultComponent {
+public enum BackpressurePolicy {
 
-    public EventComponent() {
-    }
+    /**
+     * Block the event notifier thread until space is available in the queue.
+     */
+    Block,
 
-    @Override
-    protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
-        EventEndpoint endpoint = new EventEndpoint(uri, this, remaining);
-        setProperties(endpoint, parameters);
-        return endpoint;
-    }
+    /**
+     * Silently discard the event when the queue is full.
+     */
+    Drop,
+
+    /**
+     * Throw an exception when the queue is full.
+     */
+    Fail
 }
