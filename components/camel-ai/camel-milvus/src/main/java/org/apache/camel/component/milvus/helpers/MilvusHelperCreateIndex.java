@@ -32,6 +32,7 @@ public class MilvusHelperCreateIndex implements Processor {
 
     private String collectionName = "default_collection";
     private String vectorFieldName = "embedding";
+    private String indexName;
     private String indexType = "IVF_FLAT";
     private String metricType = "COSINE";
     private String extraParam = "{\"nlist\": 128}";
@@ -41,14 +42,19 @@ public class MilvusHelperCreateIndex implements Processor {
         IndexType idxType = IndexType.valueOf(indexType);
         MetricType metric = MetricType.valueOf(metricType);
 
-        CreateIndexParam param = CreateIndexParam.newBuilder()
+        CreateIndexParam.Builder builder = CreateIndexParam.newBuilder()
                 .withCollectionName(collectionName)
                 .withFieldName(vectorFieldName)
                 .withIndexType(idxType)
                 .withMetricType(metric)
                 .withExtraParam(extraParam)
-                .withSyncMode(Boolean.TRUE)
-                .build();
+                .withSyncMode(Boolean.TRUE);
+
+        if (indexName != null && !indexName.isEmpty()) {
+            builder.withIndexName(indexName);
+        }
+
+        CreateIndexParam param = builder.build();
 
         exchange.getIn().setBody(param);
         exchange.getIn().setHeader(MilvusHeaders.ACTION, MilvusAction.CREATE_INDEX);
@@ -68,6 +74,17 @@ public class MilvusHelperCreateIndex implements Processor {
 
     public void setVectorFieldName(String vectorFieldName) {
         this.vectorFieldName = vectorFieldName;
+    }
+
+    public String getIndexName() {
+        return indexName;
+    }
+
+    /**
+     * @param indexName the name to assign to the index (e.g., {@code myVectorIndex})
+     */
+    public void setIndexName(String indexName) {
+        this.indexName = indexName;
     }
 
     public String getIndexType() {

@@ -36,6 +36,8 @@ public class MilvusHelperSearch implements Processor {
     private String collectionName = "default_collection";
     private String outputFields = "content";
     private String limit = "10";
+    private String offset = "0";
+    private String consistencyLevel = "STRONG";
     private String filter;
 
     @SuppressWarnings("unchecked")
@@ -55,12 +57,16 @@ public class MilvusHelperSearch implements Processor {
             }
         }
 
+        long searchOffset = Long.parseLong(offset);
+        ConsistencyLevelEnum consistency = ConsistencyLevelEnum.valueOf(consistencyLevel);
+
         SearchSimpleParam.Builder builder = SearchSimpleParam.newBuilder()
                 .withCollectionName(collectionName)
                 .withVectors(queryEmbedding)
                 .withLimit(searchLimit)
+                .withOffset(searchOffset)
                 .withOutputFields(fields)
-                .withConsistencyLevel(ConsistencyLevelEnum.STRONG);
+                .withConsistencyLevel(consistency);
 
         if (filter != null && !filter.isEmpty()) {
             builder.withFilter(filter);
@@ -101,6 +107,29 @@ public class MilvusHelperSearch implements Processor {
      */
     public void setLimit(String limit) {
         this.limit = limit;
+    }
+
+    public String getOffset() {
+        return offset;
+    }
+
+    /**
+     * @param offset the number of results to skip as a string (e.g., {@code 0}, {@code 10})
+     */
+    public void setOffset(String offset) {
+        this.offset = offset;
+    }
+
+    public String getConsistencyLevel() {
+        return consistencyLevel;
+    }
+
+    /**
+     * @param consistencyLevel the Milvus {@link io.milvus.common.clientenum.ConsistencyLevelEnum} enum name (e.g.,
+     *                         {@code STRONG}, {@code BOUNDED}, {@code EVENTUALLY})
+     */
+    public void setConsistencyLevel(String consistencyLevel) {
+        this.consistencyLevel = consistencyLevel;
     }
 
     public String getFilter() {
