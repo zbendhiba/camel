@@ -21,11 +21,18 @@ import java.util.List;
 import java.util.Random;
 
 import io.milvus.common.clientenum.ConsistencyLevelEnum;
+import io.milvus.grpc.DataType;
 import io.milvus.grpc.QueryResults;
 import io.milvus.param.IndexType;
+import io.milvus.param.MetricType;
+import io.milvus.param.collection.CollectionSchemaParam;
+import io.milvus.param.collection.CreateCollectionParam;
+import io.milvus.param.collection.FieldType;
+import io.milvus.param.dml.DeleteParam;
 import io.milvus.param.dml.InsertParam;
 import io.milvus.param.dml.QueryParam;
 import io.milvus.param.dml.UpsertParam;
+import io.milvus.param.highlevel.dml.SearchSimpleParam;
 import io.milvus.param.highlevel.dml.response.SearchResponse;
 import io.milvus.param.index.CreateIndexParam;
 import org.apache.camel.Exchange;
@@ -46,22 +53,43 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class MilvusComponentIT extends MilvusTestSupport {
     @Test
     @Order(1)
-    public void createCollection() throws Exception {
-        MilvusHelperCreateCollection ragCreateCollection = new MilvusHelperCreateCollection();
-        ragCreateCollection.setCollectionName("test");
-        ragCreateCollection.setCollectionDescription("customer info");
-        ragCreateCollection.setIdFieldName("userID");
-        ragCreateCollection.setVectorFieldName("userFace");
-        ragCreateCollection.setTextFieldName("userAge");
-        ragCreateCollection.setTextFieldDataType("Int8");
-        ragCreateCollection.setDimension("64");
+    public void createCollection() {
+        FieldType fieldType1 = FieldType.newBuilder()
+                .withName("userID")
+                .withDescription("user identification")
+                .withDataType(DataType.Int64)
+                .withPrimaryKey(true)
+                .withAutoID(true)
+                .build();
 
-        Exchange tempExchange = new DefaultExchange(context);
-        ragCreateCollection.process(tempExchange);
+        FieldType fieldType2 = FieldType.newBuilder()
+                .withName("userFace")
+                .withDescription("face embedding")
+                .withDataType(DataType.FloatVector)
+                .withDimension(64)
+                .build();
+
+        FieldType fieldType3 = FieldType.newBuilder()
+                .withName("userAge")
+                .withDescription("user age")
+                .withDataType(DataType.Int8)
+                .build();
+
+        CreateCollectionParam createCollectionReq = CreateCollectionParam.newBuilder()
+                .withCollectionName("test")
+                .withDescription("customer info")
+                .withShardsNum(2)
+                .withSchema(CollectionSchemaParam.newBuilder()
+                        .withEnableDynamicField(false)
+                        .addFieldType(fieldType1)
+                        .addFieldType(fieldType2)
+                        .addFieldType(fieldType3).build())
+                .build();
 
         Exchange result = fluentTemplate.to("milvus:test")
-                .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
-                .withBody(tempExchange.getIn().getBody())
+                .withHeader(MilvusHeaders.ACTION, MilvusAction.CREATE_COLLECTION)
+                .withBody(
+                        createCollectionReq)
                 .request(Exchange.class);
 
         assertThat(result).isNotNull();
@@ -70,7 +98,7 @@ public class MilvusComponentIT extends MilvusTestSupport {
 
     @Test
     @Order(2)
-    public void createIndex() throws Exception {
+    public void createIndex() {
         CreateIndexParam createAgeIndexParam = CreateIndexParam.newBuilder()
                 .withCollectionName("test")
                 .withFieldName("userAge")
@@ -87,19 +115,20 @@ public class MilvusComponentIT extends MilvusTestSupport {
         assertThat(result).isNotNull();
         assertThat(result.getException()).isNull();
 
-        MilvusHelperCreateIndex ragCreateIndex = new MilvusHelperCreateIndex();
-        ragCreateIndex.setCollectionName("test");
-        ragCreateIndex.setVectorFieldName("userFace");
-        ragCreateIndex.setIndexType("IVF_FLAT");
-        ragCreateIndex.setMetricType("L2");
-        ragCreateIndex.setExtraParam("{\"nlist\":128}");
-
-        Exchange tempExchange = new DefaultExchange(context);
-        ragCreateIndex.process(tempExchange);
+        CreateIndexParam createVectorIndexParam = CreateIndexParam.newBuilder()
+                .withCollectionName("test")
+                .withFieldName("userFace")
+                .withIndexName("userFaceIndex")
+                .withIndexType(IndexType.IVF_FLAT)
+                .withMetricType(MetricType.L2)
+                .withExtraParam("{\"nlist\":128}")
+                .withSyncMode(Boolean.TRUE)
+                .build();
 
         result = fluentTemplate.to("milvus:test")
-                .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
-                .withBody(tempExchange.getIn().getBody())
+                .withHeader(MilvusHeaders.ACTION, MilvusAction.CREATE_INDEX)
+                .withBody(
+                        createVectorIndexParam)
                 .request(Exchange.class);
 
         assertThat(result).isNotNull();
@@ -163,20 +192,21 @@ public class MilvusComponentIT extends MilvusTestSupport {
 
     @Test
     @Order(5)
-    public void search() throws Exception {
-        MilvusHelperSearch ragSearch = new MilvusHelperSearch();
-        ragSearch.setCollectionName("test");
-        ragSearch.setOutputFields("userAge");
-        ragSearch.setFilter("userAge>0");
-        ragSearch.setLimit("100");
-
-        Exchange tempExchange = new DefaultExchange(context);
-        tempExchange.getIn().setBody(generateFloatVector());
-        ragSearch.process(tempExchange);
+    public void search() {
+        SearchSimpleParam searchSimpleParam = SearchSimpleParam.newBuilder()
+                .withCollectionName("test")
+                .withVectors(generateFloatVector())
+                .withFilter("userAge>0")
+                .withLimit(100L)
+                .withOffset(0L)
+                .withOutputFields(Lists.newArrayList("userAge"))
+                .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+                .build();
 
         Exchange result = fluentTemplate.to("milvus:test")
-                .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
-                .withBody(tempExchange.getIn().getBody())
+                .withHeader(MilvusHeaders.ACTION, MilvusAction.SEARCH)
+                .withBody(
+                        searchSimpleParam)
                 .request(Exchange.class);
 
         assertThat(result).isNotNull();
@@ -207,13 +237,104 @@ public class MilvusComponentIT extends MilvusTestSupport {
 
     @Test
     @Order(7)
-    public void delete() throws Exception {
-        MilvusHelperDelete ragDelete = new MilvusHelperDelete();
-        ragDelete.setCollectionName("test");
-        ragDelete.setFilter("userAge>0");
+    public void delete() {
+        DeleteParam delete = DeleteParam.newBuilder()
+                .withCollectionName("test")
+                .withExpr("userAge>0")
+                .build();
+
+        Exchange result = fluentTemplate.to("milvus:test")
+                .withHeader(MilvusHeaders.ACTION, MilvusAction.DELETE)
+                .withBody(
+                        delete)
+                .request(Exchange.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getException()).isNull();
+
+        SearchSimpleParam searchSimpleParam = SearchSimpleParam.newBuilder()
+                .withCollectionName("test")
+                .withVectors(generateFloatVector())
+                .withFilter("userAge>0")
+                .withLimit(100L)
+                .withOffset(0L)
+                .withOutputFields(Lists.newArrayList("userAge"))
+                .withConsistencyLevel(ConsistencyLevelEnum.STRONG)
+                .build();
+
+        result = fluentTemplate.to("milvus:test")
+                .withHeader(MilvusHeaders.ACTION, MilvusAction.SEARCH)
+                .withBody(
+                        searchSimpleParam)
+                .request(Exchange.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getException()).isNull();
+        assertThat(result.getMessage().getBody(SearchResponse.class).getRowRecords().size() == 0);
+    }
+
+    // --- Helper-based tests (same operations via MilvusHelper beans) ---
+
+    @Test
+    @Order(10)
+    public void createCollectionWithHelper() throws Exception {
+        MilvusHelperCreateCollection helper = new MilvusHelperCreateCollection();
+        helper.setCollectionName("test_helper");
+        helper.setCollectionDescription("helper test collection");
+        helper.setIdFieldName("userID");
+        helper.setVectorFieldName("userFace");
+        helper.setTextFieldName("userAge");
+        helper.setTextFieldDataType("Int8");
+        helper.setDimension("64");
 
         Exchange tempExchange = new DefaultExchange(context);
-        ragDelete.process(tempExchange);
+        helper.process(tempExchange);
+
+        Exchange result = fluentTemplate.to("milvus:test_helper")
+                .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
+                .withBody(tempExchange.getIn().getBody())
+                .request(Exchange.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getException()).isNull();
+    }
+
+    @Test
+    @Order(11)
+    public void createIndexWithHelper() throws Exception {
+        MilvusHelperCreateIndex helper = new MilvusHelperCreateIndex();
+        helper.setCollectionName("test_helper");
+        helper.setVectorFieldName("userFace");
+        helper.setIndexName("userFaceIndex");
+        helper.setIndexType("IVF_FLAT");
+        helper.setMetricType("L2");
+        helper.setExtraParam("{\"nlist\":128}");
+
+        Exchange tempExchange = new DefaultExchange(context);
+        helper.process(tempExchange);
+
+        Exchange result = fluentTemplate.to("milvus:test_helper")
+                .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
+                .withBody(tempExchange.getIn().getBody())
+                .request(Exchange.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getException()).isNull();
+    }
+
+    @Test
+    @Order(12)
+    public void searchWithHelper() throws Exception {
+        MilvusHelperSearch helper = new MilvusHelperSearch();
+        helper.setCollectionName("test");
+        helper.setOutputFields("userAge");
+        helper.setFilter("userAge>0");
+        helper.setLimit("100");
+        helper.setOffset("0");
+
+        Exchange tempExchange = new DefaultExchange(context);
+        tempExchange.getIn().setBody(generateFloatVector());
+        helper.process(tempExchange);
 
         Exchange result = fluentTemplate.to("milvus:test")
                 .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
@@ -222,25 +343,25 @@ public class MilvusComponentIT extends MilvusTestSupport {
 
         assertThat(result).isNotNull();
         assertThat(result.getException()).isNull();
+    }
 
-        MilvusHelperSearch ragSearch = new MilvusHelperSearch();
-        ragSearch.setCollectionName("test");
-        ragSearch.setOutputFields("userAge");
-        ragSearch.setFilter("userAge>0");
-        ragSearch.setLimit("100");
+    @Test
+    @Order(13)
+    public void deleteWithHelper() throws Exception {
+        MilvusHelperDelete helper = new MilvusHelperDelete();
+        helper.setCollectionName("test_helper");
+        helper.setFilter("userAge>0");
 
-        tempExchange = new DefaultExchange(context);
-        tempExchange.getIn().setBody(generateFloatVector());
-        ragSearch.process(tempExchange);
+        Exchange tempExchange = new DefaultExchange(context);
+        helper.process(tempExchange);
 
-        result = fluentTemplate.to("milvus:test")
+        Exchange result = fluentTemplate.to("milvus:test_helper")
                 .withHeader(MilvusHeaders.ACTION, tempExchange.getIn().getHeader(MilvusHeaders.ACTION))
                 .withBody(tempExchange.getIn().getBody())
                 .request(Exchange.class);
 
         assertThat(result).isNotNull();
         assertThat(result.getException()).isNull();
-        assertThat(result.getMessage().getBody(SearchResponse.class).getRowRecords().size() == 0);
     }
 
     private List<List<Float>> generateFloatVectors(int count) {

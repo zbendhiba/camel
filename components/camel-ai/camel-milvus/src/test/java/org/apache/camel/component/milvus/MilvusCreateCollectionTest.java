@@ -17,6 +17,10 @@
 
 package org.apache.camel.component.milvus;
 
+import io.milvus.grpc.DataType;
+import io.milvus.param.collection.CollectionSchemaParam;
+import io.milvus.param.collection.CreateCollectionParam;
+import io.milvus.param.collection.FieldType;
 import org.apache.camel.Exchange;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.component.milvus.helpers.MilvusHelperCreateCollection;
@@ -30,18 +34,63 @@ public class MilvusCreateCollectionTest extends MilvusTestSupport {
 
     @DisplayName("Tests that trying to create a collection without passing the action name triggers a failure")
     @Test
-    public void createCollectionWithoutRequiredParameters() throws Exception {
-        MilvusHelperCreateCollection ragCreateCollection = new MilvusHelperCreateCollection();
-        ragCreateCollection.setCollectionName("test");
-        ragCreateCollection.setCollectionDescription("customer info");
-        ragCreateCollection.setIdFieldName("userID");
-        ragCreateCollection.setVectorFieldName("userFace");
-        ragCreateCollection.setTextFieldName("userAge");
-        ragCreateCollection.setTextFieldDataType("Int8");
-        ragCreateCollection.setDimension("64");
+    public void createCollectionWithoutRequiredParameters() {
+        FieldType fieldType1 = FieldType.newBuilder()
+                .withName("userID")
+                .withDescription("user identification")
+                .withDataType(DataType.Int64)
+                .withPrimaryKey(true)
+                .withAutoID(true)
+                .build();
+
+        FieldType fieldType2 = FieldType.newBuilder()
+                .withName("userFace")
+                .withDescription("face embedding")
+                .withDataType(DataType.FloatVector)
+                .withDimension(64)
+                .build();
+
+        FieldType fieldType3 = FieldType.newBuilder()
+                .withName("userAge")
+                .withDescription("user age")
+                .withDataType(DataType.Int8)
+                .build();
+
+        CreateCollectionParam createCollectionReq = CreateCollectionParam.newBuilder()
+                .withCollectionName("test")
+                .withDescription("customer info")
+                .withShardsNum(2)
+                .withSchema(CollectionSchemaParam.newBuilder()
+                        .withEnableDynamicField(false)
+                        .addFieldType(fieldType1)
+                        .addFieldType(fieldType2)
+                        .addFieldType(fieldType3)
+                        .build())
+                .build();
+
+        Exchange result = fluentTemplate.to("milvus:createCollection")
+                .withBody(
+                        createCollectionReq)
+                .request(Exchange.class);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getException()).isInstanceOf(NoSuchHeaderException.class);
+    }
+
+    @DisplayName("Tests that trying to create a collection via helper without passing the action name triggers a failure")
+    @Test
+    public void createCollectionWithHelperWithoutRequiredParameters() throws Exception {
+        MilvusHelperCreateCollection helper = new MilvusHelperCreateCollection();
+        helper.setCollectionName("test");
+        helper.setCollectionDescription("customer info");
+        helper.setIdFieldName("userID");
+        helper.setVectorFieldName("userFace");
+        helper.setTextFieldName("userAge");
+        helper.setTextFieldDataType("Int8");
+        helper.setDimension("64");
 
         Exchange tempExchange = new DefaultExchange(context);
-        ragCreateCollection.process(tempExchange);
+        helper.process(tempExchange);
 
         // Send body without the action header to trigger failure
         Exchange result = fluentTemplate.to("milvus:createCollection")
