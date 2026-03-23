@@ -34,6 +34,7 @@ import org.apache.camel.support.service.ServiceHelper;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test that verifies in-flight transacted exchanges are rolled back when a forced shutdown occurs.
@@ -70,8 +71,10 @@ public class TransactionalClientDataSourceForcedShutdownTest extends Transaction
             // release the blocking processor so the exchange can complete
             releaseLatch.countDown();
 
-            // give the exchange time to complete
-            Thread.sleep(2000);
+            // wait for the exchange to finish processing
+            executor.shutdown();
+            assertTrue(executor.awaitTermination(10, TimeUnit.SECONDS),
+                    "Exchange processing should have completed");
 
             // verify that the transaction was rolled back
             // before the fix: count = 3 (original + 2 inserts committed)
@@ -80,8 +83,7 @@ public class TransactionalClientDataSourceForcedShutdownTest extends Transaction
             assertEquals(1, count, "Number of books after forced shutdown - transaction should have been rolled back");
         } finally {
             releaseLatch.countDown(); // ensure we don't hang if test fails
-            executor.shutdown();
-            executor.awaitTermination(10, TimeUnit.SECONDS);
+            executor.shutdownNow();
         }
     }
 
