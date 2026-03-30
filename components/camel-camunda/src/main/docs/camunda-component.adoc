@@ -151,6 +151,22 @@ YAML::
         - to:
             uri: "camunda://startProcess"
 ----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="direct:start-process"/>
+  <marshal>
+    <json/>
+  </marshal>
+  <setBody>
+    <simple>{"process_id":"processId","variables":${body}}</simple>
+  </setBody>
+  <to uri="camunda://startProcess"/>
+</route>
+----
 ====
 
 *JSON Request Example*
@@ -206,6 +222,19 @@ YAML::
         - to:
             uri: "camunda://cancelProcess"
 ----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="direct:cancel"/>
+  <setBody>
+    <simple>{"process_instance_key": 123}</simple>
+  </setBody>
+  <to uri="camunda://cancelProcess"/>
+</route>
+----
 ====
 
 * publishMessage
@@ -241,6 +270,19 @@ YAML::
         - to:
             uri: "camunda://publishMessage"
 ----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="direct:message"/>
+  <setBody>
+    <simple>{"name":"MessageName","correlation_key":"messageKey","time_to_live":100,"variables":{}}</simple>
+  </setBody>
+  <to uri="camunda://publishMessage"/>
+</route>
+----
 ====
 
 * deployResource
@@ -272,6 +314,19 @@ YAML::
             simple: "process.bpmn"
         - to:
             uri: "camunda://deployResource"
+----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="direct:deploy"/>
+  <setHeader name="CamelCamundaResourceName">
+    <simple>process.bpmn</simple>
+  </setHeader>
+  <to uri="camunda://deployResource"/>
+</route>
 ----
 ====
 
@@ -320,6 +375,16 @@ YAML::
         - log:
             message: "Received job ${header.CamelCamundaJobKey}"
 ----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
+  <log message="Received job ${header.CamelCamundaJobKey}"/>
+</route>
+----
 ====
 
 [[Worker_Flow_Examples]]
@@ -357,6 +422,17 @@ YAML::
         - to:
             uri: "camunda://completeJob"
 ----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
+  <log message="Processing job ${header.CamelCamundaJobKey}"/>
+  <to uri="camunda://completeJob"/>
+</route>
+----
 ====
 
 * *Fail a job* — reports a job failure with an error message:
@@ -387,6 +463,19 @@ YAML::
             simple: "Processing failed"
         - to:
             uri: "camunda://failJob"
+----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
+  <setHeader name="CamelCamundaErrorMessage">
+    <simple>Processing failed</simple>
+  </setHeader>
+  <to uri="camunda://failJob"/>
+</route>
 ----
 ====
 
@@ -422,6 +511,22 @@ YAML::
             simple: "Data validation failed"
         - to:
             uri: "camunda://throwError"
+----
+
+XML::
++
+[source,xml]
+----
+<route>
+  <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
+  <setHeader name="CamelCamundaErrorCode">
+    <simple>INVALID_DATA</simple>
+  </setHeader>
+  <setHeader name="CamelCamundaErrorMessage">
+    <simple>Data validation failed</simple>
+  </setHeader>
+  <to uri="camunda://throwError"/>
+</route>
 ----
 ====
 
