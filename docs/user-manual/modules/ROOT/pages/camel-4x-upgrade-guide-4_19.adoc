@@ -604,6 +604,36 @@ The `camel-tracing` and related components (`camel-opentelemetry` and `camel-obs
 
 Some minor difference may be expected when moving to the new components, make sure to read the documentation carefully.
 
+=== camel-zeebe (Deprecation)
+
+The `camel-zeebe` component has been deprecated and will be removed in a future release.
+A new xref:components::camunda-component.adoc[camel-camunda] component has been added as its replacement.
+
+The `camel-camunda` component uses the new Camunda Java Client (`io.camunda:camunda-client-java`)
+instead of the legacy Zeebe client, aligning with the Camunda 8 platform rebranding.
+
+To migrate, change your dependency from:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-zeebe</artifactId>
+</dependency>
+----
+
+To:
+
+[source,xml]
+----
+<dependency>
+    <groupId>org.apache.camel</groupId>
+    <artifactId>camel-camunda</artifactId>
+</dependency>
+----
+
+And update your endpoint URIs from `zeebe:` to `camunda:`.
+
 == Removed deprecated components
 
 The following deprecated components has been removed:
