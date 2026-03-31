@@ -65,7 +65,7 @@ public class ProcessProcessor extends AbstractBaseProcessor {
                 throw new IllegalArgumentException("Unknown Operation!");
         }
 
-        setBody(exchange, resultMessage, endpoint.isFormatJSON());
+        setBody(exchange, resultMessage);
     }
 
     private ProcessResponse startProcess(ProcessRequest processMessage) {

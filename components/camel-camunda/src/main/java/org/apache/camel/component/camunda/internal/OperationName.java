@@ -43,6 +43,6 @@ public enum OperationName {
                 return operationName;
             }
         }
-        throw new IllegalArgumentException(value);
+        throw new IllegalArgumentException("Unknown operation name: " + value);
     }
 }

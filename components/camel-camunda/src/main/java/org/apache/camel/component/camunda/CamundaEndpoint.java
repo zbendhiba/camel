@@ -89,11 +89,21 @@ public class CamundaEndpoint extends DefaultEndpoint implements EndpointServiceL
 
     public Producer createProducer() throws Exception {
         ObjectHelper.notNull(operationName, "operationName");
+        if (operationName == OperationName.REGISTER_JOB_WORKER) {
+            throw new IllegalArgumentException(
+                    "Operation 'worker' is only supported as a consumer endpoint (from). "
+                                               + "Use from(\"camunda://worker?...\") instead.");
+        }
         return new CamundaProducer(this);
     }
 
     public Consumer createConsumer(Processor processor) throws Exception {
         ObjectHelper.notNull(operationName, "operationName");
+        if (operationName != OperationName.REGISTER_JOB_WORKER) {
+            throw new IllegalArgumentException(
+                    "Operation '" + operationName.value() + "' is only supported as a producer endpoint (to). "
+                                               + "Use to(\"camunda://" + operationName.value() + "\") instead.");
+        }
 
         Consumer consumer = new CamundaConsumer(this, processor);
         configureConsumer(consumer);

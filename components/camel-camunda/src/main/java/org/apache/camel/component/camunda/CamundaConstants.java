@@ -46,6 +46,12 @@ public final class CamundaConstants {
     @Metadata(label = "producer", description = "The process definition key of a deployed process", javaType = "long")
     public static final String PROCESS_DEFINITION_KEY = HEADER_PREFIX + "ProcessDefinitionKey";
 
+    /**
+     * Exchange property set by completeJob/failJob/throwError producers to signal the worker consumer that the job was
+     * already handled and auto-complete/auto-fail should be skipped.
+     */
+    public static final String JOB_HANDLED = "CamundaJobHandled";
+
     private CamundaConstants() {
     }
 }

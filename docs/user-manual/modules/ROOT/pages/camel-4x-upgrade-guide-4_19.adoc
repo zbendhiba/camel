@@ -612,7 +612,9 @@ A new xref:components::camunda-component.adoc[camel-camunda] component has been 
 The `camel-camunda` component uses the new Camunda Java Client (`io.camunda:camunda-client-java`)
 instead of the legacy Zeebe client, aligning with the Camunda 8 platform rebranding.
 
-To migrate, change your dependency from:
+==== Dependency Change
+
+Change your dependency from:
 
 [source,xml]
 ----
@@ -632,7 +634,76 @@ To:
 </dependency>
 ----
 
-And update your endpoint URIs from `zeebe:` to `camunda:`.
+==== Endpoint URI Changes
+
+Update your endpoint URIs from `zeebe:` to `camunda:`. The consumer parameter `jobKey` has been
+renamed to `jobType` for clarity.
+
+Before:
+
+[source]
+----
+zeebe://startProcess
+zeebe://worker?jobKey=myJobType
+----
+
+After:
+
+[source]
+----
+camunda://startProcess
+camunda://worker?jobType=myJobType
+----
+
+==== Component Property Changes
+
+The connection properties have changed from host/port pairs to full URIs, and new SaaS properties have been added:
+
+[cols="1,1",options="header"]
+|===
+|camel-zeebe |camel-camunda
+
+|`gatewayHost` + `gatewayPort`
+|`grpcAddress` (e.g. `http://localhost:26500`)
+
+|_(not available)_
+|`restAddress` (e.g. `http://localhost:8080`)
+
+|_(not available)_
+|`clusterId`, `region`, `clientId`, `clientSecret` (SaaS connection)
+
+|_(not available)_
+|`oAuthAPI` (self-managed OAuth)
+|===
+
+==== Package and Class Changes
+
+[cols="1,1",options="header"]
+|===
+|camel-zeebe |camel-camunda
+
+|`org.apache.camel.component.zeebe`
+|`org.apache.camel.component.camunda`
+
+|`ZeebeConstants`
+|`CamundaConstants`
+
+|`org.apache.camel.component.zeebe.model.*`
+|`org.apache.camel.component.camunda.model.*`
+
+|Header prefix: `CamelZeebe`
+|Header prefix: `CamelCamunda`
+|===
+
+==== Worker Behavior Changes
+
+The `camel-camunda` worker consumer automatically completes jobs on success and fails them on exception
+(standard job worker pattern). You no longer need to call `completeJob` or `failJob` manually for
+simple job processing. If the route sets the exchange body to a `Map`, those entries are passed as
+output variables to the completed job. If you explicitly call `completeJob`, `failJob`, or `throwError`
+in the route, the auto-complete is skipped.
+
+See the xref:components::camunda-component.adoc[camel-camunda] component documentation for full details.
 
 == Removed deprecated components
 

@@ -77,7 +77,8 @@ public class JobProcessor extends AbstractBaseProcessor {
                 throw new IllegalArgumentException("Unknown Operation!");
         }
 
-        setBody(exchange, resultMessage, endpoint.isFormatJSON());
+        exchange.setProperty(CamundaConstants.JOB_HANDLED, true);
+        setBody(exchange, resultMessage);
     }
 
     private JobResponse completeJob(JobRequest message) {

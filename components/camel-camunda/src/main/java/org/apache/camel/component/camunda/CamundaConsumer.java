@@ -16,13 +16,14 @@
  */
 package org.apache.camel.component.camunda;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.camunda.client.api.response.ActivatedJob;
 import io.camunda.client.api.worker.JobClient;
 import io.camunda.client.api.worker.JobHandler;
 import io.camunda.client.api.worker.JobWorker;
-import org.apache.camel.AsyncCallback;
 import org.apache.camel.CamelException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -40,9 +41,9 @@ public class CamundaConsumer extends DefaultConsumer {
 
     private JobWorker jobWorker;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    public CamundaConsumer(CamundaEndpoint endpoint, Processor processor) throws CamelException {
+    public CamundaConsumer(CamundaEndpoint endpoint, Processor processor) {
         super(endpoint, processor);
         this.endpoint = endpoint;
     }
@@ -75,8 +76,9 @@ public class CamundaConsumer extends DefaultConsumer {
 
     private class ConsumerJobHandler implements JobHandler {
         @Override
+        @SuppressWarnings("unchecked")
         public void handle(JobClient client, ActivatedJob job) throws Exception {
-            final Exchange exchange = createExchange(true);
+            final Exchange exchange = createExchange(false);
 
             JobWorkerMessage message = new JobWorkerMessage();
             message.setKey(job.getKey());
@@ -109,8 +111,38 @@ public class CamundaConsumer extends DefaultConsumer {
                 exchange.getMessage().setBody(message);
             }
 
-            AsyncCallback cb = defaultConsumerCallback(exchange, true);
-            getAsyncProcessor().process(exchange, cb);
+            try {
+                getProcessor().process(exchange);
+            } catch (Exception e) {
+                exchange.setException(e);
+            }
+
+            try {
+                Boolean jobHandled = exchange.getProperty(CamundaConstants.JOB_HANDLED, Boolean.class);
+                if (Boolean.TRUE.equals(jobHandled)) {
+                    LOG.debug("Job {} already handled by route", job.getKey());
+                } else if (exchange.getException() != null) {
+                    LOG.debug("Auto-failing job {} due to: {}", job.getKey(), exchange.getException().getMessage());
+                    int retries = Math.max(job.getRetries() - 1, 0);
+                    client.newFailCommand(job.getKey())
+                            .retries(retries)
+                            .errorMessage(exchange.getException().getMessage())
+                            .send()
+                            .join();
+                } else {
+                    LOG.debug("Auto-completing job {}", job.getKey());
+                    var cmd = client.newCompleteCommand(job.getKey());
+                    Object body = exchange.getMessage().getBody();
+                    if (body instanceof Map) {
+                        cmd.variables((Map<String, Object>) body);
+                    }
+                    cmd.send().join();
+                }
+            } catch (Exception e) {
+                getExceptionHandler().handleException("Error auto-completing/failing job " + job.getKey(), exchange, e);
+            } finally {
+                releaseExchange(exchange, false);
+            }
         }
     }
 

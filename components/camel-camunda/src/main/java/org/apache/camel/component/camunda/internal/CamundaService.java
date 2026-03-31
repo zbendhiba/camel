@@ -71,7 +71,7 @@ public class CamundaService {
                 step3 = step2.latestVersion();
             }
 
-            if (!processMessage.getVariables().isEmpty()) {
+            if (processMessage.getVariables() != null && !processMessage.getVariables().isEmpty()) {
                 step3.variables(processMessage.getVariables());
             }
 
@@ -103,7 +103,7 @@ public class CamundaService {
 
             resultMessage.setSuccess(true);
         } catch (Exception exception) {
-            LOG.error("Cannot cancel process instance {}", processMessage.getProcessId(), exception);
+            LOG.error("Cannot cancel process instance {}", processMessage.getProcessInstanceKey(), exception);
             resultMessage.setErrorMessage(exception.getMessage());
             resultMessage.setSuccess(false);
         }

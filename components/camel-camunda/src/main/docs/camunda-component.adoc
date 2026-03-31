@@ -342,7 +342,15 @@ XML::
 
 camel-camunda creates a route exchange per job type with a job in the body. The `CamelCamundaJobKey` header is set automatically for each job.
 
-*Example*
+==== Auto-Complete / Auto-Fail
+
+The worker consumer follows the standard job worker pattern:
+
+* If the route completes successfully, the job is **automatically completed**. If the exchange body is a `Map`, those entries are passed as output variables.
+* If the route throws an exception, the job is **automatically failed** with the exception message. The retry count is decremented by one.
+* If the route explicitly calls `completeJob`, `failJob`, or `throwError`, the auto-complete is **skipped** (the consumer detects this via the `CamundaJobHandled` exchange property).
+
+*Basic Example* — process a job (auto-completed on success):
 
 [tabs]
 ====
@@ -387,12 +395,7 @@ XML::
 ----
 ====
 
-[[Worker_Flow_Examples]]
-==== Worker Flow Examples
-
-The `completeJob`, `failJob`, and `throwError` producer endpoints are designed to work with the `worker` consumer. The consumer automatically sets the `CamelCamundaJobKey` header, so these operations pick it up without any manual configuration.
-
-* *Complete a job* — processes the job and completes it, optionally passing output variables as a Map body:
+*Returning output variables* — set the body to a `Map` to pass variables back:
 
 [tabs]
 ====
@@ -405,8 +408,7 @@ from("camunda://worker?jobType=myJobType&timeout=20")
         Map<String, Object> result = new HashMap<>();
         result.put("approved", true);
         exchange.getIn().setBody(result);
-    })
-    .to("camunda://completeJob");
+    });
 ----
 
 YAML::
@@ -417,10 +419,10 @@ YAML::
     from:
       uri: "camunda://worker?jobType=myJobType&timeout=20"
       steps:
-        - log:
-            message: "Processing job ${header.CamelCamundaJobKey}"
-        - to:
-            uri: "camunda://completeJob"
+        - setBody:
+            constant:
+              resultType: "java.util.Map"
+              expression: ""
 ----
 
 XML::
@@ -429,57 +431,18 @@ XML::
 ----
 <route>
   <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
-  <log message="Processing job ${header.CamelCamundaJobKey}"/>
-  <to uri="camunda://completeJob"/>
+  <process ref="myJobProcessor"/>
 </route>
 ----
 ====
 
-* *Fail a job* — reports a job failure with an error message:
+[[Worker_Flow_Examples]]
+==== Advanced Worker Flow Examples
 
-[tabs]
-====
-Java::
-+
-[source,java]
-----
-from("camunda://worker?jobType=myJobType&timeout=20")
-    .process(exchange -> {
-        exchange.getIn().setHeader(CamundaConstants.ERROR_MESSAGE, "Processing failed");
-    })
-    .to("camunda://failJob");
-----
+For advanced scenarios, you can explicitly call `completeJob`, `failJob`, or `throwError` in the route.
+When you do, the consumer skips auto-complete/auto-fail.
 
-YAML::
-+
-[source,yaml]
-----
-- route:
-    from:
-      uri: "camunda://worker?jobType=myJobType&timeout=20"
-      steps:
-        - setHeader:
-            name: CamelCamundaErrorMessage
-            simple: "Processing failed"
-        - to:
-            uri: "camunda://failJob"
-----
-
-XML::
-+
-[source,xml]
-----
-<route>
-  <from uri="camunda://worker?jobType=myJobType&amp;timeout=20"/>
-  <setHeader name="CamelCamundaErrorMessage">
-    <simple>Processing failed</simple>
-  </setHeader>
-  <to uri="camunda://failJob"/>
-</route>
-----
-====
-
-* *Throw a business error* — signals a business error with an error code and message:
+* *Throw a business error* — signals a BPMN error with an error code and message:
 
 [tabs]
 ====

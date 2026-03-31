@@ -72,7 +72,7 @@ public class DeploymentProcessor extends AbstractBaseProcessor {
         }
 
         removeHeaders(exchange);
-        setBody(exchange, resultMessage, endpoint.isFormatJSON());
+        setBody(exchange, resultMessage);
 
         exchange.getMessage().setHeader(CamundaConstants.IS_SUCCESS, resultMessage.isSuccess());
         if (resultMessage.isSuccess()) {

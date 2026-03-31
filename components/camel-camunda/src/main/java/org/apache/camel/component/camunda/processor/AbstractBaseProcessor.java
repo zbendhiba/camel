@@ -26,13 +26,13 @@ import org.apache.camel.support.service.BaseService;
 
 public abstract class AbstractBaseProcessor extends BaseService implements CamundaProcessor {
     protected final CamundaEndpoint endpoint;
-    ObjectMapper objectMapper = new ObjectMapper();
+    static final ObjectMapper objectMapper = new ObjectMapper();
 
     public AbstractBaseProcessor(CamundaEndpoint endpoint) {
         this.endpoint = endpoint;
     }
 
-    protected void setBody(Exchange exchange, CamundaMessage message, boolean formatJSON) {
+    protected void setBody(Exchange exchange, CamundaMessage message) {
         if (endpoint.isFormatJSON()) {
             try {
                 exchange.getMessage().setBody(objectMapper.writeValueAsString(message));

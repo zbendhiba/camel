@@ -62,6 +62,7 @@ public class CamundaComponent extends DefaultComponent {
 
     private CamundaService camundaService;
 
+    @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
         OperationName operationName = OperationName.fromValue(remaining);
 
