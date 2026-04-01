@@ -325,7 +325,7 @@ After:
 </dependency>
 ----
 
-Finally, for camel-test-spring-junit5 any imports would change from `org.apache.camel.test.spring.junit5.*` to `import org.apache.camel.test.spring.junit6.*` and the dependency change would be : 
+Finally, for camel-test-spring-junit5 any imports would change from `org.apache.camel.test.spring.junit5.*` to `import org.apache.camel.test.spring.junit6.*` and the dependency change would be :
 
 Before:
 [source,xml]
@@ -607,7 +607,7 @@ Some minor difference may be expected when moving to the new components, make su
 === camel-zeebe (Deprecation)
 
 The `camel-zeebe` component has been deprecated and will be removed in a future release.
-A new xref:components::camunda-component.adoc[camel-camunda] component has been added as its replacement.
+A new camel-camunda component has been added as its replacement.
 
 The `camel-camunda` component uses the new Camunda Java Client (`io.camunda:camunda-client-java`)
 instead of the legacy Zeebe client, aligning with the Camunda 8 platform rebranding.
@@ -703,7 +703,7 @@ simple job processing. If the route sets the exchange body to a `Map`, those ent
 output variables to the completed job. If you explicitly call `completeJob`, `failJob`, or `throwError`
 in the route, the auto-complete is skipped.
 
-See the xref:components::camunda-component.adoc[camel-camunda] component documentation for full details.
+See the camel-camunda component documentation for full details.
 
 == Removed deprecated components
 
@@ -712,4 +712,3 @@ The following deprecated components has been removed:
 - `camel-nitrite`
 - `camel-torchserve`
 - `camel-test-infra-torchserve`
-

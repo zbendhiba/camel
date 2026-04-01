@@ -503,5 +503,3 @@ The `camel-camunda` component is the successor of `camel-zeebe`. Key differences
 * Supports Camunda SaaS via `clusterId`, `region`, `clientId`, `clientSecret`
 * Consumer `jobKey` parameter is renamed to `jobType` (for clarity)
 * Request/response model classes are in `org.apache.camel.component.camunda.model` instead of `org.apache.camel.component.zeebe.model`
-
-include::spring-boot:partial$starter.adoc[]
