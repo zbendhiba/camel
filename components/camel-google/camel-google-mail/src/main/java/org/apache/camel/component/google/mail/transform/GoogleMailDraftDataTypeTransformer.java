@@ -32,8 +32,6 @@ import org.apache.camel.spi.DataType;
 import org.apache.camel.spi.DataTypeTransformer;
 import org.apache.camel.spi.Transformer;
 import org.apache.camel.util.ObjectHelper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static jakarta.mail.Message.RecipientType.BCC;
 import static jakarta.mail.Message.RecipientType.CC;
@@ -47,14 +45,11 @@ import static jakarta.mail.Message.RecipientType.TO;
                      description = "Creates a Gmail Draft from String body and threading metadata from headers")
 public class GoogleMailDraftDataTypeTransformer extends Transformer {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GoogleMailDraftDataTypeTransformer.class);
-
     @Override
     public void transform(org.apache.camel.Message message, DataType fromType, DataType toType) throws Exception {
         String body = message.getBody(String.class);
         if (ObjectHelper.isEmpty(body)) {
-            LOG.warn("Draft body is empty, the resulting Gmail draft will have no content");
-            body = "";
+            throw new IllegalArgumentException("Draft body must not be null or empty");
         }
 
         String threadId = message.getHeader(GoogleMailStreamConstants.MAIL_THREAD_ID, String.class);

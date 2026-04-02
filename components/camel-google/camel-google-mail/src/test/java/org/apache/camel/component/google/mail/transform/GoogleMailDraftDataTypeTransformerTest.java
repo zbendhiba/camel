@@ -140,32 +140,23 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
     }
 
     @Test
-    void testDraftWithEmptyBody() throws Exception {
+    void testDraftWithEmptyBody() {
         Exchange exchange = new DefaultExchange(context);
         exchange.getMessage().setBody("");
         exchange.getMessage().setHeader(MAIL_SUBJECT, "Empty Body Test");
 
-        transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
-
-        Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNotNull(draft.getMessage().getRaw());
-
-        String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("Subject: Empty Body Test"));
+        assertThrows(IllegalArgumentException.class,
+                () -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY));
     }
 
     @Test
-    void testDraftWithNullBody() throws Exception {
+    void testDraftWithNullBody() {
         Exchange exchange = new DefaultExchange(context);
         exchange.getMessage().setBody(null);
         exchange.getMessage().setHeader(MAIL_SUBJECT, "Null Body Test");
 
-        transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
-
-        Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNotNull(draft.getMessage().getRaw());
+        assertThrows(IllegalArgumentException.class,
+                () -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY));
     }
 
     @Test
