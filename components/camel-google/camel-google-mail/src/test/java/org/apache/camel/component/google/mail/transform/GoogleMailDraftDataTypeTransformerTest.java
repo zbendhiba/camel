@@ -39,13 +39,8 @@ import static org.apache.camel.component.google.mail.stream.GoogleMailStreamCons
 import static org.apache.camel.component.google.mail.stream.GoogleMailStreamConstants.MAIL_SUBJECT;
 import static org.apache.camel.component.google.mail.stream.GoogleMailStreamConstants.MAIL_THREAD_ID;
 import static org.apache.camel.component.google.mail.stream.GoogleMailStreamConstants.MAIL_TO;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
@@ -82,13 +77,14 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNotNull(draft.getMessage());
-        assertNotNull(draft.getMessage().getRaw());
+        assertThat(draft).isNotNull();
+        assertThat(draft.getMessage()).isNotNull();
+        assertThat(draft.getMessage().getRaw()).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("This is a test draft message"));
-        assertTrue(decodedMessage.contains("Content-Type: text/plain; charset=UTF-8"));
+        assertThat(decodedMessage)
+                .contains("This is a test draft message")
+                .contains("Content-Type: text/plain; charset=UTF-8");
     }
 
     @Test
@@ -103,16 +99,17 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNotNull(draft.getMessage());
-        assertEquals("thread-123", draft.getMessage().getThreadId());
+        assertThat(draft).isNotNull();
+        assertThat(draft.getMessage()).isNotNull();
+        assertThat(draft.getMessage().getThreadId()).isEqualTo("thread-123");
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("From: sender@example.com"));
-        assertTrue(decodedMessage.contains("Subject: Re: Test Subject"));
-        assertTrue(decodedMessage.contains("In-Reply-To: <msg-456@mail.gmail.com>"));
-        assertTrue(decodedMessage.contains("References: <msg-456@mail.gmail.com>"));
-        assertTrue(decodedMessage.contains("Reply message"));
+        assertThat(decodedMessage)
+                .contains("From: sender@example.com")
+                .contains("Subject: Re: Test Subject")
+                .contains("In-Reply-To: <msg-456@mail.gmail.com>")
+                .contains("References: <msg-456@mail.gmail.com>")
+                .contains("Reply message");
     }
 
     @Test
@@ -128,15 +125,16 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("From: from@example.com"));
-        assertTrue(decodedMessage.contains("To: to@example.com"));
-        assertTrue(decodedMessage.contains("Cc: cc@example.com"));
-        assertTrue(decodedMessage.contains("Bcc: bcc@example.com"));
-        assertTrue(decodedMessage.contains("Subject: Complete Test"));
-        assertTrue(decodedMessage.contains("Complete message"));
+        assertThat(decodedMessage)
+                .contains("From: from@example.com")
+                .contains("To: to@example.com")
+                .contains("Cc: cc@example.com")
+                .contains("Bcc: bcc@example.com")
+                .contains("Subject: Complete Test")
+                .contains("Complete message");
     }
 
     @Test
@@ -145,8 +143,8 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         exchange.getMessage().setBody("");
         exchange.getMessage().setHeader(MAIL_SUBJECT, "Empty Body Test");
 
-        assertThrows(IllegalArgumentException.class,
-                () -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY));
+        assertThatThrownBy(() -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -155,8 +153,8 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         exchange.getMessage().setBody(null);
         exchange.getMessage().setHeader(MAIL_SUBJECT, "Null Body Test");
 
-        assertThrows(IllegalArgumentException.class,
-                () -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY));
+        assertThatThrownBy(() -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -168,12 +166,13 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNull(draft.getMessage().getThreadId());
+        assertThat(draft).isNotNull();
+        assertThat(draft.getMessage().getThreadId()).isNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("Subject: New Thread"));
-        assertTrue(decodedMessage.contains("New conversation"));
+        assertThat(decodedMessage)
+                .contains("Subject: New Thread")
+                .contains("New conversation");
     }
 
     @Test
@@ -186,11 +185,12 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // Without explicit Content-Type header, defaults to text/plain even for HTML-like body
-        assertTrue(decodedMessage.contains("text/plain"));
+        assertThat(decodedMessage)
+                .as("Without explicit Content-Type header, should default to text/plain even for HTML-like body")
+                .contains("text/plain");
     }
 
     @Test
@@ -204,11 +204,12 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("text/html"));
-        assertTrue(decodedMessage.contains(htmlBody));
+        assertThat(decodedMessage)
+                .contains("text/html")
+                .contains(htmlBody);
     }
 
     @Test
@@ -221,11 +222,12 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // MimeMessage sets text/html and determines charset automatically
-        assertTrue(decodedMessage.contains("Content-Type: text/html"));
+        assertThat(decodedMessage)
+                .as("MimeMessage should set text/html and determine charset automatically")
+                .contains("Content-Type: text/html");
     }
 
     @Test
@@ -237,10 +239,10 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("Content-Type: text/plain; charset=UTF-8"));
+        assertThat(decodedMessage).contains("Content-Type: text/plain; charset=UTF-8");
     }
 
     @Test
@@ -252,18 +254,18 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // MimeMessage encodes non-ASCII subjects using RFC 2047
-        assertTrue(decodedMessage.contains("Subject: =?UTF-8?"));
-        assertTrue(decodedMessage.contains("?="));
-        assertTrue(decodedMessage.contains("Message with accented subject"));
-        // Verify that the non-ASCII characters are preserved after decoding
+        assertThat(decodedMessage)
+                .contains("Subject: =?UTF-8?")
+                .contains("?=")
+                .contains("Message with accented subject");
         String decodedSubject = MimeUtility.decodeText(
                 decodedMessage.lines().filter(l -> l.startsWith("Subject:")).findFirst().orElse(""));
-        assertNotEquals("", decodedSubject);
-        assertTrue(decodedSubject.contains("Resumé for café meeting"));
+        assertThat(decodedSubject)
+                .as("Non-ASCII characters should be preserved after decoding")
+                .contains("Resumé for café meeting");
     }
 
     @Test
@@ -275,12 +277,13 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // MimeMessage handles non-ASCII in From display name and preserves the address
-        assertTrue(decodedMessage.contains("From:"));
-        assertTrue(decodedMessage.contains("renee@example.com"));
+        assertThat(decodedMessage)
+                .as("MimeMessage should handle non-ASCII in From display name and preserve the address")
+                .contains("From:")
+                .contains("renee@example.com");
     }
 
     @Test
@@ -293,8 +296,7 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // ASCII subjects should NOT be encoded
-        assertTrue(decodedMessage.contains("Subject: Plain ASCII Subject"));
+        assertThat(decodedMessage).contains("Subject: Plain ASCII Subject");
     }
 
     @Test
@@ -307,10 +309,9 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        // Should preserve the existing charset, not duplicate it
-        assertTrue(decodedMessage.contains("Content-Type: text/html; charset=ISO-8859-1"));
-        // Should NOT have charset=UTF-8 appended
-        assertFalse(decodedMessage.contains("charset=UTF-8"));
+        assertThat(decodedMessage)
+                .contains("Content-Type: text/html; charset=ISO-8859-1")
+                .doesNotContain("charset=UTF-8");
     }
 
     // E2E tests via Camel route
@@ -331,13 +332,14 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
         Exchange received = mock.getExchanges().get(0);
         Draft draft = received.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertNotNull(draft.getMessage());
+        assertThat(draft).isNotNull();
+        assertThat(draft.getMessage()).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("From: route@example.com"));
-        assertTrue(decodedMessage.contains("Subject: Route Test"));
-        assertTrue(decodedMessage.contains("Route test message"));
+        assertThat(decodedMessage)
+                .contains("From: route@example.com")
+                .contains("Subject: Route Test")
+                .contains("Route test message");
     }
 
     @Test
@@ -358,13 +360,14 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
         Exchange received = mock.getExchanges().get(0);
         Draft draft = received.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
-        assertEquals("thread-reply-123", draft.getMessage().getThreadId());
+        assertThat(draft).isNotNull();
+        assertThat(draft.getMessage().getThreadId()).isEqualTo("thread-reply-123");
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("In-Reply-To: <original@mail.gmail.com>"));
-        assertTrue(decodedMessage.contains("References: <original@mail.gmail.com>"));
-        assertTrue(decodedMessage.contains("This is a reply"));
+        assertThat(decodedMessage)
+                .contains("In-Reply-To: <original@mail.gmail.com>")
+                .contains("References: <original@mail.gmail.com>")
+                .contains("This is a reply");
     }
 
     @Test
@@ -383,25 +386,25 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
 
         Exchange received = mock.getExchanges().get(0);
         Draft draft = received.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("Line 1"));
-        assertTrue(decodedMessage.contains("Line 2"));
-        assertTrue(decodedMessage.contains("Line 3"));
-        assertTrue(decodedMessage.contains("Line 5"));
+        assertThat(decodedMessage)
+                .contains("Line 1")
+                .contains("Line 2")
+                .contains("Line 3")
+                .contains("Line 5");
     }
 
     @Test
-    void testDraftWithMalformedEmailAddress() throws Exception {
+    void testDraftWithMalformedEmailAddress() {
         Exchange exchange = new DefaultExchange(context);
         exchange.getMessage().setBody("Test message");
         exchange.getMessage().setHeader(MAIL_TO, "not a valid@ address");
         exchange.getMessage().setHeader(MAIL_SUBJECT, "Malformed Test");
 
-        // InternetAddress.parse(addr, true) throws AddressException for malformed addresses
-        assertThrows(Exception.class,
-                () -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY));
+        assertThatThrownBy(() -> transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY))
+                .isInstanceOf(Exception.class);
     }
 
     @Test
@@ -416,16 +419,17 @@ class GoogleMailDraftDataTypeTransformerTest extends CamelTestSupport {
         transformer.transform(exchange.getMessage(), DataType.ANY, DataType.ANY);
 
         Draft draft = exchange.getMessage().getBody(Draft.class);
-        assertNotNull(draft);
+        assertThat(draft).isNotNull();
 
         String decodedMessage = decodeMessage(draft.getMessage().getRaw());
-        assertTrue(decodedMessage.contains("To: user1@example.com"));
-        assertTrue(decodedMessage.contains("user2@example.com"));
-        assertTrue(decodedMessage.contains("Cc: cc1@example.com"));
-        assertTrue(decodedMessage.contains("cc2@example.com"));
-        assertTrue(decodedMessage.contains("Bcc: bcc1@example.com"));
-        assertTrue(decodedMessage.contains("Subject: Multiple Recipients Test"));
-        assertTrue(decodedMessage.contains("Message to multiple recipients"));
+        assertThat(decodedMessage)
+                .contains("To: user1@example.com")
+                .contains("user2@example.com")
+                .contains("Cc: cc1@example.com")
+                .contains("cc2@example.com")
+                .contains("Bcc: bcc1@example.com")
+                .contains("Subject: Multiple Recipients Test")
+                .contains("Message to multiple recipients");
     }
 
     // Helper method to decode Base64 message
