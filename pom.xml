@@ -581,6 +581,7 @@
                             <exclude>**/.camel-jbang/**/*</exclude>
                             <exclude>**/commands/edit/edit-help.txt</exclude>
                             <exclude>**/examples/*</exclude>
+                            <exclude>**/src/main/resources/testdata/**/*</exclude>
                             <!-- Maven Wrapper -->
                             <exclude>.mvn/**/*</exclude>
                             <exclude>**/maven-wrapper/*</exclude>
