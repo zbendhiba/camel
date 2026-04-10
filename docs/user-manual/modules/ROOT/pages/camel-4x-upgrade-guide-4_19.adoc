@@ -27,11 +27,6 @@ The cloud integration from the following components has been removed: `camel-con
 
 === camel-core
 
-==== MemoryIdempotentRepository
-
-The `MemoryIdempotentRepository` is no longer based on `LRUCache` but uses a `LinkedHashMap` as the repository
-has no need for LRU semantics and the `LinkedHashMap` is more light-weight.
-
 ==== PQC TLS Auto-Configuration
 
 When running on a JDK that supports `X25519MLKEM768` (typically JDK 25+), Camel now automatically
@@ -435,6 +430,10 @@ The `camel-json-patch` is now deprecated - the library it uses is not active mai
 
 When configured a custom `IdempotentRepository` on `camel-mail` endpoint, then Camel will now auto-start
 the bean which is similar to what `camel-file` do as well.
+
+=== camel-file / camel-aws2-s3 / camel-ibm-cos
+
+The default `inProgressRepository` is now FIFO based instead of LRU as there was no need for LRU behavior, which is lighter in memory overhead.
 
 === camel-openapi-java
 

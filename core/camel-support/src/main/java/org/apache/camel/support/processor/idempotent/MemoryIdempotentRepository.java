@@ -18,7 +18,6 @@ package org.apache.camel.support.processor.idempotent;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,11 +27,14 @@ import org.apache.camel.api.management.ManagedResource;
 import org.apache.camel.spi.Configurer;
 import org.apache.camel.spi.IdempotentRepository;
 import org.apache.camel.spi.Metadata;
+import org.apache.camel.support.LRUCache;
+import org.apache.camel.support.LRUCacheFactory;
 import org.apache.camel.support.service.ServiceHelper;
 import org.apache.camel.support.service.ServiceSupport;
 
 /**
- * A memory based implementation of {@link org.apache.camel.spi.IdempotentRepository}.
+ * A memory based implementation of {@link org.apache.camel.spi.IdempotentRepository} using LRU (default) or FIFO
+ * algorithm.
  * <p/>
  * Care should be taken to use a suitable underlying {@link Map} to avoid this class being a memory leak.
  */
@@ -49,7 +51,7 @@ public class MemoryIdempotentRepository extends ServiceSupport implements Idempo
     private final Lock cacheAndStoreLock = new ReentrantLock();
 
     @Metadata(description = "Maximum elements that can be stored in-memory", defaultValue = "" + MAX_CACHE_SIZE)
-    private int cacheSize = MAX_CACHE_SIZE;
+    private int cacheSize;
 
     public MemoryIdempotentRepository() {
     }
@@ -59,18 +61,14 @@ public class MemoryIdempotentRepository extends ServiceSupport implements Idempo
     }
 
     /**
-     * Creates a new memory based repository using a {@link java.util.LinkedHashMap} as its store, with 1000 maximum
-     * capacity. When a new entry is added and the store has reached its maximum capacity, the oldest entry is removed.
-     *
+     * Creates a new memory based repository using a {@link LRUCache} with a default of 1000 entries in the cache.
      */
     public static IdempotentRepository memoryIdempotentRepository() {
         return memoryIdempotentRepository(MAX_CACHE_SIZE);
     }
 
     /**
-     * Creates a new memory based repository using a {@link java.util.LinkedHashMap} as its store, with the given
-     * maximum capacity. When a new entry is added and the store has reached its maximum capacity, the oldest entry is
-     * removed.
+     * Creates a new memory based repository using a {@link LRUCache}.
      *
      * @param cacheSize the cache size
      */
@@ -78,6 +76,23 @@ public class MemoryIdempotentRepository extends ServiceSupport implements Idempo
         MemoryIdempotentRepository answer = new MemoryIdempotentRepository();
         answer.setCacheSize(cacheSize);
         ServiceHelper.startService(answer);
+        return answer;
+    }
+
+    /**
+     * Creates a new memory based repository using a {@link LinkedHashMap} as its store, with the given maximum
+     * capacity. When a new entry is added and the store has reached its maximum capacity, the oldest entry is removed.
+     *
+     * @param cacheSize the cache size
+     */
+    public static IdempotentRepository memoryIdempotentRepositoryFifo(int cacheSize) {
+        MemoryIdempotentRepository answer = new MemoryIdempotentRepository(new LinkedHashMap<>() {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, Object> eldest) {
+                return size() > cacheSize;
+            }
+        });
+        answer.setCacheSize(cacheSize);
         return answer;
     }
 
@@ -168,12 +183,7 @@ public class MemoryIdempotentRepository extends ServiceSupport implements Idempo
     @Override
     protected void doStart() throws Exception {
         if (cache == null) {
-            cache = new LinkedHashMap<>() {
-                @Override
-                protected boolean removeEldestEntry(Entry<String, Object> eldest) {
-                    return size() > cacheSize;
-                }
-            };
+            cache = LRUCacheFactory.newLRUCache(cacheSize <= 0 ? MAX_CACHE_SIZE : cacheSize);
         }
     }
 

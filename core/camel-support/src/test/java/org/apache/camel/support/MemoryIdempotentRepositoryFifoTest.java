@@ -25,19 +25,17 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MemoryIdempotentRepositoryTest {
+class MemoryIdempotentRepositoryFifoTest {
 
     @Test
     void repositoryEvictsOldestEntryWhenRepositoryIsFull() throws IOException {
         final int cacheSize = 5;
         final int entriesNotFittingInRepository = 4;
-        try (IdempotentRepository repository = MemoryIdempotentRepository.memoryIdempotentRepository(
-                cacheSize)) {
 
+        try (IdempotentRepository repository = MemoryIdempotentRepository.memoryIdempotentRepositoryFifo(cacheSize)) {
             for (int i = 0; i < cacheSize + entriesNotFittingInRepository; i++) {
                 repository.add(String.valueOf(i));
             }
-
             for (int i = entriesNotFittingInRepository; i < cacheSize + entriesNotFittingInRepository; i++) {
                 assertTrue(repository.contains(String.valueOf(i)), "Repository should contain entry " + i);
             }
