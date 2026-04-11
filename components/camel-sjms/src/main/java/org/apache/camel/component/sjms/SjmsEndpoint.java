@@ -99,14 +99,13 @@ public class SjmsEndpoint extends DefaultEndpoint
               description = "The JMS acknowledgement name, which is one of: SESSION_TRANSACTED, CLIENT_ACKNOWLEDGE, AUTO_ACKNOWLEDGE, DUPS_OK_ACKNOWLEDGE")
     private SessionAcknowledgementType acknowledgementMode = SessionAcknowledgementType.AUTO_ACKNOWLEDGE;
     @UriParam(defaultValue = "1", label = "consumer",
-              description = "Specifies the default number of concurrent consumers when consuming from JMS (not for request/reply over JMS)."
-                            + " See also the maxMessagesPerTask option to control dynamic scaling up/down of threads."
+              description = "Specifies the number of concurrent consumers when consuming from JMS (not for request/reply over JMS)."
+                            + " The concurrent consumer is fixed at startup and cannot be dynamic scaled like the camel-jms component."
                             + " When doing request/reply over JMS then the option replyToConcurrentConsumers is used to control number"
                             + " of concurrent consumers on the reply message listener.")
     private int concurrentConsumers = 1;
     @UriParam(defaultValue = "1", label = "producer",
-              description = "Specifies the default number of concurrent consumers when doing request/reply over JMS."
-                            + " See also the maxMessagesPerTask option to control dynamic scaling up/down of threads.")
+              description = "Specifies the default number of concurrent consumers when doing request/reply over JMS.")
     private int replyToConcurrentConsumers = 1;
     @UriParam(label = "producer,advanced", defaultValue = "false",
               description = "Set if the deliveryMode, priority or timeToLive qualities of service should be used when sending messages."

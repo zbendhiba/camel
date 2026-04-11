@@ -303,10 +303,10 @@ public interface SjmsEndpointBuilderFactory {
             return this;
         }
         /**
-         * Specifies the default number of concurrent consumers when consuming
-         * from JMS (not for request/reply over JMS). See also the
-         * maxMessagesPerTask option to control dynamic scaling up/down of
-         * threads. When doing request/reply over JMS then the option
+         * Specifies the number of concurrent consumers when consuming from JMS
+         * (not for request/reply over JMS). The concurrent consumer is fixed at
+         * startup and cannot be dynamic scaled like the camel-jms component.
+         * When doing request/reply over JMS then the option
          * replyToConcurrentConsumers is used to control number of concurrent
          * consumers on the reply message listener.
          * 
@@ -323,10 +323,10 @@ public interface SjmsEndpointBuilderFactory {
             return this;
         }
         /**
-         * Specifies the default number of concurrent consumers when consuming
-         * from JMS (not for request/reply over JMS). See also the
-         * maxMessagesPerTask option to control dynamic scaling up/down of
-         * threads. When doing request/reply over JMS then the option
+         * Specifies the number of concurrent consumers when consuming from JMS
+         * (not for request/reply over JMS). The concurrent consumer is fixed at
+         * startup and cannot be dynamic scaled like the camel-jms component.
+         * When doing request/reply over JMS then the option
          * replyToConcurrentConsumers is used to control number of concurrent
          * consumers on the reply message listener.
          * 
@@ -1411,8 +1411,7 @@ public interface SjmsEndpointBuilderFactory {
         }
         /**
          * Specifies the default number of concurrent consumers when doing
-         * request/reply over JMS. See also the maxMessagesPerTask option to
-         * control dynamic scaling up/down of threads.
+         * request/reply over JMS.
          * 
          * The option is a: <code>int</code> type.
          * 
@@ -1428,8 +1427,7 @@ public interface SjmsEndpointBuilderFactory {
         }
         /**
          * Specifies the default number of concurrent consumers when doing
-         * request/reply over JMS. See also the maxMessagesPerTask option to
-         * control dynamic scaling up/down of threads.
+         * request/reply over JMS.
          * 
          * The option will be converted to a <code>int</code> type.
          * 
