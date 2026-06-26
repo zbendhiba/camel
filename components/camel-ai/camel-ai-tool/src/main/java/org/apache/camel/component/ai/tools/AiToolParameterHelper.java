@@ -21,11 +21,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.camel.RuntimeCamelException;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.camel.RuntimeCamelException;
 
 /**
  * Shared utilities for parsing tool parameter metadata and building JSON Schema. Replaces the duplicated
@@ -77,7 +76,8 @@ public final class AiToolParameterHelper {
                     case "description" -> def.description = value;
                     case "required" -> def.required = Boolean.parseBoolean(value);
                     case "enum" -> def.enumValues = List.of(value.split(","));
-                    default -> { }
+                    default -> {
+                    }
                 }
             } else {
                 metadata.computeIfAbsent(key, k -> new ParameterDef()).type = value;

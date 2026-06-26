@@ -93,7 +93,8 @@ public class AiToolEndpoint extends DefaultEndpoint {
         AiToolConsumer consumer = new AiToolConsumer(this, processor);
         configureConsumer(consumer);
 
-        registeredSpec = new AiToolSpec(toolId, configuration.getDescription(), parameterDefs, jsonSchema, consumer,
+        registeredSpec = new AiToolSpec(
+                toolId, configuration.getDescription(), parameterDefs, jsonSchema, consumer,
                 configuration.isExposed());
 
         final AiToolRegistry registry = AiToolRegistry.getInstance();

@@ -24,7 +24,6 @@ package org.apache.camel.component.ai.tools;
 public final class AiTool {
 
     public static final String SCHEME = "ai-tool";
-    public static final String NO_TOOLS_CALLED_HEADER = "CamelAiToolNoToolsCalled";
 
     private AiTool() {
     }
