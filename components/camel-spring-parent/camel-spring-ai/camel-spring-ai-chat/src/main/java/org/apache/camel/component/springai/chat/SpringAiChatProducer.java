@@ -24,17 +24,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.WrappedFile;
+import org.apache.camel.component.ai.tools.AiToolParameterHelper;
+import org.apache.camel.component.ai.tools.AiToolRegistry;
+import org.apache.camel.component.ai.tools.AiToolSpec;
 import org.apache.camel.component.springai.chat.mcp.SpringAiChatMcpManager;
-import org.apache.camel.component.springai.tools.TagsHelper;
-import org.apache.camel.component.springai.tools.spec.CamelToolExecutorCache;
-import org.apache.camel.component.springai.tools.spec.CamelToolSpecification;
 import org.apache.camel.support.DefaultProducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -969,8 +968,8 @@ public class SpringAiChatProducer extends DefaultProducer {
             return List.of();
         }
 
-        // Discover tools from Camel Spring AI Tools routes
-        List<ToolCallback> toolCallbacks = discoverTools(tags);
+        // Discover tools from the unified AiToolRegistry
+        List<ToolCallback> toolCallbacks = discoverAiRegistryTools(tags);
 
         if (!toolCallbacks.isEmpty()) {
             // Collect tool names for enhanced logging
@@ -994,21 +993,21 @@ public class SpringAiChatProducer extends DefaultProducer {
     }
 
     /**
-     * Discover tools by tags and return a list of ToolCallback instances
+     * Discover tools registered via {@code ai-tool:} consumer endpoints in the shared {@link AiToolRegistry}. Converts
+     * each {@link AiToolSpec} to a Spring AI {@link ToolCallback} via {@link AiToolSpecToSpringAi}.
      */
-    private List<ToolCallback> discoverTools(String tags) {
-        final CamelToolExecutorCache toolCache = CamelToolExecutorCache.getInstance();
-        final Map<String, Set<CamelToolSpecification>> tools = toolCache.getTools();
-        final String[] tagArray = TagsHelper.splitTags(tags);
+    private List<ToolCallback> discoverAiRegistryTools(String tags) {
+        final AiToolRegistry registry = AiToolRegistry.getInstance();
+        final String[] tagArray = AiToolParameterHelper.splitTags(tags);
 
-        final List<ToolCallback> toolCallbacks = Arrays.stream(tagArray)
-                .flatMap(tag -> tools.entrySet().stream()
-                        .filter(entry -> entry.getKey().equals(tag))
-                        .flatMap(entry -> entry.getValue().stream()))
-                .map(CamelToolSpecification::getToolCallback)
-                .collect(Collectors.toList());
+        final List<ToolCallback> toolCallbacks = new ArrayList<>();
+        for (String tag : tagArray) {
+            for (AiToolSpec spec : registry.getToolsByTag(tag.trim())) {
+                toolCallbacks.add(AiToolSpecToSpringAi.toToolCallback(spec));
+            }
+        }
 
-        LOG.debug("Discovered {} unique tools for tags: {}", toolCallbacks.size(), tags);
+        LOG.debug("Discovered {} tools from AiToolRegistry for tags: {}", toolCallbacks.size(), tags);
         return toolCallbacks;
     }
 

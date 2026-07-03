@@ -40,10 +40,10 @@
             <artifactId>camel-support</artifactId>
         </dependency>
 
-        <!-- Camel Spring AI Tools for function calling -->
+        <!-- Camel AI Tool for unified AiToolRegistry -->
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-spring-ai-tools</artifactId>
+            <artifactId>camel-ai-tool</artifactId>
             <version>${project.version}</version>
             <optional>true</optional>
         </dependency>

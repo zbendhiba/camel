@@ -5,7 +5,7 @@
     "title": "AI Tool",
     "description": "Framework-agnostic consumer endpoint that registers a Camel route as an LLM tool in the shared AiToolRegistry.",
     "deprecated": false,
-    "firstVersion": "4.21.0",
+    "firstVersion": "4.22.0",
     "label": "ai",
     "javaType": "org.apache.camel.component.ai.tools.AiToolComponent",
     "supportLevel": "Preview",

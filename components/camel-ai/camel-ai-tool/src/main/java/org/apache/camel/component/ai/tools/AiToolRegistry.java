@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Replaces the duplicated {@code CamelToolExecutorCache} singletons from {@code camel-langchain4j-tools} and
  * {@code camel-spring-ai-tools}.
  *
- * @since 4.21
+ * @since 4.22
  */
 public final class AiToolRegistry {
 

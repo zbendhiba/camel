@@ -27,7 +27,7 @@ import org.apache.camel.Consumer;
  * Stores both a structured {@link AiToolParameterHelper.ParameterDef} map (used by LangChain4j to build native schema
  * types without re-parsing) and a pre-built JSON Schema string (used directly by Spring AI and OpenAI).
  *
- * @since 4.21
+ * @since 4.22
  */
 public class AiToolSpec {
 

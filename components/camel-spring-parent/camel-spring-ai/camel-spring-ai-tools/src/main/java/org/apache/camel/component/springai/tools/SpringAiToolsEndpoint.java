@@ -38,6 +38,8 @@ import org.apache.camel.spi.UriEndpoint;
 import org.apache.camel.spi.UriParam;
 import org.apache.camel.spi.UriPath;
 import org.apache.camel.support.DefaultEndpoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.function.FunctionToolCallback;
 import org.springframework.ai.tool.metadata.ToolMetadata;
@@ -50,6 +52,7 @@ import static org.apache.camel.component.springai.tools.SpringAiTools.SCHEME;
              category = { Category.AI })
 public class SpringAiToolsEndpoint extends DefaultEndpoint {
 
+    private static final Logger LOG = LoggerFactory.getLogger(SpringAiToolsEndpoint.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Metadata(required = true)
@@ -106,8 +109,14 @@ public class SpringAiToolsEndpoint extends DefaultEndpoint {
                                                 + "Example: spring-ai-chat:chat?tags=weather&chatClient=#chatClient");
     }
 
+    @Deprecated(since = "4.22", forRemoval = true)
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
+        LOG.warn("spring-ai-tools consumer is deprecated and will be removed in a future release. "
+                 + "Replace from(\"spring-ai-tools:{}\") with from(\"ai-tool:{}\"). "
+                 + "See the 4.22 upgrade guide.",
+                toolId, toolId);
+
         if (description == null) {
             throw new IllegalArgumentException(
                     "In order to use the spring-ai-tools component as a consumer, you need to specify at least description");

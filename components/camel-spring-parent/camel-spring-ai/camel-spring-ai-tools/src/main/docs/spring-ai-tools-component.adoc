@@ -14,6 +14,8 @@
 
 *{component-header}*
 
+IMPORTANT: *Deprecated since Camel 4.22.* The `spring-ai-tools` consumer is deprecated and will be removed in a future release. Use the xref:ai-tool-component.adoc[AI Tool Component] (`ai-tool:`) instead, which provides a framework-agnostic tool registry shared across all AI components (Spring AI, LangChain4j, OpenAI). See the xref:camel-4x-upgrade-guide-4_22.adoc[4.22 upgrade guide] for migration instructions.
+
 The Spring AI Tools component provides support for integrating function calling capabilities with https://docs.spring.io/spring-ai/reference/api/tools.html[Spring AI] chat models. This component enables AI models to invoke Camel routes as tools/functions, allowing the model to perform actions, retrieve data, or interact with external systems during conversations.
 
 Function calling (also known as tool use) allows AI models to:
@@ -43,14 +45,14 @@ include::partial$component-endpoint-headers.adoc[]
 
 The Camel Spring AI Tools component is used as a consumer to expose Camel routes as tools that AI models can call. The route processes tool invocations and returns results to the model.
 
-IMPORTANT: This component is designed to work with the xref:spring-ai-chat-component.adoc[Spring AI Chat Component]. Define tools using `spring-ai-tools` consumer endpoints, then use them via `spring-ai-chat` with the `tags` parameter. See the <<Integration with Spring AI Chat Component>> section below for details.
+IMPORTANT: This component is designed to work with the xref:spring-ai-chat-component.adoc[Spring AI Chat Component]. Define tools using `ai-tool` consumer endpoints, then use them via `spring-ai-chat` with the `tags` parameter. See the <<Integration with Spring AI Chat Component>> section below for details.
 
 === Basic Tool Definition
 
 ._Java-only: Java DSL with class literal parameter_
 [source,java]
 ----
-from("spring-ai-tools:weatherTool?tags=weather&description=Get current weather for a location")
+from("ai-tool:weatherTool?tags=weather&description=Get current weather for a location")
     .log("Getting weather for ${header.location}")
     .to("https://api.weather.example.com/current")
     .convertBodyTo(String.class);
@@ -65,7 +67,7 @@ Tools can define typed parameters using the `parameter.*` prefix:
 ._Java-only: Java lambda Processor with string concatenation_
 [source,java]
 ----
-from("spring-ai-tools:weatherTool?tags=weather" +
+from("ai-tool:weatherTool?tags=weather" +
     "&description=Get weather forecast" +
     "&name=getWeather" +
     "&parameter.location=string" +
@@ -99,7 +101,7 @@ public class WeatherRequest {
     // getters and setters
 }
 
-from("spring-ai-tools:weatherTool?tags=weather" +
+from("ai-tool:weatherTool?tags=weather" +
     "&description=Get weather forecast" +
     "&inputType=com.example.WeatherRequest")
     .log("Processing weather request")
@@ -117,7 +119,7 @@ By default, tool results are passed back to the AI model for further processing.
 ._Java-only: Java lambda Processor_
 [source,java]
 ----
-from("spring-ai-tools:calculator?tags=math" +
+from("ai-tool:calculator?tags=math" +
     "&description=Calculate mathematical expressions" +
     "&returnDirect=true")
     .process(exchange -> {
@@ -134,11 +136,11 @@ Tags are used to organize and group tools. The xref:spring-ai-chat-component.ado
 [source,java]
 ----
 // Define tools with tags
-from("spring-ai-tools:weatherTool?tags=weather,external-api" +
+from("ai-tool:weatherTool?tags=weather,external-api" +
     "&description=Get current weather for a location")
     .to("https://weather-api.example.com");
 
-from("spring-ai-tools:timeTool?tags=time,utility" +
+from("ai-tool:timeTool?tags=time,utility" +
     "&description=Get current time")
     .process(exchange -> exchange.getIn().setBody(LocalDateTime.now().toString()));
 
@@ -159,7 +161,7 @@ If a tool execution fails, the error is propagated back to the AI model, which c
 ._Java-only: Java onException handler_
 [source,java]
 ----
-from("spring-ai-tools:riskyOperation?tags=ops&description=Perform risky operation")
+from("ai-tool:riskyOperation?tags=ops&description=Perform risky operation")
     .onException(Exception.class)
         .handled(true)
         .setBody(simple("Error occurred: ${exception.message}"))
@@ -175,7 +177,7 @@ Here's a complete example showing tool registration and usage:
 [source,java]
 ----
 // Register a database query tool
-from("spring-ai-tools:queryDb?tags=database" +
+from("ai-tool:queryDb?tags=database" +
     "&description=Query the customer database" +
     "&parameter.query=string" +
     "&parameter.query.description=SQL query to execute" +
@@ -184,7 +186,7 @@ from("spring-ai-tools:queryDb?tags=database" +
     .convertBodyTo(String.class);
 
 // Register a notification tool
-from("spring-ai-tools:sendNotification?tags=notifications" +
+from("ai-tool:sendNotification?tags=notifications" +
     "&description=Send notification to user" +
     "&parameter.message=string" +
     "&parameter.message.required=true" +
@@ -211,7 +213,7 @@ When a tool is invoked, all tool parameters are set as message headers. The para
 [source,java]
 ----
 // Tool definition with parameter.location=string
-from("spring-ai-tools:myTool?tags=t&parameter.location=string")
+from("ai-tool:myTool?tags=t&parameter.location=string")
     .process(exchange -> {
         String location = exchange.getIn().getHeader("location", String.class);
         // Process with location parameter
@@ -220,13 +222,13 @@ from("spring-ai-tools:myTool?tags=t&parameter.location=string")
 
 == Integration with Spring AI Chat Component
 
-The Spring AI Tools component is designed to work seamlessly with the xref:spring-ai-chat-component.adoc[Spring AI Chat Component]. Define tools using `spring-ai-tools` consumer endpoints, then reference them in `spring-ai-chat` endpoints using the `tags` parameter to enable function calling capabilities.
+The Spring AI Tools component is designed to work seamlessly with the xref:spring-ai-chat-component.adoc[Spring AI Chat Component]. Define tools using `ai-tool` consumer endpoints, then reference them in `spring-ai-chat` endpoints using the `tags` parameter to enable function calling capabilities.
 
 === How the Integration Works
 
 When you configure the `tags` parameter on a `spring-ai-chat` endpoint:
 
-1. The chat component discovers all `spring-ai-tools` consumer endpoints registered with matching tags
+1. The chat component discovers all `ai-tool` consumer endpoints registered with matching tags
 2. These tools are automatically registered with Spring AI's ChatClient as available functions
 3. When a user sends a message, the LLM can decide to call these tools based on the conversation context
 4. The chat component executes the corresponding Camel routes and sends results back to the LLM
@@ -244,8 +246,8 @@ public class ChatWithToolsConfig {
         return new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                // Define tools using spring-ai-tools consumer
-                from("spring-ai-tools:queryCustomers?tags=database" +
+                // Define tools using ai-tool consumer
+                from("ai-tool:queryCustomers?tags=database" +
                      "&description=Search the customer database" +
                      "&parameter.searchTerm=string" +
                      "&parameter.searchTerm.description=Name or company to search for" +
@@ -253,14 +255,14 @@ public class ChatWithToolsConfig {
                     .to("sql:SELECT * FROM customers WHERE name LIKE '%${header.searchTerm}%'?dataSource=#dataSource")
                     .marshal().json();
 
-                from("spring-ai-tools:sendEmail?tags=email" +
+                from("ai-tool:sendEmail?tags=email" +
                      "&description=Send an email to a customer" +
                      "&parameter.email=string" +
                      "&parameter.subject=string" +
                      "&parameter.body=string")
                     .to("smtp://mailserver");
 
-                from("spring-ai-tools:createInvoice?tags=billing" +
+                from("ai-tool:createInvoice?tags=billing" +
                      "&description=Create an invoice for a customer" +
                      "&parameter.customerId=string" +
                      "&parameter.amount=number")
@@ -291,6 +293,7 @@ String response2 = template.requestBody("direct:billingChat",
 
 == See Also
 
+* xref:ai-tool-component.adoc[AI Tool Component]
 * xref:spring-ai-chat-component.adoc[Spring AI Chat Component]
 * https://docs.spring.io/spring-ai/reference/[Spring AI Documentation]
 * https://docs.spring.io/spring-ai/reference/api/tools.html[Spring AI Function Calling]

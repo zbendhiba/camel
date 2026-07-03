@@ -36,10 +36,10 @@ import static org.apache.camel.component.ai.tools.AiTool.SCHEME;
  * Framework-agnostic consumer endpoint that registers a Camel route as an LLM tool in the shared
  * {@link AiToolRegistry}.
  *
- * @since 4.21
+ * @since 4.22
  */
 @UriEndpoint(
-             firstVersion = "4.21.0",
+             firstVersion = "4.22.0",
              scheme = SCHEME,
              title = "AI Tool",
              syntax = "ai-tool:toolId",

@@ -110,8 +110,14 @@ public class LangChain4jToolsEndpoint extends DefaultEndpoint {
         return new LangChain4jToolsProducer(this);
     }
 
+    @Deprecated(since = "4.22", forRemoval = true)
     @Override
     public Consumer createConsumer(Processor processor) throws Exception {
+        LOG.warn("langchain4j-tools consumer is deprecated and will be removed in a future release. "
+                 + "Replace from(\"langchain4j-tools:{}\") with from(\"ai-tool:{}\"). "
+                 + "See the 4.22 upgrade guide.",
+                toolId, toolId);
+
         ToolSpecification.Builder toolSpecificationBuilder = ToolSpecification.builder();
 
         if (camelToolParameter != null) {

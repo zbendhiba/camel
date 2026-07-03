@@ -418,7 +418,7 @@ public interface AiToolEndpointBuilderFactory {
          * an LLM tool in the shared AiToolRegistry.
          * 
          * Category: ai
-         * Since: 4.21
+         * Since: 4.22
          * Maven coordinates: org.apache.camel:camel-ai-tool
          * 
          * Syntax: <code>ai-tool:toolId</code>
@@ -438,7 +438,7 @@ public interface AiToolEndpointBuilderFactory {
          * an LLM tool in the shared AiToolRegistry.
          * 
          * Category: ai
-         * Since: 4.21
+         * Since: 4.22
          * Maven coordinates: org.apache.camel:camel-ai-tool
          * 
          * Syntax: <code>ai-tool:toolId</code>

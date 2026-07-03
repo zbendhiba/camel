@@ -19,7 +19,7 @@ package org.apache.camel.component.ai.tools;
 /**
  * Constants for the AI Tool component.
  *
- * @since 4.21
+ * @since 4.22
  */
 public final class AiTool {
 

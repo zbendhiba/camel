@@ -34,7 +34,7 @@
     <description>Framework-agnostic Camel AI tool abstraction for route-based LLM tools</description>
 
     <properties>
-        <firstVersion>4.21.0</firstVersion>
+        <firstVersion>4.22.0</firstVersion>
         <label>ai</label>
         <title>AI Tool</title>
         <supportLevel>Preview</supportLevel>
