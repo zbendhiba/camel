@@ -3335,6 +3335,19 @@ public interface ComponentsBuilderFactory {
         return Langchain4jAgentComponentBuilderFactory.langchain4jAgent();
     }
     /**
+     * LangChain4j AI Service (camel-langchain4j-ai-service)
+     * Invoke LangChain4j AI Services from Camel routes.
+     * 
+     * Category: ai
+     * Since: 4.23
+     * Maven coordinates: org.apache.camel:camel-langchain4j-ai-service
+     * 
+     * @return the dsl builder
+     */
+    static Langchain4jAiServiceComponentBuilderFactory.Langchain4jAiServiceComponentBuilder langchain4jAiService() {
+        return Langchain4jAiServiceComponentBuilderFactory.langchain4jAiService();
+    }
+    /**
      * LangChain4j Chat (camel-langchain4j-chat)
      * LangChain4j Chat component
      * 

@@ -2620,6 +2620,19 @@ public class EndpointHeaderBuilders {
         return LangChain4jAgentEndpointBuilderFactory.LangChain4jAgentHeaderNameBuilder.INSTANCE;
     }
     /**
+     * LangChain4j AI Service (camel-langchain4j-ai-service)
+     * Invoke LangChain4j AI Services from Camel routes.
+     * 
+     * Category: ai
+     * Since: 4.23
+     * Maven coordinates: org.apache.camel:camel-langchain4j-ai-service
+     * 
+     * @return the dsl builder for the headers' name.
+     */
+    public static LangChain4jAiServiceEndpointBuilderFactory.LangChain4jAiServiceHeaderNameBuilder langchain4jAiService() {
+        return LangChain4jAiServiceEndpointBuilderFactory.LangChain4jAiServiceHeaderNameBuilder.INSTANCE;
+    }
+    /**
      * LangChain4j Chat (camel-langchain4j-chat)
      * LangChain4j Chat component
      * 

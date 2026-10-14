@@ -244,6 +244,7 @@ public interface EndpointBuilderFactory
             org.apache.camel.builder.endpoint.dsl.KuduEndpointBuilderFactory.KuduBuilders,
             org.apache.camel.builder.endpoint.dsl.Lambda2EndpointBuilderFactory.Lambda2Builders,
             org.apache.camel.builder.endpoint.dsl.LangChain4jAgentEndpointBuilderFactory.LangChain4jAgentBuilders,
+            org.apache.camel.builder.endpoint.dsl.LangChain4jAiServiceEndpointBuilderFactory.LangChain4jAiServiceBuilders,
             org.apache.camel.builder.endpoint.dsl.LangChain4jChatEndpointBuilderFactory.LangChain4jChatBuilders,
             org.apache.camel.builder.endpoint.dsl.LangChain4jEmbeddingStoreEndpointBuilderFactory.LangChain4jEmbeddingStoreBuilders,
             org.apache.camel.builder.endpoint.dsl.LangChain4jEmbeddingsEndpointBuilderFactory.LangChain4jEmbeddingsBuilders,

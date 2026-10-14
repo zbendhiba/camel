@@ -281,6 +281,7 @@ public final class ArtifactUtils {
             Map.entry("kubernetes-services", "camel-kubernetes"),
             Map.entry("kudu", "camel-kudu"),
             Map.entry("langchain4j-agent", "camel-langchain4j-agent"),
+            Map.entry("langchain4j-ai-service", "camel-langchain4j-ai-service"),
             Map.entry("langchain4j-chat", "camel-langchain4j-chat"),
             Map.entry("langchain4j-embeddings", "camel-langchain4j-embeddings"),
             Map.entry("langchain4j-embeddingstore", "camel-langchain4j-embeddingstore"),
