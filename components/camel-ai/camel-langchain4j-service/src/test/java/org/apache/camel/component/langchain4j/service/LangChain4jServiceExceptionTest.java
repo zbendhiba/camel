@@ -30,13 +30,14 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
 
 /**
  * Tests exception propagation from AI Service methods to Camel error handlers.
  */
 class LangChain4jServiceExceptionTest extends CamelTestSupport {
 
-    interface FailingService {
+    public interface FailingService {
         String chat(@UserMessage String text);
     }
 
@@ -59,6 +60,12 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
             throw new RuntimeException("Outer", new IOException("Inner"));
         };
         registry.bind("chainedExceptionService", chainedExceptionService);
+
+        // Mock AI Service that throws an Error
+        FailingService errorService = text -> {
+            throw new AssertionError("Service failure");
+        };
+        registry.bind("errorService", errorService);
     }
 
     @Override
@@ -80,6 +87,9 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
 
                 from("direct:chainedException")
                         .to("langchain4j-service:chainedExceptionService");
+
+                from("direct:error")
+                        .to("langchain4j-service:errorService");
             }
         };
     }
@@ -132,5 +142,31 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
                 .hasCauseInstanceOf(IOException.class)
                 .cause()
                 .hasMessage("Inner");
+    }
+
+    /**
+     * Tests that an Error thrown by the AI Service method is propagated as-is, never wrapped in a generic
+     * RuntimeException by the InvocationTargetException unwrapping.
+     */
+    @Test
+    void testErrorPropagatedUnwrapped() {
+        Throwable thrown = catchThrowable(() -> template.sendBody("direct:error", "test message"));
+
+        assertThat(thrown)
+                .as("the Error thrown by the AI Service must fail the exchange")
+                .isNotNull();
+        assertThat(rootCauseOf(thrown))
+                .as("an Error from the AI Service must stay an Error with its original message, "
+                    + "so JVM-level failures are never masked as RuntimeException")
+                .isInstanceOf(AssertionError.class)
+                .hasMessage("Service failure");
+    }
+
+    private static Throwable rootCauseOf(Throwable throwable) {
+        Throwable root = throwable;
+        while (root.getCause() != null) {
+            root = root.getCause();
+        }
+        return root;
     }
 }

@@ -22,6 +22,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.Endpoint;
 import org.apache.camel.spi.annotations.Component;
 import org.apache.camel.support.DefaultComponent;
+import org.apache.camel.util.StringHelper;
 
 import static org.apache.camel.component.langchain4j.service.LangChain4jService.SCHEME;
 
@@ -44,6 +45,7 @@ public class LangChain4jServiceComponent extends DefaultComponent {
 
     @Override
     protected Endpoint createEndpoint(String uri, String remaining, Map<String, Object> parameters) throws Exception {
+        StringHelper.notEmpty(remaining, "serviceName", uri);
         LangChain4jServiceConfiguration configuration = new LangChain4jServiceConfiguration();
         setProperties(configuration, parameters);
         return new LangChain4jServiceEndpoint(uri, this, remaining, configuration);

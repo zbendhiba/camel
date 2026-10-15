@@ -18,9 +18,13 @@ The LangChain4j Service component invokes user-defined https://docs.langchain4j.
 
 The component does not create or configure AI Services. It performs registry lookup and method invocation only.
 
+The AI Service interface must be declared `public`, because the producer invokes it reflectively. A non-public interface is rejected at route startup.
+
+Streaming responses, such as AI Service methods returning `TokenStream`, are not supported in this version. Methods must return a synchronous result.
+
 == Why not the bean component?
 
-The `xref:components::bean-component.adoc[bean]` component can also invoke a registered object. This component adds AI-specific behavior on top:
+The `xref:bean-component.adoc[Bean]` component can also invoke a registered object. This component adds AI-specific behavior on top:
 
 * Parameter binding follows LangChain4j annotations. The body binds to the `@UserMessage` parameter. Headers bind to `@V` template variables and the `@MemoryId` parameter.
 * Fail-fast validation at route startup. Missing services, ambiguous methods, and invalid method names fail before the first message flows.
@@ -61,9 +65,13 @@ Rules:
 
 * A method with multiple parameters must annotate every parameter with `@UserMessage`, `@V`, or `@MemoryId`.
 * At most one parameter can be annotated with `@UserMessage`.
-* `@V` and `@MemoryId` headers are required at runtime. A missing header fails the exchange.
+* `@V("memoryId")` is rejected at route startup: its header would be `CamelLangChain4jServiceMemoryId`, which is reserved for `@MemoryId`. Rename the template variable. Camel headers are case-insensitive, so variants such as `@V("memoryID")` are rejected too.
+* Two `@V` variables that map to the same header are rejected at route startup. Headers are case-insensitive, so this covers both `@V("context")`/`@V("Context")` and `@V("userName")`/`@V("username")`.
+* An empty `@V("")` template variable name is rejected at route startup.
+* At most one parameter can be annotated with `@MemoryId`.
+* `@V` and `@MemoryId` headers are required at runtime. A missing header fails the exchange with an exception caused by `NoSuchHeaderException`, so `onException(NoSuchHeaderException.class)` matches it.
 * Zero-parameter methods are supported. Use a method-level `@UserMessage("...")` template. The message body is ignored.
-* A non-void return value becomes the new message body. A void method leaves the body unchanged.
+* A non-void method's return value becomes the new message body; a `null` return sets the body to `null`. A void method leaves the body unchanged.
 
 == Usage
 
@@ -187,10 +195,13 @@ Startup failures. These fail route startup, before any message flows:
 
 * The service name is not found in the registry.
 * The service does not implement a resolvable business interface, or implements several.
+* The resolved interface is not declared `public`.
 * The interface has multiple methods and no `method` parameter is set.
 * The `method` parameter names a method that does not exist.
 * The method name is overloaded.
-* Parameter binding is ambiguous, such as multiple `@UserMessage` parameters or un-annotated parameters on a multi-parameter method.
+* Parameter binding is ambiguous or invalid, such as conflicting annotations on one parameter, multiple `@UserMessage` or `@MemoryId` parameters, un-annotated parameters on a multi-parameter method, or an empty, colliding, or duplicated `@V` template variable name.
+
+The service lookup and these validations run when the producer starts. With `lazyStartProducer=true` the route starts anyway and the validations run on the first message instead, so the failure routes to the Camel error handler like any other exchange failure.
 
 Exchange failures. These fail the exchange and route to the Camel error handler:
 

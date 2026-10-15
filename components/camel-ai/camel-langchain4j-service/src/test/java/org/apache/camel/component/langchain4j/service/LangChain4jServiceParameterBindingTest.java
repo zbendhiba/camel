@@ -24,6 +24,7 @@ import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.V;
 import org.apache.camel.CamelExecutionException;
+import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.junit5.CamelTestSupport;
 import org.junit.jupiter.api.Test;
@@ -31,31 +32,31 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
+class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
 
     // Mock AI Service interfaces
-    interface UserMessageService {
+    public interface UserMessageService {
         String chat(@UserMessage String text);
     }
 
-    interface TemplateVariableService {
+    public interface TemplateVariableService {
         String analyze(@UserMessage String text, @V("context") String context);
     }
 
-    interface MemoryIdService {
+    public interface MemoryIdService {
         String chat(@UserMessage String text, @MemoryId String memoryId);
     }
 
-    interface VoidReturnService {
+    public interface VoidReturnService {
         void log(@UserMessage String text);
     }
 
-    interface ZeroParameterService {
+    public interface ZeroParameterService {
         @UserMessage("Give me a tip")
         String tip();
     }
 
-    interface TypeConversionService {
+    public interface TypeConversionService {
         String process(@UserMessage Integer number);
     }
 
@@ -141,7 +142,7 @@ public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
         context.start();
 
         String result = template.requestBodyAndHeader("direct:start", "Hello",
-                "CamelLangChain4jServiceMemoryId", "session-123", String.class);
+                LangChain4jServiceHeaders.MEMORY_ID, "session-123", String.class);
 
         assertThat(capturedText.get()).isEqualTo("Hello");
         assertThat(capturedMemoryId.get()).isEqualTo("session-123");
@@ -166,9 +167,38 @@ public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
         context.start();
 
         assertThatThrownBy(() -> template.requestBody("direct:start", "Hello", String.class))
+                .as("a missing @V header must surface as NoSuchHeaderException so users can match it in onException")
                 .isInstanceOf(CamelExecutionException.class)
                 .hasCauseInstanceOf(IllegalArgumentException.class)
-                .hasRootCauseMessage("Required header 'CamelLangChain4jServiceContext' not found for parameter 'context'");
+                .rootCause()
+                .isInstanceOf(NoSuchHeaderException.class)
+                .hasMessageContaining("No 'CamelLangChain4jServiceContext' header available");
+    }
+
+    @Test
+    void testMissingMemoryIdHeaderFails() throws Exception {
+        // Register mock service
+        MemoryIdService mockService = createMockService(MemoryIdService.class, (proxy, method, args) -> {
+            return "should not be called";
+        });
+        context.getRegistry().bind("myAssistant", mockService);
+
+        context.addRoutes(new RouteBuilder() {
+            @Override
+            public void configure() {
+                from("direct:start")
+                        .to("langchain4j-service:myAssistant");
+            }
+        });
+        context.start();
+
+        assertThatThrownBy(() -> template.requestBody("direct:start", "Hello", String.class))
+                .as("a missing @MemoryId header must surface as NoSuchHeaderException, like a missing @V header")
+                .isInstanceOf(CamelExecutionException.class)
+                .hasCauseInstanceOf(IllegalArgumentException.class)
+                .rootCause()
+                .isInstanceOf(NoSuchHeaderException.class)
+                .hasMessageContaining("No 'CamelLangChain4jServiceMemoryId' header available");
     }
 
     @Test
@@ -200,13 +230,15 @@ public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
 
     @Test
     void testZeroParameterMethod() throws Exception {
-        // Track invocation
+        // Track invocation. The sentinel is a non-null array because JDK proxies pass null,
+        // not an empty array, for zero-arg methods - isNull() below relies on that
         AtomicReference<Boolean> methodCalled = new AtomicReference<>(false);
+        AtomicReference<Object[]> capturedArgs = new AtomicReference<>(new Object[0]);
 
         // Register mock service
         ZeroParameterService mockService = createMockService(ZeroParameterService.class, (proxy, method, args) -> {
             methodCalled.set(true);
-            assertThat(args).isNull(); // No arguments
+            capturedArgs.set(args);
             return "Here's a tip";
         });
         context.getRegistry().bind("myAssistant", mockService);
@@ -222,7 +254,12 @@ public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
 
         String result = template.requestBody("direct:start", "ignored", String.class);
 
-        assertThat(methodCalled.get()).isTrue();
+        assertThat(methodCalled.get())
+                .as("the zero-parameter method must still be invoked, even though the message body is ignored")
+                .isTrue();
+        assertThat(capturedArgs.get())
+                .as("a zero-parameter method must be invoked without any argument")
+                .isNull();
         assertThat(result).isEqualTo("Here's a tip");
     }
 
@@ -251,6 +288,58 @@ public class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
 
         assertThat(capturedNumber.get()).isEqualTo(42);
         assertThat(result).isEqualTo("processed: 42");
+    }
+
+    @Test
+    void testNullBodyFails() throws Exception {
+        // Register mock service
+        UserMessageService mockService = createMockService(UserMessageService.class, (proxy, method, args) -> {
+            return "should not be called";
+        });
+        context.getRegistry().bind("myAssistant", mockService);
+
+        context.addRoutes(new RouteBuilder() {
+            @Override
+            public void configure() {
+                from("direct:start")
+                        .to("langchain4j-service:myAssistant");
+            }
+        });
+        context.start();
+
+        assertThatThrownBy(() -> template.requestBody("direct:start", null, String.class))
+                .as("a null body cannot feed the @UserMessage parameter, so the invocation must fail "
+                    + "with a message naming the parameter instead of a NullPointerException downstream")
+                .isInstanceOf(CamelExecutionException.class)
+                .cause()
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Message body is null but parameter 'text' expects a java.lang.String user message");
+    }
+
+    @Test
+    void testTypeConversionFailureFails() throws Exception {
+        // Register mock service
+        TypeConversionService mockService = createMockService(TypeConversionService.class, (proxy, method, args) -> {
+            return "should not be called";
+        });
+        context.getRegistry().bind("myAssistant", mockService);
+
+        context.addRoutes(new RouteBuilder() {
+            @Override
+            public void configure() {
+                from("direct:start")
+                        .to("langchain4j-service:myAssistant");
+            }
+        });
+        context.start();
+
+        assertThatThrownBy(() -> template.requestBody("direct:start", "not-a-number", String.class))
+                .as("a body that cannot be converted to the Integer parameter must fail the invocation "
+                    + "with a message naming the parameter, not pass a wrong value to the AI Service")
+                .isInstanceOf(CamelExecutionException.class)
+                .cause()
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Failed to resolve parameter 'number'");
     }
 
     @Override

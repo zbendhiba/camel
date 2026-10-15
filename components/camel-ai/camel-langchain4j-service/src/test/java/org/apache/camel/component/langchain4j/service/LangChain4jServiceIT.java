@@ -19,6 +19,7 @@ package org.apache.camel.component.langchain4j.service;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import dev.langchain4j.agent.tool.Tool;
+import dev.langchain4j.exception.ModelNotFoundException;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.ollama.OllamaChatModel;
@@ -42,35 +43,38 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Integration tests invoking real LangChain4j AI Services backed by an Ollama model.
+ * <p>
+ * The content assertions (secret word recall, memory recall, tool invocation) depend on the pinned test-infra model
+ * following instructions at temperature 0. If the default model changes, these are the first assertions to re-check.
  */
 @DisabledIfSystemProperty(named = "ci.env.name", matches = ".*", disabledReason = "Requires too much network resources")
-public class LangChain4jServiceIT extends CamelTestSupport {
+class LangChain4jServiceIT extends CamelTestSupport {
 
     @RegisterExtension
     static OllamaService OLLAMA = OllamaServiceFactory.createSingletonService();
 
     // AI Service interfaces
 
-    interface MyAssistant {
+    public interface MyAssistant {
         String chat(@UserMessage String text);
     }
 
-    interface MultiMethodAssistant {
+    public interface MultiMethodAssistant {
         String chat(@UserMessage String text);
 
         String analyze(@UserMessage String text);
     }
 
-    interface ContextAssistant {
+    public interface ContextAssistant {
         @SystemMessage("Use the following context when answering: {{context}}")
         String analyze(@UserMessage String text, @V("context") String context);
     }
 
-    interface MemoryAssistant {
+    public interface MemoryAssistant {
         String chat(@UserMessage String text, @MemoryId String memoryId);
     }
 
-    interface ToolAssistant {
+    public interface ToolAssistant {
         String chat(@UserMessage String text);
     }
 
@@ -205,8 +209,10 @@ public class LangChain4jServiceIT extends CamelTestSupport {
         context.start();
 
         assertThatThrownBy(() -> template.requestBody("direct:start", "Say hello", String.class))
+                .as("the original LangChain4j exception must reach the caller unwrapped from the reflection layer, "
+                    + "so onException clauses can match its real type")
                 .isInstanceOf(CamelExecutionException.class)
-                .cause().isNotNull();
+                .hasCauseInstanceOf(ModelNotFoundException.class);
     }
 
     @Test

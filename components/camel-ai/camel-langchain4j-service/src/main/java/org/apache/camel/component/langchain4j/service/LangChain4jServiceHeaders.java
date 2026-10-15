@@ -19,14 +19,16 @@ package org.apache.camel.component.langchain4j.service;
 import org.apache.camel.spi.Metadata;
 
 /**
- * Template variables bind from headers named CamelLangChain4jService<VariableName>, where the variable name's first
- * letter is uppercased. For example, @V("context") binds from CamelLangChain4jServiceContext.
+ * Header constants for the LangChain4j Service component.
+ * <p>
+ * Template variables bind from headers named {@code CamelLangChain4jService<VariableName>}, where the variable name's
+ * first letter is uppercased. For example, {@code @V("context")} binds from {@code CamelLangChain4jServiceContext}.
  */
 public final class LangChain4jServiceHeaders {
 
     /**
      * Prefix for template variable headers. Template variables bind from headers named
-     * CamelLangChain4jService<VariableName>, where the variable name's first letter is uppercased.
+     * {@code CamelLangChain4jService<VariableName>}, where the variable name's first letter is uppercased.
      */
     public static final String TEMPLATE_VARIABLE_PREFIX = "CamelLangChain4jService";
 
