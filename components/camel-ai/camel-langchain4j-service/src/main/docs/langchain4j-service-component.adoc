@@ -24,7 +24,7 @@ Streaming responses, such as AI Service methods returning `TokenStream`, are not
 
 == Why not the bean component?
 
-The `xref:bean-component.adoc[Bean]` component can also invoke a registered object. This component adds AI-specific behavior on top:
+The xref:bean-component.adoc[Bean] component can also invoke a registered object. This component adds AI-specific behavior on top:
 
 * Parameter binding follows LangChain4j annotations. The body binds to the `@UserMessage` parameter. Headers bind to `@V` template variables and the `@MemoryId` parameter.
 * Fail-fast validation at route startup. Missing services, ambiguous methods, and invalid method names fail before the first message flows.

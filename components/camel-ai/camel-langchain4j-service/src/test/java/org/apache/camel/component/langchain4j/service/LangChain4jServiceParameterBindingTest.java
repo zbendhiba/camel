@@ -26,13 +26,17 @@ import dev.langchain4j.service.V;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.NoSuchHeaderException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.test.junit5.CamelTestSupport;
+import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
+
+    LangChain4jServiceParameterBindingTest() {
+        testConfiguration().withUseRouteBuilder(false);
+    }
 
     // Mock AI Service interfaces
     public interface UserMessageService {
@@ -340,11 +344,6 @@ class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
                 .cause()
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Failed to resolve parameter 'number'");
-    }
-
-    @Override
-    public boolean isUseRouteBuilder() {
-        return false;
     }
 
     /**

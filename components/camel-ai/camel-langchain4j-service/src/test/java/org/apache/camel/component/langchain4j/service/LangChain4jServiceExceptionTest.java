@@ -25,7 +25,7 @@ import org.apache.camel.RoutesBuilder;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spi.Registry;
-import org.apache.camel.test.junit5.CamelTestSupport;
+import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,6 +39,15 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
 
     public interface FailingService {
         String chat(@UserMessage String text);
+    }
+
+    /**
+     * Dedicated Error subclass, so the test does not rely on a test-framework type such as AssertionError.
+     */
+    private static final class ServiceFailureError extends Error {
+        ServiceFailureError(String message) {
+            super(message);
+        }
     }
 
     @Override
@@ -63,7 +72,7 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
 
         // Mock AI Service that throws an Error
         FailingService errorService = text -> {
-            throw new AssertionError("Service failure");
+            throw new ServiceFailureError("Service failure");
         };
         registry.bind("errorService", errorService);
     }
@@ -155,18 +164,13 @@ class LangChain4jServiceExceptionTest extends CamelTestSupport {
         assertThat(thrown)
                 .as("the Error thrown by the AI Service must fail the exchange")
                 .isNotNull();
-        assertThat(rootCauseOf(thrown))
+        // Assert the direct cause, not the root cause: a producer that wrapped the Error in a
+        // RuntimeException would still show the Error as root cause, and the test must fail then
+        Throwable unwrapped = thrown instanceof CamelExecutionException ? thrown.getCause() : thrown;
+        assertThat(unwrapped)
                 .as("an Error from the AI Service must stay an Error with its original message, "
                     + "so JVM-level failures are never masked as RuntimeException")
-                .isInstanceOf(AssertionError.class)
+                .isExactlyInstanceOf(ServiceFailureError.class)
                 .hasMessage("Service failure");
-    }
-
-    private static Throwable rootCauseOf(Throwable throwable) {
-        Throwable root = throwable;
-        while (root.getCause() != null) {
-            root = root.getCause();
-        }
-        return root;
     }
 }

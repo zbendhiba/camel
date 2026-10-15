@@ -32,7 +32,7 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.test.infra.ollama.services.OllamaService;
 import org.apache.camel.test.infra.ollama.services.OllamaServiceFactory;
-import org.apache.camel.test.junit5.CamelTestSupport;
+import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -49,6 +49,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 @DisabledIfSystemProperty(named = "ci.env.name", matches = ".*", disabledReason = "Requires too much network resources")
 class LangChain4jServiceIT extends CamelTestSupport {
+
+    LangChain4jServiceIT() {
+        testConfiguration().withUseRouteBuilder(false);
+    }
 
     @RegisterExtension
     static OllamaService OLLAMA = OllamaServiceFactory.createSingletonService();
@@ -238,11 +242,6 @@ class LangChain4jServiceIT extends CamelTestSupport {
 
         assertThat(response).isNotBlank();
         assertThat(toolInvoked).isTrue();
-    }
-
-    @Override
-    public boolean isUseRouteBuilder() {
-        return false;
     }
 
     private ChatModel chatModel() {

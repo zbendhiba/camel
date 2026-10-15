@@ -27,7 +27,7 @@ import org.apache.camel.FailedToStartRouteException;
 import org.apache.camel.NoSuchBeanException;
 import org.apache.camel.RuntimeCamelException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.test.junit5.CamelTestSupport;
+import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +38,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * the lazyStartProducer deferral of those failures to the first message.
  */
 class LangChain4jServiceValidationTest extends CamelTestSupport {
+
+    LangChain4jServiceValidationTest() {
+        testConfiguration().withUseRouteBuilder(false);
+    }
 
     // Mock AI Service interfaces exercising each validation branch
 
@@ -374,11 +378,6 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
                 .rootCause()
                 .isInstanceOf(NoSuchBeanException.class)
                 .hasMessageContaining("No bean could be found in the registry for: missing");
-    }
-
-    @Override
-    public boolean isUseRouteBuilder() {
-        return false;
     }
 
     private void addRouteTo(String endpointUri) throws Exception {

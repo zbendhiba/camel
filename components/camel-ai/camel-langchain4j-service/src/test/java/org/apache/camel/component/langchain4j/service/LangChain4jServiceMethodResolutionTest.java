@@ -20,13 +20,17 @@ import java.lang.reflect.Proxy;
 
 import org.apache.camel.FailedToStartRouteException;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.test.junit5.CamelTestSupport;
+import org.apache.camel.test.junit6.CamelTestSupport;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class LangChain4jServiceMethodResolutionTest extends CamelTestSupport {
+
+    LangChain4jServiceMethodResolutionTest() {
+        testConfiguration().withUseRouteBuilder(false);
+    }
 
     // Mock AI Service interfaces
     public interface SingleMethodService {
@@ -217,11 +221,6 @@ class LangChain4jServiceMethodResolutionTest extends CamelTestSupport {
                 .isInstanceOf(FailedToStartRouteException.class)
                 .hasMessageContaining("has multiple methods named 'chat'")
                 .hasMessageContaining("Method overloading is not supported");
-    }
-
-    @Override
-    public boolean isUseRouteBuilder() {
-        return false;
     }
 
     /**
