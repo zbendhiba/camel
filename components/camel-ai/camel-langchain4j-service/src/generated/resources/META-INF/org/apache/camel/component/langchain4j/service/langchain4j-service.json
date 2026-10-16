@@ -5,7 +5,7 @@
     "title": "LangChain4j Service",
     "description": "Invoke LangChain4j AI Services and agents from Camel routes.",
     "deprecated": false,
-    "firstVersion": "4.23.0",
+    "firstVersion": "4.24.0",
     "label": "ai",
     "javaType": "org.apache.camel.component.langchain4j.service.LangChain4jServiceComponent",
     "supportLevel": "Preview",

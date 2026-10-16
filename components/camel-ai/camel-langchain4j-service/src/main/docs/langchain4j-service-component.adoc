@@ -3,7 +3,7 @@
 :shortname: langchain4j-service
 :artifactid: camel-langchain4j-service
 :description: Invoke LangChain4j AI Services and agents from Camel routes.
-:since: 4.23
+:since: 4.24
 :supportlevel: Preview
 :tabs-sync-option:
 :component-header: Only producer is supported

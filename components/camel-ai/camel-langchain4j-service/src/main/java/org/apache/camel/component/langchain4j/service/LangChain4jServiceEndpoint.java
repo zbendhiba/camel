@@ -31,7 +31,7 @@ import static org.apache.camel.component.langchain4j.service.LangChain4jService.
 /**
  * Invoke LangChain4j AI Services and agents from Camel routes.
  */
-@UriEndpoint(firstVersion = "4.23.0", scheme = SCHEME,
+@UriEndpoint(firstVersion = "4.24.0", scheme = SCHEME,
              title = "LangChain4j Service",
              syntax = "langchain4j-service:serviceName",
              producerOnly = true,
