@@ -1609,6 +1609,11 @@
       </dependency>
       <dependency>
         <groupId>org.apache.camel</groupId>
+        <artifactId>camel-langchain4j-service</artifactId>
+        <version>4.24.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.camel</groupId>
         <artifactId>camel-langchain4j-tokenizer</artifactId>
         <version>4.24.0-SNAPSHOT</version>
       </dependency>
