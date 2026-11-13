@@ -2,6 +2,7 @@
 package org.apache.camel.component.langchain4j.service;
 
 import javax.annotation.processing.Generated;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.camel.CamelContext;
@@ -22,7 +23,7 @@ public class LangChain4jServiceEndpointConfigurer extends PropertyConfigurerSupp
     @Override
     public boolean configure(CamelContext camelContext, Object obj, String name, Object value, boolean ignoreCase) {
         LangChain4jServiceEndpoint target = (LangChain4jServiceEndpoint) obj;
-        switch (ignoreCase ? name.toLowerCase() : name) {
+        switch (ignoreCase ? name.toLowerCase(Locale.ROOT) : name) {
         case "lazystartproducer":
         case "lazyStartProducer": target.setLazyStartProducer(property(camelContext, boolean.class, value)); return true;
         case "method": target.getConfiguration().setMethod(property(camelContext, java.lang.String.class, value)); return true;
@@ -32,7 +33,7 @@ public class LangChain4jServiceEndpointConfigurer extends PropertyConfigurerSupp
 
     @Override
     public Class<?> getOptionType(String name, boolean ignoreCase) {
-        switch (ignoreCase ? name.toLowerCase() : name) {
+        switch (ignoreCase ? name.toLowerCase(Locale.ROOT) : name) {
         case "lazystartproducer":
         case "lazyStartProducer": return boolean.class;
         case "method": return java.lang.String.class;
@@ -43,7 +44,7 @@ public class LangChain4jServiceEndpointConfigurer extends PropertyConfigurerSupp
     @Override
     public Object getOptionValue(Object obj, String name, boolean ignoreCase) {
         LangChain4jServiceEndpoint target = (LangChain4jServiceEndpoint) obj;
-        switch (ignoreCase ? name.toLowerCase() : name) {
+        switch (ignoreCase ? name.toLowerCase(Locale.ROOT) : name) {
         case "lazystartproducer":
         case "lazyStartProducer": return target.isLazyStartProducer();
         case "method": return target.getConfiguration().getMethod();

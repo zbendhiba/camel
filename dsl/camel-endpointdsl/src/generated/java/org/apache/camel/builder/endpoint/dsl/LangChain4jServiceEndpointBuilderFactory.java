@@ -45,8 +45,8 @@ public interface LangChain4jServiceEndpointBuilderFactory {
         }
 
         /**
-         * The method name to invoke on the AI Service interface. Required when
-         * the interface has multiple methods.
+         * The method name to invoke on the AI Service. Required as soon as the
+         * registered instance exposes several methods.
          * 
          * The option is a: <code>java.lang.String</code> type.
          * 
