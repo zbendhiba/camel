@@ -22,8 +22,6 @@ The AI Service interface must be declared `public`, because the producer invokes
 
 Streaming responses, such as AI Service methods returning `TokenStream`, are not supported in this version. Methods must return a synchronous result.
 
-The AI Service bean must expose exactly one business interface. Client proxies created by a framework, such as CDI or Spring AOP, implement container interfaces on top of the business interface, so interface resolution fails at route startup with a `multiple business interfaces` error. Register a service built directly with `AiServices.builder(...)` instead, or register a small delegate that exposes only the business interface.
-
 == Why not the bean component?
 
 The xref:bean-component.adoc[Bean] component can also invoke a registered object. This component adds AI-specific behavior on top:
@@ -41,7 +39,9 @@ langchain4j-service:serviceName[?method=methodName]
 
 Where *serviceName* is the name of the AI Service bean in the Camel registry.
 
-The `method` parameter is optional when the AI Service interface has a single business method. It is required when the interface has multiple business methods. Method overloading is not supported: method names must be unique.
+A `default` method counts as a method: it is callable, and a service built by a framework implements it as a concrete method, so there is no way to tell it apart. A `static` method is never a candidate.
+
+The `method` parameter is optional when the registered instance exposes a single method. It is required as soon as there are several, which is the normal case when a framework builds the service: the framework's own methods sit next to the AI Service ones. Method overloading is not supported: method names must be unique.
 
 // component options: START
 include::partial$component-configure-options.adoc[]
@@ -208,13 +208,18 @@ camelContext.getRegistry().bind("storyWriter", agent);
 
 from("direct:story")
     .setHeader(LangChain4jServiceHeaders.VARIABLES, constant(Map.of("topic", "a camel crossing the desert")))
-    .to("langchain4j-service:storyWriter");
+    .to("langchain4j-service:storyWriter?method=writeStory");
 ----
 
-An agentic workflow, such as a sequence, a parallel, a loop, a conditional, a supervisor or a planner, is itself an agent, so it is invoked the same way. Every workflow kind is built over the same proxy shape, so they all behave alike here. The whole workflow runs inside the single invocation, and the value of its output key becomes the message body:
+An agentic workflow, such as a sequence, a parallel, a loop, a conditional, a supervisor or a planner, is itself an agent, so it is invoked the same way. Every workflow kind is built the same way, so they all behave alike here. The whole workflow runs inside the single invocation, and the value of its output key becomes the message body:
 
 [source,java]
 ----
+public interface StoryFlowAgent {
+    @Agent
+    String writeLoudStory(@V("topic") String topic);
+}
+
 StoryFlowAgent flow = AgenticServices.sequenceBuilder(StoryFlowAgent.class)
         .subAgents(writer, rewriter)
         .outputKey("loudStory")
@@ -224,21 +229,20 @@ camelContext.getRegistry().bind("storyFlow", flow);
 
 from("direct:story")
     .setHeader(LangChain4jServiceHeaders.VARIABLES, constant(Map.of("topic", "a camel crossing the desert")))
-    .to("langchain4j-service:storyFlow");
+    .to("langchain4j-service:storyFlow?method=writeLoudStory");
 ----
 
-`AgenticServices` builds its proxies over the agent interface plus its own framework interfaces, such as `InternalAgent` and `AgenticScopeOwner`. Interface resolution discards every `dev.langchain4j.*` interface, so the agent interface is the one left.
+`AgenticServices` builds its services over the agent interface plus its own framework interfaces, such as `InternalAgent` and `AgenticScopeOwner`. Their methods sit next to the agent method, so set `method` to the name of the agent method.
 
-Untyped agents are not supported. The no-argument builders return a LangChain4j interface instead of a user interface: `UntypedAgent` for `agentBuilder()`, `sequenceBuilder()` and the other workflow builders, `SupervisorAgent` for `supervisorBuilder()`. Resolution discards those like any other framework interface, so no business interface is left. Use the typed builders, which take the agent interface as an argument.
+Untyped agents are not supported in this version. The no-argument builders return a LangChain4j interface instead of a user interface: `UntypedAgent` for `agentBuilder()`, `sequenceBuilder()` and the other workflow builders, `SupervisorAgent` for `supervisorBuilder()`. Those carry no LangChain4j parameter annotations, so there is nothing to bind the body and headers to. Use the typed builders, which take the agent interface as an argument.
 
 == Error handling
 
 Startup failures. These fail route startup, before any message flows:
 
 * The service name is not found in the registry.
-* The service does not implement a resolvable business interface, or implements several.
-* The resolved interface is not declared `public`.
-* The interface has multiple methods and no `method` parameter is set.
+* The service exposes no method to invoke.
+* The service exposes several methods and no `method` parameter is set.
 * The `method` parameter names a method that does not exist.
 * The method name is overloaded.
 * Parameter binding is ambiguous or invalid, such as conflicting annotations on one parameter, multiple `@UserMessage` or `@MemoryId` parameters, un-annotated parameters on a multi-parameter method, or an empty, colliding, or duplicated `@V` template variable name.

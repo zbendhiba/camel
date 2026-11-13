@@ -277,7 +277,7 @@ class LangChain4jServiceIT extends CamelTestSupport {
             @Override
             public void configure() {
                 from("direct:start")
-                        .to("langchain4j-service:storyWriter");
+                        .to("langchain4j-service:storyWriter?method=writeStory");
             }
         });
         context.start();
@@ -310,7 +310,7 @@ class LangChain4jServiceIT extends CamelTestSupport {
             @Override
             public void configure() {
                 from("direct:start")
-                        .to("langchain4j-service:storyFlow");
+                        .to("langchain4j-service:storyFlow?method=writeLoudStory");
             }
         });
         context.start();

@@ -78,7 +78,7 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
         String greet(String text);
     }
 
-    // Methodless marker: interface resolution must filter it out as a candidate
+    // Methodless marker: it contributes no method, so it cannot make the resolution ambiguous
     public interface MarkerInterface {
     }
 
@@ -89,12 +89,11 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
         }
     }
 
-    // The business interface comes from the superclass; Serializable and the marker must be filtered out
+    // The method comes from the superclass; Serializable and the marker contribute none
     static class ConcreteGreetingBean extends BaseGreetingBean implements Serializable, MarkerInterface {
     }
 
-    // Intentionally package-private: the producer must reject it instead of failing later with
-    // an obscure IllegalAccessException on the first message
+    // Intentionally package-private: Camel's bean binding makes the method accessible before invoking it
     interface NonPublicService {
         String chat(@UserMessage String text);
     }
@@ -218,10 +217,10 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
             addRouteTo("langchain4j-service:myAssistant");
             context.start();
         })
-                .as("an empty @V name cannot map to any header, and the error must name the faulty parameter "
-                    + "so the user can find it among several services")
+                .as("an empty @V name leaves nothing to name the parameter by, so the error falls back to its "
+                    + "position, which must be stated as a position and counted from one")
                 .isInstanceOf(FailedToStartRouteException.class)
-                .hasMessageContaining("Parameter 'context'")
+                .hasMessageContaining("Parameter at position 2")
                 .hasMessageContaining("has an empty @V template variable name");
     }
 
@@ -238,9 +237,9 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
     }
 
     @Test
-    void testPlainBeanInterfaceResolvedThroughClassHierarchy() throws Exception {
-        // A plain bean (not a JDK proxy): resolution must walk the superclass to find the business
-        // interface and filter out java.* interfaces and interfaces without business methods
+    void testPlainBeanMethodResolvedThroughClassHierarchy() throws Exception {
+        // A plain bean: the method is declared on an interface of a superclass, and the parameter
+        // annotations live on that interface rather than on the registered class
         context.getRegistry().bind("myAssistant", new ConcreteGreetingBean());
 
         addRouteTo("langchain4j-service:myAssistant");
@@ -249,59 +248,14 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
         String result = template.requestBody("direct:start", "Hello", String.class);
 
         assertThat(result)
-                .as("the business interface inherited from the superclass must be resolved, with "
-                    + "Serializable and the methodless marker interface discarded as candidates")
+                .as("the method inherited through the superclass must be found and invoked, with "
+                    + "Serializable and the methodless marker contributing no candidate")
                 .isEqualTo("greetings Hello");
     }
 
     @Test
-    void testNonPublicInterfaceFails() {
+    void testNonPublicInterfaceIsInvokable() throws Exception {
         context.getRegistry().bind("myAssistant", createMockService(NonPublicService.class));
-
-        assertThatThrownBy(() -> {
-            addRouteTo("langchain4j-service:myAssistant");
-            context.start();
-        })
-                .as("the producer invokes the interface reflectively, so a non-public interface must be "
-                    + "rejected at startup instead of failing with IllegalAccessException on the first message")
-                .isInstanceOf(FailedToStartRouteException.class)
-                .hasMessageContaining("is not public")
-                .hasMessageContaining("must be declared public");
-    }
-
-    @Test
-    void testMultipleBusinessInterfacesFails() {
-        context.getRegistry().bind("myAssistant", new MultiInterfaceBean());
-
-        assertThatThrownBy(() -> {
-            addRouteTo("langchain4j-service:myAssistant");
-            context.start();
-        })
-                .as("a bean implementing two business interfaces is ambiguous, "
-                    + "so route startup must fail and list the candidates")
-                .isInstanceOf(FailedToStartRouteException.class)
-                .hasMessageContaining("implements multiple business interfaces")
-                .hasMessageContaining(FirstBusinessInterface.class.getName())
-                .hasMessageContaining(SecondBusinessInterface.class.getName());
-    }
-
-    @Test
-    void testNoBusinessInterfaceFails() {
-        context.getRegistry().bind("myAssistant", new Object());
-
-        assertThatThrownBy(() -> {
-            addRouteTo("langchain4j-service:myAssistant");
-            context.start();
-        })
-                .as("a bean implementing no interface cannot be an AI Service, "
-                    + "so route startup must fail with a clear message")
-                .isInstanceOf(FailedToStartRouteException.class)
-                .hasMessageContaining("does not implement any valid business interface");
-    }
-
-    @Test
-    void testDefaultAndStaticMethodsExcludedFromResolution() throws Exception {
-        context.getRegistry().bind("myAssistant", createMockService(DefaultAndStaticMethodService.class));
 
         addRouteTo("langchain4j-service:myAssistant");
         context.start();
@@ -309,27 +263,101 @@ class LangChain4jServiceValidationTest extends CamelTestSupport {
         String result = template.requestBody("direct:start", "Hello", String.class);
 
         assertThat(result)
-                .as("default and static methods are not business methods: with them excluded, 'chat' is the "
-                    + "single candidate and must be auto-selected without a method parameter")
+                .as("a package-private AI Service interface must work: the invocation goes through Camel's "
+                    + "bean binding, which grants access before calling, so there is nothing to reject")
                 .isEqualTo("response from chat");
     }
 
     @Test
-    void testAgentProxyFrameworkInterfacesExcludedFromResolution() throws Exception {
-        // AgenticServices builds the agent proxy over the user's agent interface plus its own framework
-        // interfaces; without filtering them out, resolution would report multiple business interfaces
+    void testMultipleMethodsWithoutMethodParameterFails() {
+        context.getRegistry().bind("myAssistant", new MultiInterfaceBean());
+
+        assertThatThrownBy(() -> {
+            addRouteTo("langchain4j-service:myAssistant");
+            context.start();
+        })
+                .as("a bean exposing the methods of two interfaces is ambiguous, so route startup must fail, "
+                    + "ask for the method parameter and list what is available")
+                .isInstanceOf(FailedToStartRouteException.class)
+                .hasMessageContaining("has multiple methods")
+                .hasMessageContaining("Specify method parameter")
+                .hasMessageContaining("analyze")
+                .hasMessageContaining("chat");
+    }
+
+    @Test
+    void testMultipleMethodsWithMethodParameterSucceeds() throws Exception {
+        context.getRegistry().bind("myAssistant", new MultiInterfaceBean());
+
+        addRouteTo("langchain4j-service:myAssistant?method=analyze");
+        context.start();
+
+        String result = template.requestBody("direct:start", "Hello", String.class);
+
+        assertThat(result)
+                .as("naming the method resolves the ambiguity, whichever interface declares it")
+                .isEqualTo("analyze");
+    }
+
+    @Test
+    void testBeanWithNoInvokableMethodFails() {
+        context.getRegistry().bind("myAssistant", new Object());
+
+        assertThatThrownBy(() -> {
+            addRouteTo("langchain4j-service:myAssistant");
+            context.start();
+        })
+                .as("a bean exposing nothing but the java.lang.Object methods cannot be an AI Service, "
+                    + "so route startup must fail with a clear message")
+                .isInstanceOf(FailedToStartRouteException.class)
+                .hasMessageContaining("has no method to invoke");
+    }
+
+    @Test
+    void testStaticMethodIsNotACandidateButDefaultMethodIs() {
+        context.getRegistry().bind("myAssistant", createMockService(DefaultAndStaticMethodService.class));
+
+        assertThatThrownBy(() -> {
+            addRouteTo("langchain4j-service:myAssistant");
+            context.start();
+        })
+                .as("a default method is callable, so it is a candidate and makes the method parameter required; "
+                    + "the static method is never a candidate, so it must not be listed")
+                .isInstanceOf(FailedToStartRouteException.class)
+                .hasMessageContaining("has multiple methods")
+                .hasMessageContaining("Available methods: chat, helper");
+    }
+
+    @Test
+    void testDefaultMethodServiceResolvedWithMethodParameter() throws Exception {
+        context.getRegistry().bind("myAssistant", createMockService(DefaultAndStaticMethodService.class));
+
+        addRouteTo("langchain4j-service:myAssistant?method=chat");
+        context.start();
+
+        String result = template.requestBody("direct:start", "Hello", String.class);
+
+        assertThat(result)
+                .as("naming the method selects it next to the default one")
+                .isEqualTo("response from chat");
+    }
+
+    @Test
+    void testAgentServiceMethodSelectedAmongFrameworkMethods() throws Exception {
+        // AgenticServices builds the agent over the user's agent interface plus its own framework
+        // interfaces, so the framework methods sit next to the agent method and must not get in the way
         context.getRegistry().bind("myAgent", createMockService(
                 MyAgent.class, InternalAgent.class, AgenticScopeOwner.class, AgenticScopeAccess.class));
 
-        addRouteTo("langchain4j-service:myAgent");
+        addRouteTo("langchain4j-service:myAgent?method=writeStory");
         context.start();
 
         String result = template.requestBodyAndHeader("direct:start", "ignored",
                 LangChain4jServiceHeaders.VARIABLES, Map.of("topic", "a camel"), String.class);
 
         assertThat(result)
-                .as("the LangChain4j framework interfaces an agent proxy carries must be discarded as "
-                    + "candidates, leaving the agent interface as the single business interface")
+                .as("naming the agent method must select it among the methods the LangChain4j framework "
+                    + "interfaces add, and its @V parameter annotation must still be found")
                 .isEqualTo("response from writeStory");
     }
 

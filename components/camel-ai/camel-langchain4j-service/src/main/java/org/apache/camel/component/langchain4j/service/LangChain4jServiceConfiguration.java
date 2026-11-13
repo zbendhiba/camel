@@ -25,7 +25,7 @@ import org.apache.camel.spi.UriParams;
 @UriParams
 public class LangChain4jServiceConfiguration {
 
-    @UriParam(description = "The method name to invoke on the AI Service interface. Required when the interface has multiple methods.")
+    @UriParam(description = "The method name to invoke on the AI Service. Required as soon as the registered instance exposes several methods.")
     private String method;
 
     public String getMethod() {

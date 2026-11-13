@@ -340,12 +340,13 @@ class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
         context.start();
 
         assertThatThrownBy(() -> template.requestBody("direct:start", null, String.class))
-                .as("a null body cannot feed the @UserMessage parameter, so the invocation must fail "
-                    + "with a message naming the parameter instead of a NullPointerException downstream")
+                .as("a null body cannot feed the @UserMessage parameter, so the invocation must fail with a "
+                    + "message naming the parameter by its role instead of a NullPointerException downstream")
                 .isInstanceOf(CamelExecutionException.class)
                 .cause()
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Message body is null but parameter 'text' expects a java.lang.String user message");
+                .hasMessageContaining(
+                        "Message body is null but the @UserMessage parameter expects a java.lang.String user message");
     }
 
     @Test
@@ -366,12 +367,12 @@ class LangChain4jServiceParameterBindingTest extends CamelTestSupport {
         context.start();
 
         assertThatThrownBy(() -> template.requestBody("direct:start", "not-a-number", String.class))
-                .as("a body that cannot be converted to the Integer parameter must fail the invocation "
-                    + "with a message naming the parameter, not pass a wrong value to the AI Service")
+                .as("a body that cannot be converted to the Integer parameter must fail the invocation with a "
+                    + "message naming the parameter by its role, not pass a wrong value to the AI Service")
                 .isInstanceOf(CamelExecutionException.class)
                 .cause()
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Failed to resolve parameter 'number'");
+                .hasMessageContaining("Failed to resolve the @UserMessage parameter for method 'process'");
     }
 
     /**
